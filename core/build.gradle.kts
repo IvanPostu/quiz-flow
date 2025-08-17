@@ -19,10 +19,16 @@ kotlin {
 
     sourceSets {
         val commonMain by getting {
+
             dependencies {
                 implementation("org.jetbrains:markdown:0.7.3")
                 implementation("io.ktor:ktor-server-core:$ktor_version")
                 implementation("io.ktor:ktor-server-cio:$ktor_version")
+            }
+        }
+        val jvmTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
             }
         }
     }
