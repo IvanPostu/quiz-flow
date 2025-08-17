@@ -1,3 +1,5 @@
+val ktor_version = "3.2.3"
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
 }
@@ -5,7 +7,7 @@ plugins {
 kotlin {
     val hostOs = System.getProperty("os.name")
     val arch = System.getProperty("os.arch")
-    val nativeTarget = when {
+    when {
         hostOs == "Mac OS X" && arch == "x86_64" -> macosX64()
         hostOs == "Mac OS X" && arch == "aarch64" -> macosArm64()
         hostOs == "Linux" -> linuxX64()
@@ -13,11 +15,14 @@ kotlin {
         // Other supported targets are listed here: https://ktor.io/docs/native-server.html#targets
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
+    jvm()
 
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains:markdown:0.7.3")
+                implementation("io.ktor:ktor-server-core:$ktor_version")
+                implementation("io.ktor:ktor-server-cio:$ktor_version")
             }
         }
     }

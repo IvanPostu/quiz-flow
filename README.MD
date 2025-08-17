@@ -16,10 +16,14 @@ A  web app that lets users create custom exams by randomly selecting questions.
 
 ## Setup dev env
 
-- Intellij + Temurin OpenJDK-21
-- run `nix-shell --run bash`
-- build project `./gradlew clean build`
-- run `./webapp/build/bin/native/quiz-poolReleaseExecutable/quiz-pool.kexe`
+- **Install:** Intellij + Temurin OpenJDK-21
+- **Enter shell session:** `nix-shell --run bash`
+- **Build:** `./gradlew clean build`
+- **Run:** `./webapp/build/bin/native/quiz-poolReleaseExecutable/quiz-pool.kexe`
+
+    ---
+
+- **Debug:** `./gradlew :webapp:jvmRun -DmainClass=com.iv127.quizpool.webapp.MainKt`
 
 ## References
 

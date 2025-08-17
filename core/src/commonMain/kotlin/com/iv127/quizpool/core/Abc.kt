@@ -1,6 +1,4 @@
-package com.iv127.quizpool.webapp
-
-import com.iv127.quizpool.core.Greeting
+package com.iv127.quizpool.core
 
 class Abc {
     fun test(): String {

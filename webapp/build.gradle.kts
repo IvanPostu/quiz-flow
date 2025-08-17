@@ -15,6 +15,7 @@ kotlin {
         // Other supported targets are listed here: https://ktor.io/docs/native-server.html#targets
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
+    jvm()
 
     nativeTarget.apply {
         binaries {
@@ -27,8 +28,11 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(projects.core)
-                implementation("io.ktor:ktor-server-core:$ktor_version")
-                implementation("io.ktor:ktor-server-cio:$ktor_version")
+            }
+        }
+        val jvmMain by getting {
+            dependencies {
+
             }
         }
         val nativeMain by getting {
