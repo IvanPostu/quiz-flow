@@ -6,9 +6,12 @@ plugins {
 
 repositories {
     mavenCentral()
+    // maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
 kotlin {
+    jvmToolchain(21)
+
     val hostOs = System.getProperty("os.name")
     val arch = System.getProperty("os.arch")
     val nativeTarget = when {
@@ -27,6 +30,11 @@ kotlin {
         }
     }
     sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation("org.jetbrains:markdown:0.7.3")
+            }
+        }
         val nativeMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-server-core:$ktor_version")
