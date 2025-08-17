@@ -1,3 +1,5 @@
+package com.iv127.quizpool.webapp
+
 import io.ktor.server.application.Application
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
