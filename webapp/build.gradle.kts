@@ -11,6 +11,7 @@ kotlin {
         hostOs == "Mac OS X" && arch == "x86_64" -> macosX64("native")
         hostOs == "Mac OS X" && arch == "aarch64" -> macosArm64("native")
         hostOs == "Linux" -> linuxX64("native")
+        hostOs == "Windows" -> mingwX64("native")
         // Other supported targets are listed here: https://ktor.io/docs/native-server.html#targets
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
@@ -26,13 +27,13 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(projects.core)
-                implementation("org.jetbrains:markdown:0.7.3")
+                implementation("io.ktor:ktor-server-core:$ktor_version")
+                implementation("io.ktor:ktor-server-cio:$ktor_version")
             }
         }
         val nativeMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-server-core:$ktor_version")
-                implementation("io.ktor:ktor-server-cio:$ktor_version")
+
             }
         }
         val nativeTest by getting {
