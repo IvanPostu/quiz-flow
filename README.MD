@@ -14,6 +14,13 @@ A  web app that lets users create custom exams by randomly selecting questions.
 
 - 🌐 **Easy to Use:** Simple, intuitive platform for all users.
 
+## Setup dev env
+
+- Intellij + Temurin OpenJDK-21
+- run `nix-shell --run bash`
+- build project `./gradlew clean build`
+- run `./webapp/build/bin/native/quiz-poolReleaseExecutable/quiz-pool.kexe`
+
 ## References
 
 1. <https://github.com/ktorio/ktor-documentation/blob/3.2.3/codeSnippets/snippets/embedded-server-native/README.md>

@@ -1,12 +1,15 @@
 let 
   pkgs = import <nixpkgs> { config = { allowUnfree = true; }; };
+  shellScriptAbsolutePath = builtins.toString ./shell.nix;
 in
 pkgs.mkShell {
   name = "app-shell";
 
   buildInputs = [
-    pkgs.jdk21
+    pkgs.temurin-bin-21
+    pkgs.pkgs.stdenv.cc.cc.lib # libstdc++.so
     pkgs.libxcrypt-legacy # required for .kexe app to run
+    pkgs.zlib
     
   ];
 
@@ -14,9 +17,12 @@ pkgs.mkShell {
   LC_ALL = "en_US.UTF-8";
 
   shellHook = ''
+        # echo "${pkgs.zlib}"
+        export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
         export LD_LIBRARY_PATH="${pkgs.libxcrypt-legacy}/lib:$LD_LIBRARY_PATH"
+        export LD_LIBRARY_PATH="${pkgs.zlib}/lib:$LD_LIBRARY_PATH"
 
-        export JAVA_HOME=${pkgs.jdk21}
-        export PATH=${pkgs.jdk21}/bin:$PATH
+        export JAVA_HOME=${pkgs.temurin-bin-21}
+        export PATH=${pkgs.temurin-bin-21}/bin:$PATH
   '';
 }
