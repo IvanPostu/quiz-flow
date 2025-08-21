@@ -1,4 +1,4 @@
-package com.iv127.quizpool.core
+package com.iv127.quizflow.core
 
 class Abc {
     fun test(): String {

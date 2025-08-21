@@ -1,6 +1,6 @@
-package com.iv127.quizpool.core.model.quiz.question.resolver
+package com.iv127.quizflow.core.model.quiz.question.resolver
 
-import com.iv127.quizpool.core.model.quiz.question.Question
+import com.iv127.quizflow.core.model.quiz.question.Question
 
 interface QuestionsResolver {
 

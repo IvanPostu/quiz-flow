@@ -1,6 +1,6 @@
-package com.iv127.quizpool.webapp
+package com.iv127.quizflow.webapp
 
-import com.iv127.quizpool.core.quizPoolApplicationModule
+import com.iv127.quizflow.core.quizFlowApplicationModule
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -13,7 +13,7 @@ class ApplicationTest {
     @Test
     fun testRoot() = testApplication {
         application {
-            quizPoolApplicationModule()
+            quizFlowApplicationModule()
         }
         client.get("/").apply {
             assertEquals(HttpStatusCode.OK, status)

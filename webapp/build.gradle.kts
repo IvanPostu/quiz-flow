@@ -20,7 +20,7 @@ kotlin {
     nativeTarget.apply {
         binaries {
             executable(rootProject.name, listOf(RELEASE)) {
-                entryPoint = "com.iv127.quizpool.webapp.main"
+                entryPoint = "com.iv127.quizflow.webapp.main"
             }
         }
     }

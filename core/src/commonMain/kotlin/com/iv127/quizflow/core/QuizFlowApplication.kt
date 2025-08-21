@@ -1,4 +1,4 @@
-package com.iv127.quizpool.core
+package com.iv127.quizflow.core
 
 
 import io.ktor.server.application.Application
@@ -9,13 +9,13 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 
 
-fun runQuizPoolApplication(args: Array<String>) {
-    embeddedServer(CIO, port = 8080, host = "0.0.0.0", module = Application::quizPoolApplicationModule)
+fun runQuizFlowApplication(args: Array<String>) {
+    embeddedServer(CIO, port = 8080, host = "0.0.0.0", module = Application::quizFlowApplicationModule)
         .start(wait = true)
 }
 
 
-fun Application.quizPoolApplicationModule() {
+fun Application.quizFlowApplicationModule() {
     routing {
         get("/") {
             val abc: Abc = Abc()

@@ -1,4 +1,4 @@
-package com.iv127.quizpool.core.model.quiz.question.resolver
+package com.iv127.quizflow.core.model.quiz.question.resolver
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

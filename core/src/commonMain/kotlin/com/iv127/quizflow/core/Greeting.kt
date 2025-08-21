@@ -1,4 +1,4 @@
-package com.iv127.quizpool.core
+package com.iv127.quizflow.core
 
 import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator

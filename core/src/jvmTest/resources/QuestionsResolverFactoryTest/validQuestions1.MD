@@ -11,7 +11,8 @@ C. 3
 D. 4
 E. 5
 
-A. The right answer is 1.
+A, D, E. The right answers are 1, 4, 5.
+The right answers are 1, 4, 5.
 ```
 
 ```java

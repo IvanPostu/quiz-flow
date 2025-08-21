@@ -1,4 +1,4 @@
-rootProject.name = "quiz-pool"
+rootProject.name = "quiz-flow"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
