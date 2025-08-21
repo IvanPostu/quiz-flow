@@ -12,6 +12,17 @@ import org.intellij.markdown.parser.MarkdownParser
 internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResolver {
     companion object {
         private val FENCE_CHILDREN_TYPES_TO_INCLUDE = setOf("EOL", "CODE_FENCE_CONTENT")
+        private val FORMAT_MESSAGE: String = """
+            {Question} - text, can contain any amount of lines with text and new lines
+            
+            A. Answer 1
+            B. Answer 2
+            C. Answer 3
+            <L>. Answer N - where L is an uppercased letter
+            
+            A, B, <L>. text, can contain any amount of lines with text without additional newlines
+            Letters(question identifiers) should match question's letters
+            """.trimMargin().trimMargin()
     }
 
     override fun getType(): QuestionsResolverType {
@@ -61,7 +72,13 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
             fenceAstChildrenNodes.removeLast()
         }
         if (fenceAstChildrenNodes.isEmpty()) {
-            return Result.failure(Exception())
+            return Result.failure(
+                QuestionsResolveException(
+                    QuestionsResolveException.Reason.INVALID_FORMAT,
+                    fenceNode.getTextInNode(rawMarkdown).toString(),
+                    FORMAT_MESSAGE
+                )
+            )
         }
 
         val dividedByDoubleEOLs = divideByDoubleEOLs(fenceAstChildrenNodes)

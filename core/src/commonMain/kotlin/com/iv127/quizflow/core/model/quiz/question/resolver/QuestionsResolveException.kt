@@ -4,6 +4,7 @@ class QuestionsResolveException(val reason: Reason, val rawSource: String, overr
     Exception(message) {
 
     enum class Reason {
-        NO_QUESTIONS_FOUND
+        NO_QUESTIONS_FOUND,
+        INVALID_FORMAT
     }
 }
