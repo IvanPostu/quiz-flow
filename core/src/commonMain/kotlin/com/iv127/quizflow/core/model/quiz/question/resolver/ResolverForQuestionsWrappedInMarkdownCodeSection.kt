@@ -156,6 +156,7 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
             if (i == dividedByDoubleEOLs.size - 3) {
                 break
             }
+            questionTextBuilder.appendLine()
         }
 
         return Result.success(

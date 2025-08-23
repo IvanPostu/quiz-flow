@@ -19,9 +19,10 @@ class QuestionsResolverFactoryTest {
 
         assertEquals(2, questions.size)
         assertEquals(
-            questions[0].question, """1. Question?
+            """1. Question?
+
 41: test;
-"""
+""", questions[0].question
         )
         assertEquals(
             listOf(
@@ -39,9 +40,11 @@ The right answers are 1, 4, 5.""", questions[0].correctAnswerExplanation!!
         )
 
         assertEquals(
-            questions[1].question, """2. Question 2?
+            """2. Question 2?
+
 test
-"""
+""",
+            questions[1].question
         )
         assertEquals(
             listOf(
