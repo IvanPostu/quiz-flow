@@ -22,7 +22,7 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
             
             A, B, <L>. text, can contain any amount of lines with text without additional newlines
             Letters(question identifiers) should match question's letters
-            """.trimMargin().trimMargin()
+            """
     }
 
     override fun getType(): QuestionsResolverType {
@@ -51,10 +51,23 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
             )
         }
 
+        if (questionResults.last().isFailure) {
+            val e = questionResults.last().exceptionOrNull() as QuestionsResolveException
+            return Outcome.Failure(e)
+        }
+
         return Outcome.Success(listOf())
     }
 
     private fun tryToConvertFenceAstNodeToQuestion(
+        fenceNode: CompositeASTNode,
+        rawMarkdown: CharSequence
+    ): Result<Question> {
+        return internalTryToConvertFenceAstNodeToQuestion(fenceNode, rawMarkdown)
+    }
+
+
+    private fun internalTryToConvertFenceAstNodeToQuestion(
         fenceNode: CompositeASTNode,
         rawMarkdown: CharSequence
     ): Result<Question> {
@@ -82,13 +95,89 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
         }
 
         val dividedByDoubleEOLs = divideByDoubleEOLs(fenceAstChildrenNodes)
+        if (dividedByDoubleEOLs.size < 3) {
+            return Result.failure(
+                QuestionsResolveException(
+                    QuestionsResolveException.Reason.REQUIRED_SECTIONS_MISSED,
+                    fenceNode.getTextInNode(rawMarkdown).toString(),
+                    FORMAT_MESSAGE
+                )
+            )
+        }
 
-        fenceAstChildrenNodes.asReversed()
-            .fold(StringBuilder()) { acc, el ->
-                acc.append(el.getTextInNode(rawMarkdown))
-            }.toString()
+        val astNodesOfAnswersExplanation = dividedByDoubleEOLs.last()
+        if (astNodesOfAnswersExplanation.isEmpty()) {
+            return Result.failure(
+                QuestionsResolveException(
+                    QuestionsResolveException.Reason.REQUIRED_SECTIONS_MISSED,
+                    fenceNode.getTextInNode(rawMarkdown).toString(),
+                    "Answer explanation section is empty"
+                )
+            )
+        }
+        val correctAnswerLetters = extractCorrectAnswerLetters(astNodesOfAnswersExplanation.first(), rawMarkdown)
+        val correctAnswerExplanation = astNodesOfAnswersExplanation.fold(StringBuilder()) { acc, node ->
+            acc.append(node.getTextInNode(rawMarkdown))
+            acc
+        }.toString()
+
+        val astNodesOfAnswers = dividedByDoubleEOLs.get(dividedByDoubleEOLs.size - 2)
+        if (astNodesOfAnswers.isEmpty()) {
+            return Result.failure(
+                QuestionsResolveException(
+                    QuestionsResolveException.Reason.REQUIRED_SECTIONS_MISSED,
+                    fenceNode.getTextInNode(rawMarkdown).toString(),
+                    "Answers section is empty"
+                )
+            )
+        }
+        val answerOptionsByLetters = extractAnswerOptionsByLetters(astNodesOfAnswers, rawMarkdown)
+        if (answerOptionsByLetters.isFailure) {
+            return Result.failure(answerOptionsByLetters.exceptionOrNull()!!)
+        }
 
         return Result.failure(Exception())
+    }
+
+    private fun extractAnswerOptionsByLetters(
+        astNodesOfAnswers: List<ASTNode>,
+        rawMarkdown: CharSequence
+    ): Result<Map<Char, String>> {
+        val regex = """^([A-Z])(\.\s).*""".toRegex()
+        val result = LinkedHashMap<Char, String>()
+        for (answerNode in astNodesOfAnswers) {
+            val answerText = answerNode.getTextInNode(rawMarkdown).toString()
+            val matcher = regex.find(answerText)
+            if (matcher != null) {
+                val letter = matcher.groupValues[1].elementAt(0)
+                val previousValue = result.put(letter, answerText)
+                if (previousValue != null) {
+                    return Result.failure(
+                        QuestionsResolveException(
+                            QuestionsResolveException.Reason.DUPLICATED_ANSWERS,
+                            answerText,
+                            """Duplicated letter: $letter"""
+                        )
+                    )
+                }
+            }
+        }
+        return Result.success(result)
+    }
+
+    private fun extractCorrectAnswerLetters(node: ASTNode, rawMarkdown: CharSequence): Set<Char> {
+        val regex = """([A-Z])(,?\.?\s*)""".toRegex()
+        val resultSet = LinkedHashSet<Char>()
+
+        for (match in regex.findAll(node.getTextInNode(rawMarkdown))) {
+            val character = match.groupValues[1].elementAt(0)
+            resultSet.add(character)
+            if (match.groupValues.size == 3 && match.groupValues[2].startsWith(".")) {
+                break
+            }
+        }
+
+        return resultSet
     }
 
     private fun divideByDoubleEOLs(fenceAstChildrenNodes: List<ASTNode>): List<List<ASTNode>> {
@@ -109,8 +198,6 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
         }
         return result
     }
-
-    private data class CorrectAnswerExplanation(val explanation: String, val correctAnswerIds: Set<Char>);
 
     private fun isEOLASTNode(node: ASTNode): Boolean {
         return node.type.name == "EOL"
