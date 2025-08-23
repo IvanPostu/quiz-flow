@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 class QuestionsResolverFactoryTest {
 
     @Test
-    fun testQuestionWrappedInMarkdownSection() {
+    fun testQuestionWrappedInMarkdownSectionHappyPath() {
         val factory = QuestionsResolverFactory()
         val questionsResolver = factory.create(QuestionsResolverType.QUESTION_WRAPPED_IN_MARKDOWN_CODE_SECTION)
 
@@ -14,9 +14,12 @@ class QuestionsResolverFactoryTest {
         val fileContent = resource?.readText() ?: throw IllegalArgumentException("Resource not found")
 
 
-        var questions = questionsResolver.resolve(fileContent)
+        val result = questionsResolver.resolve(fileContent).asResult()
+        val questions = result.getOrThrow()
 
-        assertEquals(1, 12)
+        assertEquals(2, questions.size)
+        assertEquals(questions[0].question)
+        assertEquals(2, questions.size)
     }
 
 }

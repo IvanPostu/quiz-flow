@@ -12,8 +12,9 @@ import org.intellij.markdown.parser.MarkdownParser
 internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResolver {
     companion object {
         private val FENCE_CHILDREN_TYPES_TO_INCLUDE = setOf("EOL", "CODE_FENCE_CONTENT")
-        private val FORMAT_MESSAGE: String = """
-            {Question} - text, can contain any amount of lines with text and new lines
+        private const val FORMAT_MESSAGE: String = """
+            {Question} - text, can contain any amount 
+            of lines with text and new lines
             
             A. Answer 1
             B. Answer 2
@@ -56,7 +57,10 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
             return Outcome.Failure(e)
         }
 
-        return Outcome.Success(listOf())
+        val listOfQuestions = questionResults.map {
+            it.getOrThrow()
+        }
+        return Outcome.Success(listOfQuestions)
     }
 
     private fun tryToConvertFenceAstNodeToQuestion(
@@ -131,12 +135,37 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
                 )
             )
         }
-        val answerOptionsByLetters = extractAnswerOptionsByLetters(astNodesOfAnswers, rawMarkdown)
-        if (answerOptionsByLetters.isFailure) {
-            return Result.failure(answerOptionsByLetters.exceptionOrNull()!!)
+        val answerOptionsByLettersResult = extractAnswerOptionsByLetters(astNodesOfAnswers, rawMarkdown)
+        if (answerOptionsByLettersResult.isFailure) {
+            return Result.failure(answerOptionsByLettersResult.exceptionOrNull()!!)
+        }
+        val answerOptionsByLetters = answerOptionsByLettersResult.getOrThrow()
+        val correctAnswerIndexes = answerOptionsByLetters.entries.fold(Pair(0, mutableListOf<Int>())) { acc, entry ->
+            if (correctAnswerLetters.contains(entry.key)) {
+                acc.second.add(acc.first)
+            }
+            Pair(acc.first + 1, acc.second)
+        }.second.toList()
+
+        val questionTextBuilder = StringBuilder()
+        for (i in dividedByDoubleEOLs.indices) {
+            val nodes = dividedByDoubleEOLs[i]
+            for (node in nodes) {
+                questionTextBuilder.append(node.getTextInNode(rawMarkdown))
+            }
+            if (i == dividedByDoubleEOLs.size - 3) {
+                break
+            }
         }
 
-        return Result.failure(Exception())
+        return Result.success(
+            Question(
+                questionTextBuilder.toString(),
+                answerOptionsByLetters.values.toList(),
+                correctAnswerIndexes,
+                correctAnswerExplanation
+            )
+        )
     }
 
     private fun extractAnswerOptionsByLetters(
