@@ -5,12 +5,14 @@ sealed class Outcome<out T, out E : Exception> {
     data class Failure<out E : Exception>(val exception: E) : Outcome<Nothing, E>()
 
     fun asResult(): Result<T> {
-        if (this is Success) {
-            return Result.success(this.value)
+        return when (this) {
+            is Success -> {
+                Result.success(this.value)
+            }
+
+            is Failure -> {
+                Result.failure(this.exception)
+            }
         }
-        if (this is Failure) {
-            return Result.failure(this.exception)
-        }
-        throw IllegalStateException("""$this can't be mapped to Result type""")
     }
 }
