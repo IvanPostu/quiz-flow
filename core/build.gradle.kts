@@ -29,10 +29,10 @@ kotlin {
                 implementation("io.ktor:ktor-server-cio:$ktor_version")
             }
         }
-        val jvmTest by getting {
-            dependencies {
-                implementation(libs.kotlin.test)
-            }
+                    val jvmTest by getting {
+                dependencies {
+                    implementation(libs.kotlin.test)
+                            }
         }
     }
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

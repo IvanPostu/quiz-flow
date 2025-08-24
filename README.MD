@@ -16,7 +16,9 @@ A  web app that lets users create custom exams by randomly selecting questions.
 
 - **Install:** Intellij + Temurin OpenJDK-21
 - **Enter shell session:** `nix-shell --run bash`
-- **Build:** `./gradlew clean build`
+- **Build:** `./gradlew clean build -PbuildType=RELEASE|DEBUG`
+  - `DEBUG` (default) takes ~5s
+  - `RELEASE` takes ~60s
 - **Run:** `./webapp/build/bin/native/quiz-flowReleaseExecutable/quiz-flow.kexe`
 
     ---
