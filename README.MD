@@ -28,3 +28,4 @@ A  web app that lets users create custom exams by randomly selecting questions.
 1. <https://github.com/ktorio/ktor-documentation/blob/3.2.3/codeSnippets/snippets/embedded-server-native/README.md>
 2. <https://github.com/Kotlin/kmp-logic-sharing-simple-example/tree/main>
 3. <https://regex101.com/>
+4. <https://nequalsonelifestyle.com/2020/11/16/kotlin-native-file-io/>

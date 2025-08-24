@@ -9,9 +9,17 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 
 
-fun runQuizFlowApplication(args: Array<String>) {
-    embeddedServer(CIO, port = 8080, host = "0.0.0.0", module = Application::quizFlowApplicationModule)
-        .start(wait = true)
+fun startQuizFlowApplication(args: Array<String>): QuizFlowApplication {
+    val embeddedServer =
+        embeddedServer(CIO, port = 8080, host = "0.0.0.0", module = Application::quizFlowApplicationModule)
+
+    embeddedServer.start(wait = false)
+
+    return object : QuizFlowApplication {
+        override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
+            embeddedServer.stop(gracePeriodMillis, timeoutMillis)
+        }
+    }
 }
 
 
@@ -22,4 +30,11 @@ fun Application.quizFlowApplicationModule() {
             call.respondText(abc.test())
         }
     }
+}
+
+interface QuizFlowApplication {
+    fun stop(
+        gracePeriodMillis: Long,
+        timeoutMillis: Long
+    )
 }
