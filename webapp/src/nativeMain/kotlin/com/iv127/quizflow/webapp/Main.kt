@@ -10,6 +10,7 @@ import platform.posix.SIGINT
 import platform.posix.signal
 import platform.posix.sleep
 
+
 @OptIn(ExperimentalAtomicApi::class)
 fun main(args: Array<String>) {
     val q = FileIO().readAll("/home/iv127/Projects/quiz-flow/webapp/src/nativeMain/resources/a.txt")
