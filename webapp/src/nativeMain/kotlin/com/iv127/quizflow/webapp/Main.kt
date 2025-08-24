@@ -1,9 +1,9 @@
 package com.iv127.quizflow.webapp
 
+import com.iv127.quizflow.core.QuizFlowApplication
 import com.iv127.quizflow.core.model.quiz.question.file.FileIO
 import com.iv127.quizflow.core.model.quiz.question.file.FileIOUtils
 import com.iv127.quizflow.core.model.quiz.question.proc.ProcessUtils
-import com.iv127.quizflow.core.startQuizFlowApplication
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -21,7 +21,7 @@ fun main(args: Array<String>) {
 
     println(ProcessUtils().getExecutablePath())
 
-    val serverApp = startQuizFlowApplication(args)
+    val serverApp = QuizFlowApplication.startQuizFlowApplication(args)
 
     signal(SIGINT, staticCFunction { signal: Int ->
         isShutdown.value = true

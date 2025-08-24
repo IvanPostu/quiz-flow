@@ -1,7 +1,7 @@
 package com.iv127.quizflow.webapp
 
-import com.iv127.quizflow.core.startQuizFlowApplication
+import com.iv127.quizflow.core.QuizFlowApplication
 
 fun main(args: Array<String>) {
-    startQuizFlowApplication(args)
+    QuizFlowApplication.startQuizFlowApplication(args)
 }
