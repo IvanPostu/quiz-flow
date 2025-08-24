@@ -7,11 +7,12 @@ plugins {
 kotlin {
     val hostOs = System.getProperty("os.name")
     val arch = System.getProperty("os.arch")
+    val isMingwX64 = hostOs.startsWith("Windows")
     when {
         hostOs == "Mac OS X" && arch == "x86_64" -> macosX64()
         hostOs == "Mac OS X" && arch == "aarch64" -> macosArm64()
         hostOs == "Linux" -> linuxX64()
-        hostOs == "Windows" -> mingwX64()
+        isMingwX64 -> mingwX64()
         // Other supported targets are listed here: https://ktor.io/docs/native-server.html#targets
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
@@ -19,7 +20,9 @@ kotlin {
 
     sourceSets {
         val commonMain by getting {
-
+            compilerOptions {
+                freeCompilerArgs.add("-Xexpect-actual-classes")
+            }
             dependencies {
                 implementation("org.jetbrains:markdown:0.7.3")
                 implementation("io.ktor:ktor-server-core:$ktor_version")
@@ -30,6 +33,11 @@ kotlin {
             dependencies {
                 implementation(libs.kotlin.test)
             }
+        }
+    }
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        compilerOptions {
+            freeCompilerArgs.add("-Xexpect-actual-classes")
         }
     }
 }

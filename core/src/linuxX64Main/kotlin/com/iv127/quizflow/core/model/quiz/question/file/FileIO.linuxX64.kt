@@ -1,4 +1,4 @@
-package com.iv127.quizflow.webapp.file
+package com.iv127.quizflow.core.model.quiz.question.file
 
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.CArrayPointer
@@ -10,9 +10,13 @@ import platform.posix.fclose
 import platform.posix.fopen
 import platform.posix.fread
 
-class FileIO {
+actual class FileIO {
+    actual fun readAll(filePath: String): List<ByteArray> {
+        return internalReadAll(filePath)
+    }
+
     @OptIn(ExperimentalForeignApi::class)
-    fun readAll(filePath: String): List<ByteArray> {
+    private fun internalReadAll(filePath: String): List<ByteArray> {
         val file = fopen(filePath, "rb") ?: throw IllegalArgumentException("Cannot open input file $filePath")
         val result = mutableListOf<ByteArray>()
 
@@ -39,5 +43,6 @@ class FileIO {
         val byteArray = cArrayPointer.readBytes(size)
         return byteArray
     }
+
 
 }

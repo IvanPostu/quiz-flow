@@ -1,7 +1,7 @@
 package com.iv127.quizflow.webapp
 
+import com.iv127.quizflow.core.model.quiz.question.file.FileIO
 import com.iv127.quizflow.core.startQuizFlowApplication
-import com.iv127.quizflow.webapp.file.FileIO
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.ExperimentalForeignApi
