@@ -1,6 +1,8 @@
 package com.iv127.quizflow.webapp
 
 import com.iv127.quizflow.core.model.quiz.question.file.FileIO
+import com.iv127.quizflow.core.model.quiz.question.file.FileIOUtils
+import com.iv127.quizflow.core.model.quiz.question.proc.ProcessUtils
 import com.iv127.quizflow.core.startQuizFlowApplication
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
@@ -14,8 +16,10 @@ private val isShutdown: AtomicBoolean = atomic(false)
 
 @OptIn(ExperimentalForeignApi::class)
 fun main(args: Array<String>) {
-    val q = FileIO().readAll("/home/iv127/Projects/quiz-flow/webapp/src/nativeMain/resources/a.txt")
-    println(byteArrayToStringUsingBuffer(q.first()))
+    val aTxtContent = FileIO().readAll(ProcessUtils().getExecutablePath() + "/a.txt")
+    println(FileIOUtils.byteListOfArraysToString(aTxtContent))
+
+    println(ProcessUtils().getExecutablePath())
 
     val serverApp = startQuizFlowApplication(args)
 
@@ -29,11 +33,5 @@ fun main(args: Array<String>) {
     serverApp.stop(10_000, 10_000)
 }
 
-private fun byteArrayToStringUsingBuffer(byteArray: ByteArray): String {
-    val stringBuilder = StringBuilder(byteArray.size)
-    for (byte in byteArray) {
-        stringBuilder.append(byte.toInt().toChar())
-    }
-    return stringBuilder.toString()
-}
+
 
