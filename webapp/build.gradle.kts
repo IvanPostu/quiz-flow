@@ -81,7 +81,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-
+                implementation("org.slf4j:slf4j-simple:2.0.17")
             }
         }
         val nativeMain by getting {
