@@ -49,8 +49,8 @@ kotlin {
 
     tasks {
         val thePackageTask = register("package", Copy::class) {
-            group = "package"
-            description = "Copies the ${buildType.toString().lowercase()} exe and resources into one directory"
+            this.group = "package"
+            this.description = "Copies the ${buildType.toString().lowercase()} exe and resources into one directory"
 
             from("${outputDir}/processedResources/native/main") {
                 include("**/*")
@@ -60,6 +60,9 @@ kotlin {
             }
             from("${outputDir}/libs") {
                 include("${targetBaseName}.jar")
+            }
+            from(project(":core").file("src/commonMain/resources")) {
+                include("**/*")
             }
 
             into("${outputDir}/packaged")
@@ -95,7 +98,7 @@ kotlin {
         binaries {
             executable(listOf(buildType)) {
                 entryPoint = "com.iv127.quizflow.webapp.main"
-                baseName = "${targetBaseName}"
+                baseName = targetBaseName
             }
         }
     }

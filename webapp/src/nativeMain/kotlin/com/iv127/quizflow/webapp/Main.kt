@@ -16,10 +16,11 @@ private val isShutdown: AtomicBoolean = atomic(false)
 
 @OptIn(ExperimentalForeignApi::class)
 fun main(args: Array<String>) {
-    val aTxtContent = FileIO().readAll(ProcessUtils().getExecutablePath() + "/a.txt")
+    val aTxtContent = FileIO().readAll(ProcessUtils().getPathToExecutableDirectory() + "/a.txt")
     println(FileIOUtils.byteListOfArraysToString(aTxtContent))
 
-    println(ProcessUtils().getExecutablePath())
+    println(ProcessUtils().getPathToExecutable())
+    println(ProcessUtils().getPathToExecutableDirectory())
 
     val serverApp = QuizFlowApplication.startQuizFlowApplication(args)
 
