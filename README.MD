@@ -31,3 +31,4 @@ A  web app that lets users create custom exams by randomly selecting questions.
 2. <https://github.com/Kotlin/kmp-logic-sharing-simple-example/tree/main>
 3. <https://regex101.com/>
 4. <https://nequalsonelifestyle.com/2020/11/16/kotlin-native-file-io/>
+5. <https://stackoverflow.com/questions/59596589/how-to-set-up-a-kotlin-native-project-so-that-it-places-resources-alongside-the>

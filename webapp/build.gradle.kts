@@ -21,6 +21,7 @@ kotlin {
     val buildType: NativeBuildType = if (project.hasProperty("buildType")) NativeBuildType.valueOf(
         project.properties.get("buildType").toString()
     ) else NativeBuildType.DEBUG
+    val outputDir = layout.buildDirectory.get().asFile
 
     jvm()
 
@@ -29,15 +30,15 @@ kotlin {
             group = "package"
             description = "Copies the ${buildType.toString().lowercase()} exe and resources into one directory"
 
-            from("${layout.buildDirectory}/processedResources/native/main") {
+            from("${outputDir}/processedResources/native/main") {
                 include("**/*")
             }
 
-            from("${layout.buildDirectory}/bin/native/${buildType.toString().lowercase()}Executable") {
+            from("${outputDir}/bin/native/${buildType.toString().lowercase()}Executable") {
                 include("**/*")
             }
 
-            into("${layout.buildDirectory}/packaged")
+            into("${outputDir}/packaged")
             includeEmptyDirs = false
             dependsOn("nativeProcessResources")
             dependsOn("assemble")
@@ -48,9 +49,9 @@ kotlin {
             description = "Copies the ${buildType.toString().lowercase()} exe and resources into one ZIP file."
 
             archiveFileName.set("packaged.zip")
-            destinationDirectory.set(file("${layout.buildDirectory}/packagedZip"))
+            destinationDirectory.set(file("${outputDir}/packagedZip"))
 
-            from("${layout.buildDirectory}/packaged")
+            from("${outputDir}/packaged")
 
             dependsOn(thePackageTask)
         }
@@ -60,7 +61,7 @@ kotlin {
             group = "package"
             description = "Run the exe file in the \"packaged\" directory."
 
-            workingDir = File("${layout.buildDirectory}/packaged")
+            workingDir = File("${outputDir}/packaged")
 
             dependsOn(thePackageTask)
         }
