@@ -10,7 +10,6 @@ import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.uri
-import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
@@ -66,6 +65,7 @@ fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Applica
         intercept(ApplicationCallPipeline.Call) {
             staticFilesProviderPlugin.intercept(this)
         }
+
         // TODO handler that any undefined request redirects to index.html - for SPA
         // e.g.:
         //     @GetMapping("/{path:^(?!api|static|assets|images|favicon).*}")
@@ -73,11 +73,14 @@ fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Applica
         //        return "forward:/index.html";
         //    }
         routing {
-            get("/api/") {
-                val abc: Abc = Abc()
-                LOGGER.info("param")
-                call.respondText("param")
-            }
+//            get(
+//                "/api/json_test",
+//                webResponse {
+//                    LOGGER.info("param")
+//                    val responseMap = mapOf("a" to "abc", "qwe" to 123)
+//                    JsonWebResponse(mapOf("foo" to "bar"))
+//                }
+//            )
             get("/api/err") {
                 throw IllegalStateException("Custom error")
             }

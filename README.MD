@@ -23,9 +23,7 @@ A web app that allows users to generate personalized quizzes by randomly selecti
   - **native:** `./webapp/build/packaged/quiz-flow-0.0.1.kexe`
   - **jvm:** `java -jar ./webapp/build/packaged/quiz-flow-0.0.1.jar`
 
-    ---
-
-## Setup debuggable
+## Debug
 
 - Run: `./gradlew clean build -PbuildType=DEBUG`
 - In Intellij create debug profile for jar and run `quiz-flow/webapp/build/packaged/quiz-flow-0.0.1.jar`
@@ -37,3 +35,4 @@ A web app that allows users to generate personalized quizzes by randomly selecti
 3. <https://regex101.com/>
 4. <https://nequalsonelifestyle.com/2020/11/16/kotlin-native-file-io/>
 5. <https://stackoverflow.com/questions/59596589/how-to-set-up-a-kotlin-native-project-so-that-it-places-resources-alongside-the>
+6. Lilleaas, August (2023). *Pro Kotlin Web Apps from Scratch*.
