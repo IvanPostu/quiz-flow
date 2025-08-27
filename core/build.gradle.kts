@@ -2,6 +2,7 @@ val ktor_version = "3.2.3"
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinPluginSerialization)
 }
 
 kotlin {

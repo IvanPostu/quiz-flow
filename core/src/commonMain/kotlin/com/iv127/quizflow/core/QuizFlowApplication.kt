@@ -2,6 +2,8 @@ package com.iv127.quizflow.core
 
 import com.iv127.quizflow.core.model.quiz.question.file.FileIO
 import com.iv127.quizflow.core.model.quiz.question.proc.ProcessUtils
+import com.iv127.quizflow.core.server.JsonWebResponse
+import com.iv127.quizflow.core.server.webResponse
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.createRouteScopedPlugin
@@ -14,6 +16,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.Logger
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 class QuizFlowApplication {
     companion object {
@@ -73,17 +77,20 @@ fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Applica
         //        return "forward:/index.html";
         //    }
         routing {
-//            get(
-//                "/api/json_test",
-//                webResponse {
-//                    LOGGER.info("param")
-//                    val responseMap = mapOf("a" to "abc", "qwe" to 123)
-//                    JsonWebResponse(mapOf("foo" to "bar"))
-//                }
-//            )
+            get(
+                "/api/json_test",
+                webResponse {
+                    LOGGER.info("param")
+                    val responseMap = mapOf("a" to "abc", "qwe" to 123)
+                    JsonWebResponse(DummyExample("bar"))
+                }
+            )
             get("/api/err") {
                 throw IllegalStateException("Custom error")
             }
         }
     }
 }
+
+@Serializable
+data class DummyExample(@SerialName("my_val") private val test: String)

@@ -1,16 +1,12 @@
 package com.iv127.quizflow.core.server
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
-import io.ktor.util.pipeline.PipelineContext
-import io.ktor.util.pipeline.PipelineInterceptor
 
-fun webResponse(handler: suspend PipelineContext<Unit, ApplicationCall>.() -> WebResponse):
-    PipelineInterceptor<Unit, ApplicationCall> {
+fun webResponse(handler: suspend io.ktor.server.routing.RoutingContext.() -> WebResponse):
+    suspend io.ktor.server.routing.RoutingContext.() -> kotlin.Unit {
     return {
         val resp: WebResponse = this.handler()
         for ((name, values) in resp.headers())
