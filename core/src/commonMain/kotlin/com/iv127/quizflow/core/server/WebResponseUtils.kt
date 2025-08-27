@@ -6,7 +6,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 
 fun webResponse(handler: suspend io.ktor.server.routing.RoutingContext.() -> WebResponse):
-    suspend io.ktor.server.routing.RoutingContext.() -> kotlin.Unit {
+    suspend io.ktor.server.routing.RoutingContext.() -> Unit {
     return {
         val resp: WebResponse = this.handler()
         for ((name, values) in resp.headers())
@@ -26,10 +26,10 @@ fun webResponse(handler: suspend io.ktor.server.routing.RoutingContext.() -> Web
 
             is JsonWebResponse -> {
                 call.respond(
-                    KtorJsonWebResponse(
+                    KtorJsonWebResponse.create(
                         body = resp.body,
-                        status = statusCode,
-                    ),
+                        status = statusCode
+                    )
                 )
             }
         }

@@ -78,11 +78,9 @@ fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Applica
         //    }
         routing {
             get(
-                "/api/json_test",
+                "/api/health-check",
                 webResponse {
-                    LOGGER.info("param")
-                    val responseMap = mapOf("a" to "abc", "qwe" to 123)
-                    JsonWebResponse(DummyExample("bar"))
+                    JsonWebResponse.create(HealthCheckResponse("SUCCESS"))
                 }
             )
             get("/api/err") {
@@ -93,4 +91,4 @@ fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Applica
 }
 
 @Serializable
-data class DummyExample(@SerialName("my_val") private val test: String)
+data class HealthCheckResponse(@SerialName("status") private val status: String)
