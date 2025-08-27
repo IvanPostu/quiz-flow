@@ -1,6 +1,6 @@
 # Quiz Flow
 
-A  web app that lets users create custom exams by randomly selecting questions.
+A web app that allows users to generate personalized quizzes by randomly selecting questions from a predefined set.
 
 ## Description
 
@@ -19,11 +19,16 @@ A  web app that lets users create custom exams by randomly selecting questions.
 - **Build:** `./gradlew clean build -PbuildType=RELEASE|DEBUG`
   - `DEBUG` (default) takes ~5s
   - `RELEASE` takes ~60s
-- **Run:** `./webapp/build/bin/native/quiz-flowReleaseExecutable/quiz-flow.kexe`
+- **Run:**
+  - **native:** `./webapp/build/packaged/quiz-flow-0.0.1.kexe`
+  - **jvm:** `java -jar ./webapp/build/packaged/quiz-flow-0.0.1.jar`
 
     ---
 
-- **Debug:** `./gradlew :webapp:jvmRun -DmainClass=com.iv127.quizflow.webapp.MainKt`
+## Setup debuggable
+
+- Run: `./gradlew clean build -PbuildType=DEBUG`
+- In Intellij create debug profile for jar and run `quiz-flow/webapp/build/packaged/quiz-flow-0.0.1.jar`
 
 ## References
 

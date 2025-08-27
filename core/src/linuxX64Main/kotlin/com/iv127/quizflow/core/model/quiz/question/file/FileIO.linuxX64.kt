@@ -1,5 +1,6 @@
 package com.iv127.quizflow.core.model.quiz.question.file
 
+import com.iv127.quizflow.core.model.quiz.question.io.IOUtils
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.CArrayPointer
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -11,15 +12,14 @@ import platform.posix.fopen
 import platform.posix.fread
 
 actual class FileIO {
-    actual fun readAll(filePath: String): List<ByteArray> {
-        return internalReadAll(filePath)
+    actual fun readAll(filePath: String): ByteArray {
+        return IOUtils.mergeByteArrays(internalReadAll(filePath))
     }
 
     @OptIn(ExperimentalForeignApi::class)
     private fun internalReadAll(filePath: String): List<ByteArray> {
         val file = fopen(filePath, "rb") ?: throw IllegalArgumentException("Cannot open input file $filePath")
         val result = mutableListOf<ByteArray>()
-
         try {
             memScoped {
                 val readBufferLength = 64 * 1024
@@ -32,17 +32,22 @@ actual class FileIO {
                     result.add(cArrayPointerToByteArray(buffer, bytesRead))
                 }
             }
+            return result
+        } catch (e: Exception) {
+            throw IllegalStateException(e)
         } finally {
             fclose(file)
         }
-        return result
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    fun cArrayPointerToByteArray(cArrayPointer: CArrayPointer<ByteVar>, size: Int): ByteArray {
+    private fun cArrayPointerToByteArray(cArrayPointer: CArrayPointer<ByteVar>, size: Int): ByteArray {
         val byteArray = cArrayPointer.readBytes(size)
         return byteArray
     }
 
+    actual fun getPathSeparator(): String {
+        return "/"
+    }
 
 }

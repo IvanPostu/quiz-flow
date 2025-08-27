@@ -1,6 +1,9 @@
 package com.iv127.quizflow.webapp
 
 import com.iv127.quizflow.core.QuizFlowApplication
+import com.iv127.quizflow.core.model.quiz.question.ResourceUtils
+import com.iv127.quizflow.core.model.quiz.question.file.FileIO
+import com.iv127.quizflow.core.model.quiz.question.io.IOUtils
 import com.iv127.quizflow.core.model.quiz.question.proc.ProcessUtils
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
@@ -13,6 +16,10 @@ fun main(args: Array<String>) {
     println(ProcessUtils().getPathToExecutableDirectory())
     val serverApp = QuizFlowApplication.startQuizFlowApplication(args)
     val isShutdown = AtomicBoolean(false)
+
+    val resourceUtils = ResourceUtils(FileIO(), ProcessUtils())
+    println(IOUtils.byteArrayToString(resourceUtils.readResource("/a.txt")))
+    println(IOUtils.byteArrayToString(resourceUtils.readResource("/abc.json")))
 
     Signal.handle(Signal("INT"), object : SignalHandler {
         override fun handle(signal: Signal?) {

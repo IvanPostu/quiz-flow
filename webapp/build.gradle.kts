@@ -52,20 +52,22 @@ kotlin {
             this.group = "package"
             this.description = "Copies the ${buildType.toString().lowercase()} exe and resources into one directory"
 
-            from("${outputDir}/processedResources/native/main") {
-                include("**/*")
-            }
             from("${outputDir}/bin/native/${buildType.toString().lowercase()}Executable") {
                 include("**/*")
             }
             from("${outputDir}/libs") {
                 include("${targetBaseName}.jar")
             }
+            from("${outputDir}/processedResources/native/main") {
+                include("**/*")
+                into("resources")
+            }
             from(project(":core").file("src/commonMain/resources")) {
                 include("**/*")
+                into("resources")
             }
 
-            into("${outputDir}/packaged")
+            destinationDir = file("${outputDir}/packaged")
             includeEmptyDirs = false
             dependsOn("nativeProcessResources")
             dependsOn("assemble")

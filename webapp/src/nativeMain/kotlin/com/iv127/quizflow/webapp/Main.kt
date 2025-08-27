@@ -1,8 +1,9 @@
 package com.iv127.quizflow.webapp
 
 import com.iv127.quizflow.core.QuizFlowApplication
+import com.iv127.quizflow.core.model.quiz.question.ResourceUtils
 import com.iv127.quizflow.core.model.quiz.question.file.FileIO
-import com.iv127.quizflow.core.model.quiz.question.file.FileIOUtils
+import com.iv127.quizflow.core.model.quiz.question.io.IOUtils
 import com.iv127.quizflow.core.model.quiz.question.proc.ProcessUtils
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
@@ -16,11 +17,12 @@ private val isShutdown: AtomicBoolean = atomic(false)
 
 @OptIn(ExperimentalForeignApi::class)
 fun main(args: Array<String>) {
-    val aTxtContent = FileIO().readAll(ProcessUtils().getPathToExecutableDirectory() + "/a.txt")
-    println(FileIOUtils.byteListOfArraysToString(aTxtContent))
-
     println(ProcessUtils().getPathToExecutable())
     println(ProcessUtils().getPathToExecutableDirectory())
+
+    val resourceUtils = ResourceUtils(FileIO(), ProcessUtils())
+    println(IOUtils.byteArrayToString(resourceUtils.readResource("/a.txt")))
+    println(IOUtils.byteArrayToString(resourceUtils.readResource("/abc.json")))
 
     val serverApp = QuizFlowApplication.startQuizFlowApplication(args)
 

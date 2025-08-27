@@ -1,12 +1,13 @@
 package com.iv127.quizflow.core.model.quiz.question.file
 
+import com.iv127.quizflow.core.model.quiz.question.io.IOUtils
 import java.io.BufferedInputStream
+import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
 
 
 actual class FileIO {
-    actual fun readAll(filePath: String): List<ByteArray> {
+    actual fun readAll(filePath: String): ByteArray {
         val bufferSize = 64 * 1024
         val result = mutableListOf<ByteArray>()
 
@@ -20,10 +21,15 @@ actual class FileIO {
                     System.arraycopy(buffer, 0, batch, 0, bytesRead)
                     result.add(batch)
                 }
-                return result
+                return IOUtils.mergeByteArrays(result)
             }
-        } catch (_: IOException) {
+        } catch (e: Exception) {
+            throw IllegalStateException(e)
         }
-        return result
     }
+
+    actual fun getPathSeparator(): String {
+        return File.separator
+    }
+
 }
