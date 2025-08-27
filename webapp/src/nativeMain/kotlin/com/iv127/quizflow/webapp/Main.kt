@@ -24,7 +24,7 @@ fun main(args: Array<String>) {
     println(IOUtils.byteArrayToString(resourceUtils.readResource("/a.txt")))
     println(IOUtils.byteArrayToString(resourceUtils.readResource("/abc.json")))
 
-    val serverApp = QuizFlowApplication.startQuizFlowApplication(args)
+    val serverApp = QuizFlowApplication.startQuizFlowApplication(args, FileIO(), ProcessUtils())
 
     signal(SIGINT, staticCFunction { signal: Int ->
         isShutdown.value = true

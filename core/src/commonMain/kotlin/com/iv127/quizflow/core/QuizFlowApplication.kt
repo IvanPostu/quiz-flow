@@ -1,10 +1,14 @@
 package com.iv127.quizflow.core
 
+import com.iv127.quizflow.core.model.quiz.question.file.FileIO
+import com.iv127.quizflow.core.model.quiz.question.proc.ProcessUtils
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.request.httpMethod
 import io.ktor.server.request.uri
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
@@ -14,9 +18,18 @@ import io.ktor.util.logging.Logger
 
 class QuizFlowApplication {
     companion object {
-        fun startQuizFlowApplication(args: Array<String>): QuizFlowApplication {
+        fun startQuizFlowApplication(
+            args: Array<String>,
+            fileIo: FileIO,
+            processUtils: ProcessUtils
+        ): QuizFlowApplication {
             val embeddedServer =
-                embeddedServer(CIO, port = 8080, host = "0.0.0.0", module = Application::quizFlowApplicationModule)
+                embeddedServer(
+                    CIO,
+                    port = 8080,
+                    host = "0.0.0.0",
+                    module = createApplicationModule(fileIo, processUtils)
+                )
 
             embeddedServer.start(wait = false)
 
@@ -39,18 +52,35 @@ class QuizFlowApplication {
 
 val LOGGER: Logger = KtorSimpleLogger(QuizFlowApplication.toString())
 
-fun Application.quizFlowApplicationModule() {
-    val RequestTracePlugin = createRouteScopedPlugin("RequestTracePlugin", { }) {
+fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Application.() -> Unit {
+    val pathToPublicDirectory = processUtils.getPathToExecutableDirectory() + "public"
+    val staticFilesProviderPlugin = StaticFilesProvider(fileIo, "/public", pathToPublicDirectory)
+    val requestTracePlugin = createRouteScopedPlugin("RequestTracePlugin", { }) {
         onCall { call ->
-            LOGGER.trace("Processing call: ${call.request.uri}")
+            LOGGER.info("${call.request.httpMethod}: ${call.request.uri}")
         }
     }
-    install(RequestTracePlugin)
-    routing {
-        get("/") {
-            val abc: Abc = Abc()
-            LOGGER.info("test")
-            call.respondText(abc.test())
+
+    return {
+        install(requestTracePlugin)
+        intercept(ApplicationCallPipeline.Call) {
+            staticFilesProviderPlugin.intercept(this)
+        }
+        // TODO handler that any undefined request redirects to index.html - for SPA
+        // e.g.:
+        //     @GetMapping("/{path:^(?!api|static|assets|images|favicon).*}")
+        //    public String redirectToIndex() {
+        //        return "forward:/index.html";
+        //    }
+        routing {
+            get("/api/") {
+                val abc: Abc = Abc()
+                LOGGER.info("param")
+                call.respondText("param")
+            }
+            get("/api/err") {
+                throw IllegalStateException("Custom error")
+            }
         }
     }
 }

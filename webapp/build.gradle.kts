@@ -64,7 +64,11 @@ kotlin {
             }
             from(project(":core").file("src/commonMain/resources")) {
                 include("**/*")
+                exclude("public")
                 into("resources")
+            }
+            from(project(":core").file("src/commonMain/resources")) {
+                include("/public/*")
             }
 
             destinationDir = file("${outputDir}/packaged")

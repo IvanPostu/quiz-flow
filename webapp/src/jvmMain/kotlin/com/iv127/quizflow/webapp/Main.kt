@@ -14,7 +14,7 @@ import sun.misc.SignalHandler
 fun main(args: Array<String>) {
     println(ProcessUtils().getPathToExecutable())
     println(ProcessUtils().getPathToExecutableDirectory())
-    val serverApp = QuizFlowApplication.startQuizFlowApplication(args)
+    val serverApp = QuizFlowApplication.startQuizFlowApplication(args, FileIO(), ProcessUtils())
     val isShutdown = AtomicBoolean(false)
 
     val resourceUtils = ResourceUtils(FileIO(), ProcessUtils())
