@@ -22,8 +22,30 @@ kotlin {
         project.properties.get("buildType").toString()
     ) else NativeBuildType.DEBUG
     val outputDir = layout.buildDirectory.get().asFile
+    val targetBaseName = "quiz-flow-${project.version}"
 
     jvm()
+
+    tasks.named<Jar>("jvmJar") {
+        dependsOn("jvmMainClasses")
+
+        archiveClassifier.set("runnable")
+        from(kotlin.targets["jvm"].compilations["main"].output)
+
+        manifest {
+            attributes(
+                "Main-Class" to "com.iv127.quizflow.webapp.MainKt"
+            )
+        }
+
+        exclude("META-INF/versions/9/module-info.class")
+        exclude("META-INF/LICENSE.txt")
+
+        from({
+            configurations["jvmRuntimeClasspath"].filter { it.name.endsWith("jar") }.map { zipTree(it) }
+        })
+        archiveFileName.set("${targetBaseName}.jar")
+    }
 
     tasks {
         val thePackageTask = register("package", Copy::class) {
@@ -33,9 +55,11 @@ kotlin {
             from("${outputDir}/processedResources/native/main") {
                 include("**/*")
             }
-
             from("${outputDir}/bin/native/${buildType.toString().lowercase()}Executable") {
                 include("**/*")
+            }
+            from("${outputDir}/libs") {
+                include("${targetBaseName}.jar")
             }
 
             into("${outputDir}/packaged")
@@ -71,6 +95,7 @@ kotlin {
         binaries {
             executable(listOf(buildType)) {
                 entryPoint = "com.iv127.quizflow.webapp.main"
+                baseName = "${targetBaseName}"
             }
         }
     }
