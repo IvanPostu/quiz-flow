@@ -64,11 +64,11 @@ kotlin {
             }
             from(project(":core").file("src/commonMain/resources")) {
                 include("**/*")
-                exclude("public")
+                exclude("public") // exclude public folder
                 into("resources")
             }
-            from(project(":core").file("src/commonMain/resources")) {
-                include("/public/*")
+            from(project(":webapp-ui").file("dist")) {
+                include("**/*")
             }
 
             destinationDir = file("${outputDir}/packaged")

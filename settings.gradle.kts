@@ -16,4 +16,5 @@ dependencyResolutionManagement {
 }
 
 include(":webapp")
+include(":webapp-ui")
 include(":core")

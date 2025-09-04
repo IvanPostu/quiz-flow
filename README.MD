@@ -16,9 +16,11 @@ A web app that allows users to generate personalized quizzes by randomly selecti
 
 - **Install:** Intellij + Temurin OpenJDK-21
 - **Enter shell session:** `nix-shell --run bash`
-- **Build:** `./gradlew clean build -PbuildType=RELEASE|DEBUG`
+- **Build(without frontend):** `./gradlew clean build -PbuildType=RELEASE|DEBUG`
   - `DEBUG` (default) takes ~5s
   - `RELEASE` takes ~60s
+- **Build(with frontend):** `./gradlew clean :webapp-ui:runNpmBuild build -PbuildType=DEBUG`
+
 - **Run:**
   - **native:** `./webapp/build/packaged/quiz-flow-0.0.1.kexe`
   - **jvm:** `java -jar ./webapp/build/packaged/quiz-flow-0.0.1.jar`
@@ -26,7 +28,12 @@ A web app that allows users to generate personalized quizzes by randomly selecti
 ## Debug
 
 - Run: `./gradlew clean build -PbuildType=DEBUG`
+
 - In Intellij create debug profile for jar and run `quiz-flow/webapp/build/packaged/quiz-flow-0.0.1.jar`
+  
+  ---
+
+- For the frontend run: `cd webapp-ui/` & `npm run start`
 
 ## References
 
