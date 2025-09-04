@@ -10,7 +10,7 @@ pkgs.mkShell {
     pkgs.pkgs.stdenv.cc.cc.lib # libstdc++.so
     pkgs.libxcrypt-legacy # required for .kexe app to run
     pkgs.zlib
-    
+    pkgs.nodejs_22
   ];
 
   LANG = "en_US.UTF-8";

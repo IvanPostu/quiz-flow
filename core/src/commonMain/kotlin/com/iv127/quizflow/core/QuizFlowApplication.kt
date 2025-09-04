@@ -3,6 +3,7 @@ package com.iv127.quizflow.core
 import com.iv127.quizflow.core.model.quiz.question.file.FileIO
 import com.iv127.quizflow.core.model.quiz.question.proc.ProcessUtils
 import com.iv127.quizflow.core.server.JsonWebResponse
+import com.iv127.quizflow.core.server.TextWebResponse
 import com.iv127.quizflow.core.server.webResponse
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCallPipeline
@@ -70,6 +71,7 @@ fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Applica
             staticFilesProviderPlugin.intercept(this)
         }
 
+        // Regex("^/(?<path>(?!api|test).*)$").find("/home/user")
         // TODO handler that any undefined request redirects to index.html - for SPA
         // e.g.:
         //     @GetMapping("/{path:^(?!api|static|assets|images|favicon).*}")
@@ -83,6 +85,9 @@ fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Applica
                     JsonWebResponse.create(HealthCheckResponse("SUCCESS"))
                 }
             )
+            get("/test/test", webResponse {
+                TextWebResponse("test")
+            })
             get("/api/err") {
                 throw IllegalStateException("Custom error")
             }
