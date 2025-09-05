@@ -55,3 +55,4 @@ Upload file:
 6. Lilleaas, August (2023). *Pro Kotlin Web Apps from Scratch*.
 7. <https://thejoeflow.com/post/handling-multipart-requests-with-ktor>
 8. <https://dev.to/programadorthi/kotlin-routing-routing-everything-1f4j>
+9. <https://stackoverflow.com/questions/66232760/how-to-implement-in-kotlin-native-fileseek-getfilelength-and-readintobuffer>
