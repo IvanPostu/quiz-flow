@@ -1,6 +1,9 @@
 package com.iv127.quizflow.core.platform.file
 
 expect class PlatformFileReader(filePath: String) {
+
+    fun open();
+
     /**
      * Sets the file-pointer offset, measured from the beginning of this
      * file, at which the next read or write occurs.
