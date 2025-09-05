@@ -9,7 +9,7 @@ import org.intellij.markdown.ast.getTextInNode
 import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
 import org.intellij.markdown.parser.MarkdownParser
 
-internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResolver {
+internal class  ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResolver {
     companion object {
         private val FENCE_CHILDREN_TYPES_TO_INCLUDE = setOf("EOL", "CODE_FENCE_CONTENT")
         private const val FORMAT_MESSAGE: String = """

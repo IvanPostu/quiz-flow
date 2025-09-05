@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.model.quiz.question.proc
+package com.iv127.quizflow.core.platform.proc
 
 expect class ProcessUtils {
 

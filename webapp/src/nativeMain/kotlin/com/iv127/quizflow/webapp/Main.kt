@@ -2,9 +2,9 @@ package com.iv127.quizflow.webapp
 
 import com.iv127.quizflow.core.QuizFlowApplication
 import com.iv127.quizflow.core.model.quiz.question.ResourceUtils
-import com.iv127.quizflow.core.model.quiz.question.file.FileIO
-import com.iv127.quizflow.core.model.quiz.question.io.IOUtils
-import com.iv127.quizflow.core.model.quiz.question.proc.ProcessUtils
+import com.iv127.quizflow.core.platform.file.FileIO
+import com.iv127.quizflow.core.platform.io.IOUtils
+import com.iv127.quizflow.core.platform.proc.ProcessUtils
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.ExperimentalForeignApi

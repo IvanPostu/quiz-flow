@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.model.quiz.question.io
+package com.iv127.quizflow.core.platform.io
 
 class IOUtils {
     companion object {

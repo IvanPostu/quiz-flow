@@ -1,5 +1,6 @@
 package com.iv127.quizflow.core.model.quiz.question.proc
 
+import com.iv127.quizflow.core.platform.proc.ProcessUtils
 import kotlin.test.assertNotNull
 import org.junit.Test
 
@@ -7,13 +8,13 @@ class ProcessUtilsTest {
 
     @Test
     fun testGetExecutablePath() {
-        val path = ProcessUtils().getPathToExecutable()
+        val path = com.iv127.quizflow.core.platform.proc.ProcessUtils().getPathToExecutable()
         assertNotNull(path)
     }
 
     @Test
     fun testGetExecutableDirectoryPath() {
-        val path = ProcessUtils().getPathToExecutableDirectory()
+        val path = com.iv127.quizflow.core.platform.proc.ProcessUtils().getPathToExecutableDirectory()
         assertNotNull(path)
     }
 

@@ -1,6 +1,6 @@
 package com.iv127.quizflow.core
 
-import com.iv127.quizflow.core.model.quiz.question.file.FileIO
+import com.iv127.quizflow.core.platform.file.FileIO
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.PipelineCall
 import io.ktor.server.application.call

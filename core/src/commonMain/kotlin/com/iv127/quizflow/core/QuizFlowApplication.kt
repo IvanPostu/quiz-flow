@@ -1,7 +1,7 @@
 package com.iv127.quizflow.core
 
-import com.iv127.quizflow.core.model.quiz.question.file.FileIO
-import com.iv127.quizflow.core.model.quiz.question.proc.ProcessUtils
+import com.iv127.quizflow.core.platform.file.FileIO
+import com.iv127.quizflow.core.platform.proc.ProcessUtils
 import com.iv127.quizflow.core.rest.routes.ApiRoute
 import com.iv127.quizflow.core.rest.routes.HealthCheckRoutes
 import com.iv127.quizflow.core.rest.routes.QuizRoutes
