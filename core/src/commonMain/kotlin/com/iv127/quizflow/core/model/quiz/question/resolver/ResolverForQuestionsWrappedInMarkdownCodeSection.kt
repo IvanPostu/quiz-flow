@@ -12,7 +12,7 @@ import org.intellij.markdown.parser.MarkdownParser
 internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResolver {
     companion object {
         private val FENCE_CHILDREN_TYPES_TO_INCLUDE = setOf("EOL", "CODE_FENCE_CONTENT")
-        private const val FORMAT_MESSAGE: String = """
+        private val FORMAT_MESSAGE: String = """
             {Question} - text, can contain any amount 
             of lines with text and new lines
             
@@ -23,7 +23,7 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
             
             A, B, <L>. text, can contain any amount of lines with text without additional newlines
             Letters(question identifiers) should match question's letters
-            """
+            """.trimIndent()
     }
 
     override fun getType(): QuestionsResolverType {
@@ -67,7 +67,11 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
         fenceNode: CompositeASTNode,
         rawMarkdown: CharSequence
     ): Result<Question> {
-        return internalTryToConvertFenceAstNodeToQuestion(fenceNode, rawMarkdown)
+        return try {
+            internalTryToConvertFenceAstNodeToQuestion(fenceNode, rawMarkdown)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
 
@@ -91,7 +95,7 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
         if (fenceAstChildrenNodes.isEmpty()) {
             return Result.failure(
                 QuestionsResolveException(
-                    QuestionsResolveException.Reason.INVALID_FORMAT,
+                    QuestionsResolveException.Reason.REQUIRED_SECTIONS_MISSED,
                     fenceNode.getTextInNode(rawMarkdown).toString(),
                     FORMAT_MESSAGE
                 )

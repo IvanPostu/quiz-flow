@@ -6,12 +6,76 @@ import org.assertj.core.api.Assertions.assertThat
 
 class QuestionsResolverFactoryTest() {
 
+    companion object {
+        val MISSING_SECTION_MESSAGE = """
+            {Question} - text, can contain any amount 
+            of lines with text and new lines
+            
+            A. Answer 1
+            B. Answer 2
+            C. Answer 3
+            <L>. Answer N - where L is an uppercased letter
+            
+            A, B, <L>. text, can contain any amount of lines with text without additional newlines
+            Letters(question identifiers) should match question's letters
+            """.trimIndent()
+    }
+
     private val questionsResolver: QuestionsResolver;
 
     init {
         val factory = QuestionsResolverFactory()
         questionsResolver = factory.create(QuestionsResolverType.QUESTION_WRAPPED_IN_MARKDOWN_CODE_SECTION)
     }
+
+    @Test
+    fun testResolveQuestionWithOnlyTwoSections() {
+        val input = """
+            ```
+            Which one??
+            
+            A. answer 1
+            B. answer 1
+            ```
+        """.trimIndent()
+        val result = questionsResolver.resolve(input).asResult()
+        val exception: QuestionsResolveException = result.exceptionOrNull() as QuestionsResolveException
+
+        assertThat(exception.reason).isEqualTo(QuestionsResolveException.Reason.REQUIRED_SECTIONS_MISSED)
+        assertThat(exception.rawSource).isEqualTo(input)
+        assertThat(exception.message).isEqualTo(MISSING_SECTION_MESSAGE)
+    }
+
+    @Test
+    fun testResolveQuestionWithOnlyOneSection() {
+        val input = """
+            ```
+            Which one??
+            ```
+        """.trimIndent()
+        val result = questionsResolver.resolve(input).asResult()
+        val exception: QuestionsResolveException = result.exceptionOrNull() as QuestionsResolveException
+
+        assertThat(exception.reason).isEqualTo(QuestionsResolveException.Reason.REQUIRED_SECTIONS_MISSED)
+        assertThat(exception.rawSource).isEqualTo(input)
+        assertThat(exception.message).isEqualTo(MISSING_SECTION_MESSAGE)
+    }
+
+
+    @Test
+    fun testResolveQuestionWithoutAnySections() {
+        val input = """
+            ```
+            ```
+        """.trimIndent()
+        val result = questionsResolver.resolve(input).asResult()
+        val exception: QuestionsResolveException = result.exceptionOrNull() as QuestionsResolveException
+
+        assertThat(exception.reason).isEqualTo(QuestionsResolveException.Reason.REQUIRED_SECTIONS_MISSED)
+        assertThat(exception.rawSource).isEqualTo(input)
+        assertThat(exception.message).isEqualTo(MISSING_SECTION_MESSAGE)
+    }
+
 
     @Test
     fun testResolveQuestionsForNoisyStringInput() {
@@ -54,10 +118,10 @@ class QuestionsResolverFactoryTest() {
                 assertQuestion(
                     question,
                     """
-                        |1. Question?
-                        |
-                        |41: test;
-                    """.trimMargin(),
+                        1. Question?
+                        
+                        41: test;
+                    """.trimIndent(),
                     listOf(
                         "A. 1 test1",
                         "B. 2 test 2",

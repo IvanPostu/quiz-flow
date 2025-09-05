@@ -4,7 +4,6 @@ class QuestionsResolveException(val reason: Reason, val rawSource: String, messa
 
     enum class Reason {
         NO_QUESTIONS_FOUND,
-        INVALID_FORMAT,
         DUPLICATED_ANSWERS,
         REQUIRED_SECTIONS_MISSED
     }
