@@ -1,6 +1,6 @@
 # Title - should be ignored
 
-```java
+```
 1. Question?
 
 41: test;
@@ -15,7 +15,7 @@ A, D, E. The right answers are 1, 4, 5.
 The right answers are 1, 4, 5.
 ```
 
-```java
+```
 2. Question 2?
 
 test

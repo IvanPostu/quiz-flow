@@ -1,10 +1,40 @@
 package com.iv127.quizflow.core.model.quiz.question.resolver
 
+import com.iv127.quizflow.core.model.quiz.question.Question
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import org.assertj.core.api.Assertions.assertThat
 
-class QuestionsResolverFactoryTest {
+class QuestionsResolverFactoryTest() {
+
+    private val questionsResolver: QuestionsResolver;
+
+    init {
+        val factory = QuestionsResolverFactory()
+        questionsResolver = factory.create(QuestionsResolverType.QUESTION_WRAPPED_IN_MARKDOWN_CODE_SECTION)
+    }
+
+    @Test
+    fun testResolveQuestionsForNoisyStringInput() {
+        val noisyString = (0..255).map { it.toByte() }.toByteArray().fold("") { acc, byte ->
+            acc + byte.toInt().toChar()
+        }
+        val result = questionsResolver.resolve(noisyString).asResult()
+        val exception: QuestionsResolveException = result.exceptionOrNull() as QuestionsResolveException
+
+        assertThat(exception.reason).isEqualTo(QuestionsResolveException.Reason.NO_QUESTIONS_FOUND)
+        assertThat(exception.rawSource).isEqualTo(noisyString)
+        assertThat(exception.message).isEqualTo("Can't find questions from specified source")
+    }
+
+    @Test
+    fun testResolveQuestionsForEmptyInput() {
+        val result = questionsResolver.resolve("").asResult()
+        val exception: QuestionsResolveException = result.exceptionOrNull() as QuestionsResolveException
+
+        assertThat(exception.reason).isEqualTo(QuestionsResolveException.Reason.NO_QUESTIONS_FOUND)
+        assertThat(exception.rawSource).isEqualTo("")
+        assertThat(exception.message).isEqualTo("Can't find questions from specified source")
+    }
 
     @Test
     fun testQuestionWrappedInMarkdownSectionHappyPath() {
@@ -21,42 +51,35 @@ class QuestionsResolverFactoryTest {
         assertThat(questions)
             .hasSize(2)
             .anySatisfy({ question ->
-                assertThat(question.question)
-                    .isEqualTo(
-                        """
-                            |1. Question?
-                            |
-                            |41: test;
-                        """.trimMargin()
-                    )
-                assertEquals(
+                assertQuestion(
+                    question,
+                    """
+                        |1. Question?
+                        |
+                        |41: test;
+                    """.trimMargin(),
                     listOf(
                         "A. 1 test1",
                         "B. 2 test 2",
                         "C. 3 test 3 ",
                         "D. 4 test 4",
                         "E. 5 test 5"
-                    ), question.answerOptions
-                )
-                assertEquals(listOf(0, 3, 4), question.correctAnswerIndexes)
-                assertEquals(
+                    ),
+                    listOf(0, 3, 4),
                     """
                        A, D, E. The right answers are 1, 4, 5.
                        The right answers are 1, 4, 5.
-                    """.trimIndent(),
-                    question.correctAnswerExplanation
+                    """.trimIndent()
                 )
             })
             .anySatisfy({ question ->
-                assertEquals(
+                assertQuestion(
+                    question,
                     """
                         |2. Question 2?
                         |
                         |test
                     """.trimMargin(),
-                    question.question
-                )
-                assertEquals(
                     listOf(
                         "A. a",
                         "B. aa",
@@ -64,13 +87,29 @@ class QuestionsResolverFactoryTest {
                         "D. ddd",
                         "E. eee",
                         "F. qqqq",
-                    ), question.answerOptions
-                )
-                assertEquals(listOf(1), question.correctAnswerIndexes)
-                assertEquals(
-                    "B. the right answer is B - aa.", question.correctAnswerExplanation
+                    ),
+                    listOf(1),
+                    "B. the right answer is B - aa."
                 )
             })
+    }
+
+    private fun assertQuestion(
+        questionToBeAsserted: Question,
+        expectedQuestion: String,
+        expectedAnswerOptions: List<String>,
+        expectedCorrectAnswerIndexes: List<Int>,
+        expectedCorrectAnswerExplanation: String
+    ) {
+
+        assertThat(questionToBeAsserted.question)
+            .isEqualTo(expectedQuestion)
+        assertThat(questionToBeAsserted.answerOptions)
+            .isEqualTo(expectedAnswerOptions)
+        assertThat(questionToBeAsserted.correctAnswerIndexes)
+            .isEqualTo(expectedCorrectAnswerIndexes)
+        assertThat(questionToBeAsserted.correctAnswerExplanation)
+            .isEqualTo(expectedCorrectAnswerExplanation)
     }
 
 }

@@ -32,7 +32,7 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
 
     override fun resolve(input: String): Outcome<List<Question>, QuestionsResolveException> {
         val flavour = CommonMarkFlavourDescriptor()
-        val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(input)
+        val parsedTree: ASTNode = MarkdownParser(flavour).buildMarkdownTreeFromString(input)
 
         val fenceAstNodes = parsedTree.children.filter { astNode ->
             astNode.type == MarkdownElementTypes.CODE_FENCE
