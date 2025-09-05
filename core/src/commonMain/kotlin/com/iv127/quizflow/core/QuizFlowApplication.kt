@@ -1,7 +1,6 @@
 package com.iv127.quizflow.core
 
-import com.iv127.quizflow.core.platform.file.FileIO
-import com.iv127.quizflow.core.platform.proc.ProcessUtils
+import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.rest.routes.ApiRoute
 import com.iv127.quizflow.core.rest.routes.HealthCheckRoutes
 import com.iv127.quizflow.core.rest.routes.QuizRoutes
@@ -27,15 +26,14 @@ class QuizFlowApplication {
     companion object {
         fun startQuizFlowApplication(
             args: Array<String>,
-            fileIo: FileIO,
-            processUtils: ProcessUtils
+            platformServices: PlatformServices
         ): QuizFlowApplication {
             val embeddedServer =
                 embeddedServer(
                     CIO,
                     port = 8080,
                     host = "0.0.0.0",
-                    module = createApplicationModule(fileIo, processUtils)
+                    module = createApplicationModule(platformServices)
                 )
 
             embeddedServer.start(wait = false)
@@ -59,11 +57,13 @@ class QuizFlowApplication {
 
 private val LOG: Logger = KtorSimpleLogger(QuizFlowApplication.toString())
 
-fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Application.() -> Unit {
+fun createApplicationModule(platformServices: PlatformServices): Application.() -> Unit {
     val routeInstances = listOf<ApiRoute>(
         HealthCheckRoutes(),
         QuizRoutes(),
     )
+    val processUtils = platformServices.getProcessUtils()
+    val fileIo = platformServices.getFileIO()
     val pathToPublicDirectory = processUtils.getPathToExecutableDirectory() + "public"
     val staticFilesProviderPlugin = StaticFilesProvider(fileIo, "/public", pathToPublicDirectory)
     val requestTracePlugin = createRouteScopedPlugin("RequestTracePlugin", { }) {

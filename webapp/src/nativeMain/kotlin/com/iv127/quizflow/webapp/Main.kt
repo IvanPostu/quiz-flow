@@ -2,9 +2,10 @@ package com.iv127.quizflow.webapp
 
 import com.iv127.quizflow.core.QuizFlowApplication
 import com.iv127.quizflow.core.model.question.ResourceUtils
+import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.platform.file.FileIO
-import com.iv127.quizflow.core.platform.io.IOUtils
 import com.iv127.quizflow.core.platform.proc.ProcessUtils
+import com.iv127.quizflow.core.utils.IOUtils
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -24,7 +25,15 @@ fun main(args: Array<String>) {
     println(IOUtils.byteArrayToString(resourceUtils.readResource("/a.txt")))
     println(IOUtils.byteArrayToString(resourceUtils.readResource("/abc.json")))
 
-    val serverApp = QuizFlowApplication.startQuizFlowApplication(args, FileIO(), ProcessUtils())
+    val serverApp = QuizFlowApplication.startQuizFlowApplication(args, object : PlatformServices {
+        override fun getProcessUtils(): ProcessUtils {
+            return ProcessUtils()
+        }
+
+        override fun getFileIO(): FileIO {
+            return FileIO()
+        }
+    })
 
     signal(SIGINT, staticCFunction { signal: Int ->
         isShutdown.value = true

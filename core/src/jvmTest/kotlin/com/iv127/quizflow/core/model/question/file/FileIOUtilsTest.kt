@@ -1,6 +1,6 @@
 package com.iv127.quizflow.core.model.question.file
 
-import com.iv127.quizflow.core.platform.io.IOUtils
+import com.iv127.quizflow.core.utils.IOUtils
 import kotlin.test.assertEquals
 import org.junit.Test
 

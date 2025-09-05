@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.platform.io
+package com.iv127.quizflow.core.utils
 
 class IOUtils {
     companion object {
@@ -19,7 +19,7 @@ class IOUtils {
             return result
         }
 
-        private fun arrayCopy(src: ByteArray, srcPos: Int, dest: ByteArray, destPos: Int, length: Int) {
+        fun arrayCopy(src: ByteArray, srcPos: Int, dest: ByteArray, destPos: Int, length: Int) {
             if (srcPos < 0 || destPos < 0 || length < 0 || srcPos + length > src.size || destPos + length > dest.size) {
                 throw IndexOutOfBoundsException("Invalid index or length.")
             }

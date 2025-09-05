@@ -31,6 +31,7 @@ kotlin {
                 implementation("io.ktor:ktor-server-core:$ktor_version")
                 implementation("io.ktor:ktor-server-cio:$ktor_version")
                 implementation("io.ktor:ktor-server-status-pages:$ktor_version")
+                implementation(libs.koin.core)
             }
         }
         val jvmTest by getting {

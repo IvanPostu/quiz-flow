@@ -1,6 +1,6 @@
 package com.iv127.quizflow.core.rest.routes
 
-import com.iv127.quizflow.core.platform.io.IOUtils
+import com.iv127.quizflow.core.utils.IOUtils
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.server.request.receiveMultipart

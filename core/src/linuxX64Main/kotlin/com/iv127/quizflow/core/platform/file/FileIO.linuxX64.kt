@@ -1,6 +1,6 @@
 package com.iv127.quizflow.core.platform.file
 
-import com.iv127.quizflow.core.platform.io.IOUtils
+import com.iv127.quizflow.core.utils.IOUtils
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.CArrayPointer
 import kotlinx.cinterop.ExperimentalForeignApi

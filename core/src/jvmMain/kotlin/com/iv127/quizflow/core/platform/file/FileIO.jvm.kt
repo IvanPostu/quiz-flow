@@ -1,6 +1,6 @@
 package com.iv127.quizflow.core.platform.file
 
-import com.iv127.quizflow.core.platform.io.IOUtils
+import com.iv127.quizflow.core.utils.IOUtils
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream

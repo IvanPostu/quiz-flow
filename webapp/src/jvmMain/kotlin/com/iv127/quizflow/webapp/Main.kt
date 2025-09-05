@@ -2,9 +2,10 @@ package com.iv127.quizflow.webapp
 
 import com.iv127.quizflow.core.QuizFlowApplication
 import com.iv127.quizflow.core.model.question.ResourceUtils
+import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.platform.file.FileIO
-import com.iv127.quizflow.core.platform.io.IOUtils
 import com.iv127.quizflow.core.platform.proc.ProcessUtils
+import com.iv127.quizflow.core.utils.IOUtils
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import sun.misc.Signal
@@ -14,7 +15,16 @@ import sun.misc.SignalHandler
 fun main(args: Array<String>) {
     println(ProcessUtils().getPathToExecutable())
     println(ProcessUtils().getPathToExecutableDirectory())
-    val serverApp = QuizFlowApplication.startQuizFlowApplication(args, FileIO(), ProcessUtils())
+    val serverApp = QuizFlowApplication.startQuizFlowApplication(args, object : PlatformServices {
+        override fun getProcessUtils(): ProcessUtils {
+            return ProcessUtils()
+        }
+
+        override fun getFileIO(): FileIO {
+            return FileIO()
+        }
+
+    })
     val isShutdown = AtomicBoolean(false)
 
     val resourceUtils = ResourceUtils(FileIO(), ProcessUtils())
