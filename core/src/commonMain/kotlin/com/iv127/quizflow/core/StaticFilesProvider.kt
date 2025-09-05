@@ -10,6 +10,7 @@ import io.ktor.server.response.respondBytes
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.Logger
 import io.ktor.util.pipeline.PipelineContext
+import kotlinx.io.files.Path
 
 class StaticFilesProvider(
     private val fileIo: FileIO,
@@ -24,15 +25,31 @@ class StaticFilesProvider(
             return
         }
 
-        val fileFullPath = staticFilesDirectory + requestUri
-            .replace(pathPrefix, "")
-            .replace("/", fileIo.getPathSeparator())
+        val fileFullPath = Path(
+            staticFilesDirectory + requestUri
+                .replace(pathPrefix, "")
+                .replace("/", fileIo.getPathSeparator())
+                .replace("..", "")
+        )
         try {
-            val fileBytes = fileIo.readAll(fileFullPath)
+            // TODO: static files are being loaded in memory and returned, which is wrong, use ByteStreams instead
+            val fileBytes = fileIo.readAll(fileFullPath.toString())
             context.call.respondBytes(fileBytes)
         } catch (e: Exception) {
             logger.error("Can't read file: $fileFullPath", e)
             context.call.respond(status = HttpStatusCode.NotFound, "Resource not found!")
+        }
+    }
+
+    fun getIndexHtmlStaticFileOrElse(fallbackTextIfMissing: String): ByteArray {
+        val fileFullPath = Path(staticFilesDirectory + fileIo.getPathSeparator() + "index.html")
+        try {
+            // TODO: static files are being loaded in memory and returned, which is wrong, use ByteStreams instead
+            val fileBytes = fileIo.readAll(fileFullPath.toString())
+            return fileBytes
+        } catch (e: Exception) {
+            logger.error("Can't read file: $fileFullPath", e)
+            return fallbackTextIfMissing.encodeToByteArray()
         }
     }
 }

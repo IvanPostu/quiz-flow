@@ -5,15 +5,20 @@ import com.iv127.quizflow.core.model.quiz.question.proc.ProcessUtils
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.TextWebResponse
 import com.iv127.quizflow.core.server.webResponse
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.uri
+import io.ktor.server.response.respondBytes
+import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.get
+import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.Logger
@@ -71,14 +76,27 @@ fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Applica
             staticFilesProviderPlugin.intercept(this)
         }
 
-        // Regex("^/(?<path>(?!api|test).*)$").find("/home/user")
-        // TODO handler that any undefined request redirects to index.html - for SPA
-        // e.g.:
-        //     @GetMapping("/{path:^(?!api|static|assets|images|favicon).*}")
-        //    public String redirectToIndex() {
-        //        return "forward:/index.html";
-        //    }
+        // TODO: enable only for development
+        install(StatusPages) {
+            exception<Throwable> { call, exception ->
+                LOGGER.error("Unhandled exception: ", exception)
+                val stackTrace = exception.stackTraceToString()
+
+                call.respond(
+                    """
+                |Error: ${exception.message}
+                |Stack Trace:
+                |$stackTrace
+            """.trimMargin(),
+                    typeInfo = null
+                )
+            }
+        }
+
         routing {
+            get("/") {
+                call.respondBytes(staticFilesProviderPlugin.getIndexHtmlStaticFileOrElse("Index html is missing!"))
+            }
             get(
                 "/api/health-check",
                 webResponse {
@@ -90,6 +108,17 @@ fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Applica
             })
             get("/api/err") {
                 throw IllegalStateException("Custom error")
+            }
+            route("/{...}") {
+                handle {
+                    val requestUri = call.request.uri
+                    val match = Regex("^/(?<path>(?!api|test).*)$").find(requestUri)
+                    if (match == null) {
+                        call.respond(HttpStatusCode.NotFound, typeInfo = null)
+                    } else {
+                        call.respondRedirect("/", permanent = false)
+                    }
+                }
             }
         }
     }

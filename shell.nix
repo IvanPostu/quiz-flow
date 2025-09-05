@@ -1,6 +1,6 @@
 let 
   pkgs = import <nixpkgs> { config = { allowUnfree = true; }; };
-  shellScriptAbsolutePath = builtins.toString ./shell.nix;
+  PROJECT_ROOT = builtins.toString ./.;
 in
 pkgs.mkShell {
   name = "app-shell";
@@ -24,5 +24,8 @@ pkgs.mkShell {
 
         export JAVA_HOME=${pkgs.temurin-bin-21}
         export PATH=${pkgs.temurin-bin-21}/bin:$PATH
+
+        chmod -R +x ${PROJECT_ROOT}/scripts
+        export PATH=${PROJECT_ROOT}/scripts:$PATH
   '';
 }
