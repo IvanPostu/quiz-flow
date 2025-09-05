@@ -2,6 +2,7 @@ package com.iv127.quizflow.core.model.quiz.question.resolver
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 
 class QuestionsResolverFactoryTest {
 
@@ -17,50 +18,59 @@ class QuestionsResolverFactoryTest {
         val result = questionsResolver.resolve(fileContent).asResult()
         val questions = result.getOrThrow()
 
-        assertEquals(2, questions.size)
-        assertEquals(
-            """1. Question?
-
-41: test;
-""", questions[0].question
-        )
-        assertEquals(
-            listOf(
-                "A. 1 test1",
-                "B. 2 test 2",
-                "C. 3 test 3 ",
-                "D. 4 test 4",
-                "E. 5 test 5"
-            ), questions[0].answerOptions
-        )
-        assertEquals(listOf(0, 3, 4), questions[0].correctAnswerIndexes)
-        assertEquals(
-            """A, D, E. The right answers are 1, 4, 5.
-The right answers are 1, 4, 5.""", questions[0].correctAnswerExplanation!!
-        )
-
-        assertEquals(
-            """2. Question 2?
-
-test
-""",
-            questions[1].question
-        )
-        assertEquals(
-            listOf(
-                "A. a",
-                "B. aa",
-                "C. bb",
-                "D. ddd",
-                "E. eee",
-                "F. qqqq",
-            ), questions[1].answerOptions
-        )
-        assertEquals(listOf(1), questions[1].correctAnswerIndexes)
-        assertEquals(
-            """B. the right answer is B - aa.""", questions[1].correctAnswerExplanation!!
-        )
-
+        assertThat(questions)
+            .hasSize(2)
+            .anySatisfy({ question ->
+                assertThat(question.question)
+                    .isEqualTo(
+                        """
+                            |1. Question?
+                            |
+                            |41: test;
+                        """.trimMargin()
+                    )
+                assertEquals(
+                    listOf(
+                        "A. 1 test1",
+                        "B. 2 test 2",
+                        "C. 3 test 3 ",
+                        "D. 4 test 4",
+                        "E. 5 test 5"
+                    ), question.answerOptions
+                )
+                assertEquals(listOf(0, 3, 4), question.correctAnswerIndexes)
+                assertEquals(
+                    """
+                       A, D, E. The right answers are 1, 4, 5.
+                       The right answers are 1, 4, 5.
+                    """.trimIndent(),
+                    question.correctAnswerExplanation
+                )
+            })
+            .anySatisfy({ question ->
+                assertEquals(
+                    """
+                        |2. Question 2?
+                        |
+                        |test
+                    """.trimMargin(),
+                    question.question
+                )
+                assertEquals(
+                    listOf(
+                        "A. a",
+                        "B. aa",
+                        "C. bb",
+                        "D. ddd",
+                        "E. eee",
+                        "F. qqqq",
+                    ), question.answerOptions
+                )
+                assertEquals(listOf(1), question.correctAnswerIndexes)
+                assertEquals(
+                    "B. the right answer is B - aa.", question.correctAnswerExplanation
+                )
+            })
     }
 
 }

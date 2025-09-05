@@ -9,7 +9,7 @@ import org.intellij.markdown.ast.getTextInNode
 import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
 import org.intellij.markdown.parser.MarkdownParser
 
-internal class  ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResolver {
+internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResolver {
     companion object {
         private val FENCE_CHILDREN_TYPES_TO_INCLUDE = setOf("EOL", "CODE_FENCE_CONTENT")
         private const val FORMAT_MESSAGE: String = """
@@ -119,7 +119,8 @@ internal class  ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsReso
                 )
             )
         }
-        val correctAnswerLetters = extractCorrectAnswerLetters(astNodesOfAnswersExplanation.first(), rawMarkdown)
+        val correctAnswerLetters: Set<Char> =
+            extractCorrectAnswerLetters(astNodesOfAnswersExplanation.first(), rawMarkdown)
         val correctAnswerExplanation = astNodesOfAnswersExplanation.fold(StringBuilder()) { acc, node ->
             acc.append(node.getTextInNode(rawMarkdown))
             acc
@@ -161,7 +162,7 @@ internal class  ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsReso
 
         return Result.success(
             Question(
-                questionTextBuilder.toString(),
+                questionTextBuilder.toString().trimEnd(),
                 answerOptionsByLetters.values.toList(),
                 correctAnswerIndexes,
                 correctAnswerExplanation

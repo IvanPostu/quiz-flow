@@ -4,5 +4,5 @@ data class Question(
     val question: String,
     val answerOptions: List<String>,
     val correctAnswerIndexes: List<Int>,
-    val correctAnswerExplanation: String?
+    val correctAnswerExplanation: String
 )

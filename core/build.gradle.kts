@@ -36,6 +36,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(libs.kotlin.test)
+                implementation("org.assertj:assertj-core:3.27.4")
             }
         }
     }

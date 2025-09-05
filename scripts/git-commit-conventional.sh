@@ -13,23 +13,14 @@ select type in "${types[@]}"; do
     fi
 done
 
-# Prompt for an optional scope
-echo "Enter the scope (optional, press Enter to skip):"
-read -r scope
-
 # Prompt for the commit message description
 echo "Enter the commit description:"
 read -r description
 
-# Format the commit message
-if [[ -n "$scope" ]]; then
-    commit_message="$type($scope): $description"
-else
-    commit_message="$type: $description"
-fi
+commit_message="$type: $description"
 
 # Output the commit message and ask for confirmation
 echo "Your commit message is:"
 echo "$commit_message"
 echo "Command:"
-echo "git commit -a -m '$commit_message'"
+echo "git add . && git commit -m '$commit_message'"
