@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.model.quiz.question.lang
+package com.iv127.quizflow.core.lang
 
 sealed class Outcome<out T, out E : Exception> {
     data class Success<out T>(val value: T) : Outcome<T, Nothing>()

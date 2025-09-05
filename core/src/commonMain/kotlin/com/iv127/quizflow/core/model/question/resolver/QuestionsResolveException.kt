@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.model.quiz.question.resolver
+package com.iv127.quizflow.core.model.question.resolver
 
 class QuestionsResolveException(val reason: Reason, val rawSource: String, message: String) : Exception(message) {
 

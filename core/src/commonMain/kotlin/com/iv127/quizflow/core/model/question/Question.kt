@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.model.quiz.question
+package com.iv127.quizflow.core.model.question
 
 data class Question(
     val question: String,

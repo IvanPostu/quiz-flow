@@ -1,6 +1,6 @@
-package com.iv127.quizflow.core.model.quiz.question.resolver
+package com.iv127.quizflow.core.model.question.resolver
 
-import com.iv127.quizflow.core.model.quiz.question.Question
+import com.iv127.quizflow.core.model.question.Question
 import kotlin.test.Test
 import org.assertj.core.api.Assertions.assertThat
 

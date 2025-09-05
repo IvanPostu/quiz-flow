@@ -1,7 +1,7 @@
-package com.iv127.quizflow.core.model.quiz.question.resolver
+package com.iv127.quizflow.core.model.question.resolver
 
-import com.iv127.quizflow.core.model.quiz.question.Question
-import com.iv127.quizflow.core.model.quiz.question.lang.Outcome
+import com.iv127.quizflow.core.model.question.Question
+import com.iv127.quizflow.core.lang.Outcome
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.ast.CompositeASTNode

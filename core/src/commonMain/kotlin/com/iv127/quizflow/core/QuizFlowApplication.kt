@@ -22,8 +22,6 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.Logger
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 
 class QuizFlowApplication {
     companion object {
@@ -59,7 +57,7 @@ class QuizFlowApplication {
     }
 }
 
-val LOG: Logger = KtorSimpleLogger(QuizFlowApplication.toString())
+private val LOG: Logger = KtorSimpleLogger(QuizFlowApplication.toString())
 
 fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Application.() -> Unit {
     val routeInstances = listOf<ApiRoute>(
@@ -119,7 +117,3 @@ fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Applica
         }
     }
 }
-
-
-@Serializable
-data class HealthCheckResponse(@SerialName("status") private val status: String)

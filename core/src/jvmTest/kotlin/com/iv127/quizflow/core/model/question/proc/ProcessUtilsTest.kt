@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.model.quiz.question.proc
+package com.iv127.quizflow.core.model.question.proc
 
 import com.iv127.quizflow.core.platform.proc.ProcessUtils
 import kotlin.test.assertNotNull

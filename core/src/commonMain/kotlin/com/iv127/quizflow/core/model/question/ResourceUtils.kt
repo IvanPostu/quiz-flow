@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.model.quiz.question
+package com.iv127.quizflow.core.model.question
 
 import com.iv127.quizflow.core.platform.file.FileIO
 import com.iv127.quizflow.core.platform.proc.ProcessUtils

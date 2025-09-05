@@ -1,6 +1,6 @@
 package com.iv127.quizflow.core.rest.routes
 
-import com.iv127.quizflow.core.HealthCheckResponse
+import com.iv127.quizflow.core.rest.HealthCheckResponse
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse
 import io.ktor.server.routing.Route
