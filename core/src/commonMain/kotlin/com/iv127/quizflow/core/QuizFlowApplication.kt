@@ -1,14 +1,11 @@
 package com.iv127.quizflow.core
 
 import com.iv127.quizflow.core.model.quiz.question.file.FileIO
-import com.iv127.quizflow.core.model.quiz.question.io.IOUtils
 import com.iv127.quizflow.core.model.quiz.question.proc.ProcessUtils
-import com.iv127.quizflow.core.server.JsonWebResponse
-import com.iv127.quizflow.core.server.TextWebResponse
-import com.iv127.quizflow.core.server.webResponse
+import com.iv127.quizflow.core.rest.routes.ApiRoute
+import com.iv127.quizflow.core.rest.routes.HealthCheckRoutes
+import com.iv127.quizflow.core.rest.routes.QuizRoutes
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.PartData
-import io.ktor.http.content.forEachPart
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.createRouteScopedPlugin
@@ -17,20 +14,14 @@ import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
-import io.ktor.server.request.receiveMultipart
 import io.ktor.server.request.uri
 import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondRedirect
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.Logger
-import io.ktor.utils.io.readRemaining
-import kotlinx.io.readByteArray
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -71,6 +62,10 @@ class QuizFlowApplication {
 val LOG: Logger = KtorSimpleLogger(QuizFlowApplication.toString())
 
 fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Application.() -> Unit {
+    val routeInstances = listOf<ApiRoute>(
+        HealthCheckRoutes(),
+        QuizRoutes(),
+    )
     val pathToPublicDirectory = processUtils.getPathToExecutableDirectory() + "public"
     val staticFilesProviderPlugin = StaticFilesProvider(fileIo, "/public", pathToPublicDirectory)
     val requestTracePlugin = createRouteScopedPlugin("RequestTracePlugin", { }) {
@@ -93,31 +88,22 @@ fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Applica
 
                 call.respond(
                     """
-                |Error: ${exception.message}
-                |Stack Trace:
-                |$stackTrace
-            """.trimMargin(),
+                        |Error: ${exception.message}
+                        |Stack Trace:
+                        |$stackTrace
+                    """.trimMargin(),
                     typeInfo = null
                 )
             }
         }
 
         routing {
-            fileUploadRoute()
+            route("/api") {
+                routeInstances.forEach { it.setup(this) }
+            }
+
             get("/") {
                 call.respondBytes(staticFilesProviderPlugin.getIndexHtmlStaticFileOrElse("Index html is missing!"))
-            }
-            get(
-                "/api/health-check",
-                webResponse {
-                    JsonWebResponse.create(HealthCheckResponse("SUCCESS"))
-                }
-            )
-            get("/test/test", webResponse {
-                TextWebResponse("test")
-            })
-            get("/api/err") {
-                throw IllegalStateException("Custom error")
             }
             route("/{...}") {
                 handle {
@@ -134,33 +120,6 @@ fun createApplicationModule(fileIo: FileIO, processUtils: ProcessUtils): Applica
     }
 }
 
-fun Route.fileUploadRoute() {
-    post("/upload") {
-        val multipartData = call.receiveMultipart()
-
-        var fileName = ""
-
-        multipartData.forEachPart { part ->
-            when (part) {
-                is PartData.FormItem -> {
-                    // Handle form data if needed
-                }
-
-                is PartData.FileItem -> {
-                    val fileBytes = part.provider().readRemaining().readByteArray()
-                    fileName = part.originalFileName as String
-
-                    println(IOUtils.byteArrayToString(fileBytes))
-                }
-
-                else -> {}
-            }
-            part.dispose()
-        }
-
-        call.respondText("upload")
-    }
-}
 
 @Serializable
 data class HealthCheckResponse(@SerialName("status") private val status: String)

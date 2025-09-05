@@ -31,4 +31,5 @@ fi
 # Output the commit message and ask for confirmation
 echo "Your commit message is:"
 echo "$commit_message"
-echo "git commit -m '$commit_message'"
+echo "Command:"
+echo "git commit -a -m '$commit_message'"
