@@ -35,7 +35,15 @@ A web app that allows users to generate personalized quizzes by randomly selecti
 
 - For the frontend run: `cd webapp-ui/` & `npm run start`
 
-Upload file: `curl -X POST -F "file=@path/to/your/file.jpg" http://localhost:8080/upload`
+Upload file:
+
+  ```sh
+  curl \
+    -F "testid=1" \
+    -F "filecomment=This is an text file" \
+    -F "file1=@/$PROJECT_ROOT/test.txt" \
+    http://localhost:8080/upload
+  ```
 
 ## References
 
@@ -45,3 +53,4 @@ Upload file: `curl -X POST -F "file=@path/to/your/file.jpg" http://localhost:808
 4. <https://nequalsonelifestyle.com/2020/11/16/kotlin-native-file-io/>
 5. <https://stackoverflow.com/questions/59596589/how-to-set-up-a-kotlin-native-project-so-that-it-places-resources-alongside-the>
 6. Lilleaas, August (2023). *Pro Kotlin Web Apps from Scratch*.
+7. <https://thejoeflow.com/post/handling-multipart-requests-with-ktor>
