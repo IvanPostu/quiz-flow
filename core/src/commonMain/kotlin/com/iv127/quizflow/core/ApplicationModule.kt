@@ -5,9 +5,16 @@ import com.iv127.quizflow.core.rest.routes.HealthCheckRoutes
 import com.iv127.quizflow.core.rest.routes.QuizRoutes
 import com.iv127.quizflow.core.utils.getClassFullName
 import io.ktor.http.HttpStatusCode
-import io.ktor.network.sockets.Connection
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCallPipeline
+import io.ktor.server.application.ApplicationModulesLoaded
+import io.ktor.server.application.ApplicationModulesLoading
+import io.ktor.server.application.ApplicationStarted
+import io.ktor.server.application.ApplicationStarting
+import io.ktor.server.application.ApplicationStopPreparing
+import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.application.ApplicationStopping
+import io.ktor.server.application.ServerReady
 import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.application.install
 import io.ktor.server.plugins.statuspages.StatusPages
@@ -21,10 +28,23 @@ import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.Logger
 import kotlin.reflect.KClass
+import kotlin.time.ExperimentalTime
 import org.koin.core.context.startKoin
 import org.koin.core.parameter.ParametersHolder
 import org.koin.dsl.module
 
+private val applicationStates = mapOf(
+    ApplicationStarting to "ApplicationStarting",
+    ApplicationModulesLoading to "ApplicationModulesLoading",
+    ApplicationModulesLoaded to "ApplicationModulesLoaded",
+    ApplicationStarted to "ApplicationStarted",
+    ServerReady to "ServerReady",
+    ApplicationStopPreparing to "ApplicationStopPreparing",
+    ApplicationStopping to "ApplicationStopping",
+    ApplicationStopped to "ApplicationStopped"
+)
+
+@OptIn(ExperimentalTime::class)
 fun createApplicationModule(platformServices: PlatformServices): Application.() -> Unit {
     val appModule = module {
         single { platformServices }
@@ -51,7 +71,19 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         }
     }
 
+    val stateListener = ApplicationStateListener()
     return {
+        for (event in applicationStates) {
+            this.monitor.subscribe(event.key) {
+                stateListener.transition(event.key, {
+                    applicationStates[it]!!
+                })
+            }
+        }
+        this.monitor.subscribe(io.ktor.server.application.ApplicationStopping) {
+            log.info("Closing koinApp DI container")
+            koinApp.close()
+        }
         install(requestTracePlugin)
         intercept(ApplicationCallPipeline.Call) {
             staticFilesProviderPlugin.intercept(this)

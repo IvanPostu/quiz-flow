@@ -6,6 +6,7 @@ import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.platform.file.FileIO
 import com.iv127.quizflow.core.platform.proc.ProcessUtils
 import com.iv127.quizflow.core.utils.IOUtils
+import kotlin.concurrent.AtomicReference
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -18,6 +19,7 @@ import platform.posix.signal
 import platform.posix.sleep
 
 private val isShutdown: AtomicBoolean = atomic(false)
+private val appRef: AtomicReference<Application.Companion.QuizFlowApplication?> = AtomicReference(null)
 
 @OptIn(ExperimentalForeignApi::class)
 fun test() {
@@ -78,8 +80,8 @@ fun test() {
 
 @OptIn(ExperimentalForeignApi::class)
 fun main(args: Array<String>) {
-    test()
-    return;
+//    test()
+//    return;
     println(ProcessUtils().getPathToExecutable())
     println(ProcessUtils().getPathToExecutableDirectory())
 
@@ -96,15 +98,18 @@ fun main(args: Array<String>) {
             return FileIO()
         }
     })
+    appRef.getAndSet(serverApp)
 
     signal(SIGINT, staticCFunction { signal: Int ->
-        isShutdown.value = true
+        if (!isShutdown.value) {
+            appRef.value?.stop(1000, 5000)
+            isShutdown.value = true
+        }
     })
 
     while (!isShutdown.value) {
         sleep(1U)
     }
-    serverApp.stop(10_000, 10_000)
 }
 
 
