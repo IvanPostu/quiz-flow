@@ -26,6 +26,53 @@ fun test() {
         val name = "Kotlin".cstr.getPointer(this) // Convert Kotlin string to C string
         sayHello(name)
     }
+
+    val ksqlite = KSqlite("/home/iv127/Projects/quiz-flow/test.db")
+    try {
+        ksqlite.execute(
+            """
+            CREATE TABLE users (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL
+            );
+        """.trimIndent()
+        ) { cols, data ->
+            cols.forEach { print(it + " ") }
+            println()
+            data.forEach { print(it + " ") }
+            println()
+            0
+        }
+
+        ksqlite.execute(
+            """
+        INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com');
+        INSERT INTO users (name, email) VALUES ('Bob', 'bob@example.com');
+        INSERT INTO users (name, email) VALUES ('Charlie', 'charlie@example.com');
+        """.trimIndent()
+        ) { cols, data ->
+            cols.forEach { print(it + " ") }
+            println()
+            data.forEach { print(it + " ") }
+            println()
+            0
+        }
+
+        ksqlite.execute(
+            """
+        SELECT * FROM users;
+        """.trimIndent()
+        ) { cols, data ->
+            cols.forEach { print(it + " ") }
+            println()
+            data.forEach { print(it + " ") }
+            println()
+            0
+        }
+    } finally {
+        ksqlite.close()
+    }
 }
 
 

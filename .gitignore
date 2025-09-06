@@ -271,3 +271,4 @@ threaddump*
 test.txt
 webapp/src/nativeInterop/cinterop/*.def
 sqlite*
+test.db

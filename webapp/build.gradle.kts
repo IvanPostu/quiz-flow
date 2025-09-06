@@ -114,7 +114,7 @@ kotlin {
                         compilerOpts = -I $parentProjectAbsolutePath/native/simple
                         headers = simple.h
                         
-                        linkerOpts = -L $parentProjectAbsolutePath/native/simple -l simple
+                        linkerOpts = -L $parentProjectAbsolutePath/native/simple -lsimple
                     """.trimIndent()
                 )
                 val sqliteDefFile = file("src/nativeInterop/cinterop/sqlite3.def")
