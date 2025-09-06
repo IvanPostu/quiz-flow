@@ -108,16 +108,46 @@ kotlin {
                 baseName = targetBaseName
             }
             compilations.getByName("main") {
-                val defFile = file("src/nativeInterop/cinterop/libsimple.def")
-                defFile.writeText(
+                val libsimpleDefFile = file("src/nativeInterop/cinterop/libsimple.def")
+                libsimpleDefFile.writeText(
                     """
                         compilerOpts = -I $parentProjectAbsolutePath/native/simple
                         headers = simple.h
                         
                         linkerOpts = -L $parentProjectAbsolutePath/native/simple -l simple
-                    """.trimIndent())
+                    """.trimIndent()
+                )
+                val sqliteDefFile = file("src/nativeInterop/cinterop/sqlite3.def")
+                sqliteDefFile.writeText(
+                    """
+                        compilerOpts = -I $parentProjectAbsolutePath/native/sqlite-amalgamation-3500400
+                        headers = sqlite3.h
+                        
+                        linkerOpts = -L $parentProjectAbsolutePath/native/sqlite-amalgamation-3500400 -lsqlite3 --allow-shlib-undefined
+                        excludedFunctions = sqlite3_mutex_held \
+                          sqlite3_mutex_notheld \
+                          sqlite3_snapshot_cmp \
+                          sqlite3_snapshot_free \
+                          sqlite3_snapshot_get \
+                          sqlite3_snapshot_open \
+                          sqlite3_snapshot_recover \
+                          sqlite3_set_last_insert_rowid \
+                          sqlite3_stmt_scanstatus \
+                          sqlite3_stmt_scanstatus_reset \
+                          sqlite3_column_database_name \
+                          sqlite3_column_database_name16 \
+                          sqlite3_column_origin_name \
+                          sqlite3_column_origin_name16 \
+                          sqlite3_column_table_name \
+                          sqlite3_column_table_name16 \
+                          sqlite3_enable_load_extension \
+                          sqlite3_load_extension \
+                          sqlite3_unlock_notify
+                    """.trimIndent()
+                )
                 cinterops {
                     val libsimple by creating
+                    val sqlite3 by creating
                 }
             }
         }

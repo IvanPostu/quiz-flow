@@ -57,6 +57,16 @@ patchelf --set-rpath '$ORIGIN' ./quiz-flow-0.0.1.kexe
 LD_LIBRARY_PATH=".:$LD_LIBRARY_PATH" ./quiz-flow-0.0.1.kexe
 ```
 
+## Compile Sqlite
+
+```sh
+# 1. download sqlite-amalgamation-3500400.zip from https://www.sqlite.org/download.html
+
+gcc -fPIC -shared -o libsqlite3.so sqlite3.c -DSQLITE_OMIT_LOAD_EXTENSION -DSQLITE_THREADSAFE=0
+
+gcc -fPIC -shared -o libsqlite3.so sqlite3.c
+```
+
 ## References
 
 1. <https://github.com/ktorio/ktor-documentation/blob/3.2.3/codeSnippets/snippets/embedded-server-native/README.md>
@@ -71,3 +81,4 @@ LD_LIBRARY_PATH=".:$LD_LIBRARY_PATH" ./quiz-flow-0.0.1.kexe
 10. <https://discourse.nixos.org/t/how-to-refer-to-current-directory-in-shell-nix/9526/2>
 11. **BEST** <https://flyingbytes.github.io/programming/android/kotlin/native/c/interop/interoperability/2022/09/10/Kotlin-Native-C-Interop.html>
 12. <https://stackoverflow.com/questions/47618276/how-to-use-sqlite-in-kotlin-native>
+13. <https://jvns.ca/blog/2019/10/28/sqlite-is-really-easy-to-compile/>

@@ -12,18 +12,21 @@ pkgs.mkShell {
     pkgs.zlib
     pkgs.nodejs_22
     pkgs.patchelf
+    # pkgs.glibc
   ];
 
   LANG = "en_US.UTF-8";
   LC_ALL = "en_US.UTF-8";
 
   shellHook = ''
+        # export GLIBC_PATH="${pkgs.glibc}"
         export PROJECT_ROOT="${PROJECT_ROOT}"
         export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
         export LD_LIBRARY_PATH="${pkgs.libxcrypt-legacy}/lib:$LD_LIBRARY_PATH"
         export LD_LIBRARY_PATH="${pkgs.zlib}/lib:$LD_LIBRARY_PATH"
         
         export LD_LIBRARY_PATH="${PROJECT_ROOT}/native/simple:$LD_LIBRARY_PATH"
+        export LD_LIBRARY_PATH="${PROJECT_ROOT}/native/sqlite-amalgamation-3500400:$LD_LIBRARY_PATH"
 
         export JAVA_HOME=${pkgs.temurin-bin-21}
         export PATH=${pkgs.temurin-bin-21}/bin:$PATH
