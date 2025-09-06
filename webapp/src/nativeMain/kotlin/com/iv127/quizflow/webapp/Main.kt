@@ -1,6 +1,6 @@
 package com.iv127.quizflow.webapp
 
-import com.iv127.quizflow.core.QuizFlowApplication
+import com.iv127.quizflow.core.Application
 import com.iv127.quizflow.core.model.question.ResourceUtils
 import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.platform.file.FileIO
@@ -25,7 +25,7 @@ fun main(args: Array<String>) {
     println(IOUtils.byteArrayToString(resourceUtils.readResource("/a.txt")))
     println(IOUtils.byteArrayToString(resourceUtils.readResource("/abc.json")))
 
-    val serverApp = QuizFlowApplication.startQuizFlowApplication(args, object : PlatformServices {
+    val serverApp = Application.startQuizFlowApplication(args, object : PlatformServices {
         override fun getProcessUtils(): ProcessUtils {
             return ProcessUtils()
         }

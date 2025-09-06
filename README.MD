@@ -56,3 +56,4 @@ Upload file:
 7. <https://thejoeflow.com/post/handling-multipart-requests-with-ktor>
 8. <https://dev.to/programadorthi/kotlin-routing-routing-everything-1f4j>
 9. <https://stackoverflow.com/questions/66232760/how-to-implement-in-kotlin-native-fileseek-getfilelength-and-readintobuffer>
+10. <https://discourse.nixos.org/t/how-to-refer-to-current-directory-in-shell-nix/9526/2>

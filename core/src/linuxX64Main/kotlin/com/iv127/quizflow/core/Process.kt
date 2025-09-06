@@ -20,10 +20,7 @@ class Process {
         val buffer = ByteArray(1024)
 
         while (true) {
-            val line = fgets(buffer.refTo(0), buffer.size, pipe)
-            if (line == null) {
-                break
-            }
+            val line = fgets(buffer.refTo(0), buffer.size, pipe) ?: break
             output.append(line.toKString()) // Convert each line to a string and append
         }
 

@@ -1,16 +1,14 @@
 package com.iv127.quizflow.core
 
 import com.iv127.quizflow.core.platform.PlatformServices
-import com.iv127.quizflow.core.rest.routes.ApiRoute
 import com.iv127.quizflow.core.rest.routes.HealthCheckRoutes
 import com.iv127.quizflow.core.rest.routes.QuizRoutes
+import com.iv127.quizflow.core.utils.getClassFullName
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.application.install
-import io.ktor.server.cio.CIO
-import io.ktor.server.engine.embeddedServer
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.uri
@@ -21,44 +19,24 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.Logger
-
-class QuizFlowApplication {
-    companion object {
-        fun startQuizFlowApplication(
-            args: Array<String>,
-            platformServices: PlatformServices
-        ): QuizFlowApplication {
-            val embeddedServer =
-                embeddedServer(
-                    CIO,
-                    port = 8080,
-                    host = "0.0.0.0",
-                    module = createApplicationModule(platformServices)
-                )
-
-            embeddedServer.start(wait = false)
-
-            return object : QuizFlowApplication {
-                override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
-                    embeddedServer.stop(gracePeriodMillis, timeoutMillis)
-                }
-            }
-        }
-
-        interface QuizFlowApplication {
-            fun stop(
-                gracePeriodMillis: Long,
-                timeoutMillis: Long
-            )
-        }
-
-    }
-}
-
-private val LOG: Logger = KtorSimpleLogger(QuizFlowApplication.toString())
+import kotlin.reflect.KClass
+import org.koin.core.context.startKoin
+import org.koin.core.parameter.ParametersHolder
+import org.koin.dsl.module
 
 fun createApplicationModule(platformServices: PlatformServices): Application.() -> Unit {
-    val routeInstances = listOf<ApiRoute>(
+    val appModule = module {
+        single { platformServices }
+        factory { (clazz: KClass<*>) -> KtorSimpleLogger(getClassFullName(clazz)) }
+    }
+    val koinApp = startKoin {
+        modules(appModule)
+    }
+    val log: Logger = koinApp.koin.get(Logger::class, parameters = {
+        ParametersHolder(mutableListOf(ApplicationModule::class))
+    })
+
+    val routeInstances = listOf(
         HealthCheckRoutes(),
         QuizRoutes(),
     )
@@ -68,7 +46,7 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
     val staticFilesProviderPlugin = StaticFilesProvider(fileIo, "/public", pathToPublicDirectory)
     val requestTracePlugin = createRouteScopedPlugin("RequestTracePlugin", { }) {
         onCall { call ->
-            LOG.info("${call.request.httpMethod}: ${call.request.uri}")
+            log.info("${call.request.httpMethod}: ${call.request.uri}")
         }
     }
 
@@ -81,7 +59,7 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         // TODO: enable only for development
         install(StatusPages) {
             exception<Throwable> { call, exception ->
-                LOG.error("Unhandled exception: ", exception)
+                log.error("Unhandled exception: ", exception)
                 val stackTrace = exception.stackTraceToString()
 
                 call.respond(
@@ -117,3 +95,5 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         }
     }
 }
+
+class ApplicationModule

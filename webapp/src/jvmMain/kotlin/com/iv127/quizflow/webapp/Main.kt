@@ -1,6 +1,6 @@
 package com.iv127.quizflow.webapp
 
-import com.iv127.quizflow.core.QuizFlowApplication
+import com.iv127.quizflow.core.Application
 import com.iv127.quizflow.core.model.question.ResourceUtils
 import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.platform.file.FileIO
@@ -15,7 +15,7 @@ import sun.misc.SignalHandler
 fun main(args: Array<String>) {
     println(ProcessUtils().getPathToExecutable())
     println(ProcessUtils().getPathToExecutableDirectory())
-    val serverApp = QuizFlowApplication.startQuizFlowApplication(args, object : PlatformServices {
+    val serverApp = Application.startQuizFlowApplication(args, object : PlatformServices {
         override fun getProcessUtils(): ProcessUtils {
             return ProcessUtils()
         }
