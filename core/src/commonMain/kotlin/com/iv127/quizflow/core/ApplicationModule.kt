@@ -5,6 +5,7 @@ import com.iv127.quizflow.core.rest.routes.HealthCheckRoutes
 import com.iv127.quizflow.core.rest.routes.QuizRoutes
 import com.iv127.quizflow.core.utils.getClassFullName
 import io.ktor.http.HttpStatusCode
+import io.ktor.network.sockets.Connection
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.createRouteScopedPlugin
@@ -25,6 +26,13 @@ import org.koin.core.parameter.ParametersHolder
 import org.koin.dsl.module
 
 fun createApplicationModule(platformServices: PlatformServices): Application.() -> Unit {
+    val url = "jdbc:sqlite:test.db"
+
+    // Establish connection
+    val connection: Connection = DriverManager.getConnection(url)
+    val statement: Statement = connection.createStatement()
+    val resultSet: ResultSet = statement.executeQuery("SELECT * FROM users")
+
     val appModule = module {
         single { platformServices }
         factory { (clazz: KClass<*>) -> KtorSimpleLogger(getClassFullName(clazz)) }

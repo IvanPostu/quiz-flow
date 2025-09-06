@@ -3,6 +3,7 @@ package com.iv127.quizflow.core.platform.file
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
+import kotlinx.cinterop.free
 import kotlinx.cinterop.nativeHeap
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.refTo
@@ -48,10 +49,14 @@ actual class PlatformFileReader actual constructor(filePath: String) {
         val fd = fileno(file!!)
 
         val stat = nativeHeap.alloc<stat>()
-        if (fstat(fd, stat.ptr) != 0) {
-            throw IllegalStateException("Cannot get file length for: $_filePath")
+        try {
+            if (fstat(fd, stat.ptr) != 0) {
+                throw IllegalStateException("Cannot get file length for: $_filePath")
+            }
+            return stat.st_size
+        } finally {
+            nativeHeap.free(stat)
         }
-        return stat.st_size
     }
 
     @OptIn(ExperimentalForeignApi::class)

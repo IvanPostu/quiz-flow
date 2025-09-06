@@ -4,7 +4,7 @@ import com.iv127.quizflow.core.platform.PlatformServices
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
 
-
+// TODO add support for graceful shutdown with integration test
 class Application {
     companion object {
         fun startQuizFlowApplication(
