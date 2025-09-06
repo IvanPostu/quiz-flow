@@ -26,13 +26,6 @@ import org.koin.core.parameter.ParametersHolder
 import org.koin.dsl.module
 
 fun createApplicationModule(platformServices: PlatformServices): Application.() -> Unit {
-    val url = "jdbc:sqlite:test.db"
-
-    // Establish connection
-    val connection: Connection = DriverManager.getConnection(url)
-    val statement: Statement = connection.createStatement()
-    val resultSet: ResultSet = statement.executeQuery("SELECT * FROM users")
-
     val appModule = module {
         single { platformServices }
         factory { (clazz: KClass<*>) -> KtorSimpleLogger(getClassFullName(clazz)) }
