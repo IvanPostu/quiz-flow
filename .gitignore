@@ -269,3 +269,4 @@ ehthumbs.db
 myheapdump*
 threaddump*
 test.txt
+webapp/src/nativeInterop/cinterop/*.def

@@ -7,6 +7,7 @@ plugins {
 }
 
 kotlin {
+    val parentProjectAbsolutePath = project.parent?.file(".")?.absolutePath
     val hostOs = System.getProperty("os.name")
     val arch = System.getProperty("os.arch")
     val isMingwX64 = hostOs.startsWith("Windows")
@@ -107,6 +108,14 @@ kotlin {
                 baseName = targetBaseName
             }
             compilations.getByName("main") {
+                val defFile = file("src/nativeInterop/cinterop/libsimple.def")
+                defFile.writeText(
+                    """
+                        compilerOpts = -I $parentProjectAbsolutePath/native/simple
+                        headers = simple.h
+                        
+                        linkerOpts = -L $parentProjectAbsolutePath/native/simple -l simple
+                    """.trimIndent())
                 cinterops {
                     val libsimple by creating
                 }

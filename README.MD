@@ -45,11 +45,16 @@ Upload file:
     http://localhost:8080/api/upload
   ```
 
-## Interop
+## Build / Run native
 
 ```sh
 cd ./native/simple
 gcc -fPIC -shared -o libsimple.so simple.c
+
+# reset path to dynamic lib, origin means path to the executable
+patchelf --set-rpath '$ORIGIN' ./webapp/build/bin/native/debugExecutable/quiz-flow-0.0.1.kexe
+# or
+LD_LIBRARY_PATH=".:$LD_LIBRARY_PATH" ./quiz-flow-0.0.1.kexe
 ```
 
 ## References
