@@ -270,3 +270,4 @@ myheapdump*
 threaddump*
 test.txt
 webapp/src/nativeInterop/cinterop/*.def
+sqlite

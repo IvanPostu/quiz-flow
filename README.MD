@@ -52,7 +52,7 @@ cd ./native/simple
 gcc -fPIC -shared -o libsimple.so simple.c
 
 # reset path to dynamic lib, origin means path to the executable
-patchelf --set-rpath '$ORIGIN' ./webapp/build/bin/native/debugExecutable/quiz-flow-0.0.1.kexe
+patchelf --set-rpath '$ORIGIN' ./quiz-flow-0.0.1.kexe
 # or
 LD_LIBRARY_PATH=".:$LD_LIBRARY_PATH" ./quiz-flow-0.0.1.kexe
 ```
@@ -70,3 +70,4 @@ LD_LIBRARY_PATH=".:$LD_LIBRARY_PATH" ./quiz-flow-0.0.1.kexe
 9. <https://stackoverflow.com/questions/66232760/how-to-implement-in-kotlin-native-fileseek-getfilelength-and-readintobuffer>
 10. <https://discourse.nixos.org/t/how-to-refer-to-current-directory-in-shell-nix/9526/2>
 11. **BEST** <https://flyingbytes.github.io/programming/android/kotlin/native/c/interop/interoperability/2022/09/10/Kotlin-Native-C-Interop.html>
+12. <https://stackoverflow.com/questions/47618276/how-to-use-sqlite-in-kotlin-native>
