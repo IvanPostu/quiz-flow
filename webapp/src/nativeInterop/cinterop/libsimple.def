@@ -1,0 +1,4 @@
+compilerOpts = -I /home/iv127/Projects/quiz-flow/native/simple
+headers = simple.h
+
+linkerOpts = -L /home/iv127/Projects/quiz-flow/native/simple -l simple

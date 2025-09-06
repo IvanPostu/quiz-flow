@@ -45,6 +45,13 @@ Upload file:
     http://localhost:8080/api/upload
   ```
 
+## Interop
+
+```sh
+cd ./native/simple
+gcc -fPIC -shared -o libsimple.so simple.c
+```
+
 ## References
 
 1. <https://github.com/ktorio/ktor-documentation/blob/3.2.3/codeSnippets/snippets/embedded-server-native/README.md>
@@ -57,3 +64,4 @@ Upload file:
 8. <https://dev.to/programadorthi/kotlin-routing-routing-everything-1f4j>
 9. <https://stackoverflow.com/questions/66232760/how-to-implement-in-kotlin-native-fileseek-getfilelength-and-readintobuffer>
 10. <https://discourse.nixos.org/t/how-to-refer-to-current-directory-in-shell-nix/9526/2>
+11. **BEST** <https://flyingbytes.github.io/programming/android/kotlin/native/c/interop/interoperability/2022/09/10/Kotlin-Native-C-Interop.html>

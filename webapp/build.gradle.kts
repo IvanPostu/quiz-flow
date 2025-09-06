@@ -106,6 +106,11 @@ kotlin {
                 entryPoint = "com.iv127.quizflow.webapp.main"
                 baseName = targetBaseName
             }
+            compilations.getByName("main") {
+                cinterops {
+                    val libsimple by creating
+                }
+            }
         }
     }
     sourceSets {

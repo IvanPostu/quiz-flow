@@ -21,6 +21,8 @@ pkgs.mkShell {
         export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
         export LD_LIBRARY_PATH="${pkgs.libxcrypt-legacy}/lib:$LD_LIBRARY_PATH"
         export LD_LIBRARY_PATH="${pkgs.zlib}/lib:$LD_LIBRARY_PATH"
+        
+        export LD_LIBRARY_PATH="${PROJECT_ROOT}/native/simple:$LD_LIBRARY_PATH"
 
         export JAVA_HOME=${pkgs.temurin-bin-21}
         export PATH=${pkgs.temurin-bin-21}/bin:$PATH
