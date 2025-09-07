@@ -1,8 +1,8 @@
 package com.iv127.quizflow.core.platform.file.ccc
 
 
-import com.iv127.quizflow.core.Process
 import com.iv127.quizflow.core.platform.file.PlatformFileReader
+import com.iv127.quizflow.core.platform.proc.PlatformProcess
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -15,12 +15,12 @@ class PlatformFileReaderTest {
 
     @BeforeTest
     fun setup() {
-        pathToFile = Process().runShellScriptAndGetOutput(
+        pathToFile = PlatformProcess().runShellScriptAndGetOutput(
             "" +
                 "temp_file_path=$(mktemp);" +
                 "echo -n 'Hello World' > \"\$temp_file_path\";" +
                 "echo \$temp_file_path;"
-        ).trimEnd()
+        ).output.trimEnd()
     }
 
     @Test

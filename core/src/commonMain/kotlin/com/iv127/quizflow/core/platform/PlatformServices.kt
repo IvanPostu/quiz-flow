@@ -1,11 +1,11 @@
 package com.iv127.quizflow.core.platform
 
 import com.iv127.quizflow.core.platform.file.FileIO
-import com.iv127.quizflow.core.platform.proc.ProcessUtils
+import com.iv127.quizflow.core.platform.proc.PlatformProcess
 
 interface PlatformServices : AutoCloseable {
 
-    fun getProcessUtils(): ProcessUtils
+    fun getProcessUtils(): PlatformProcess
 
     fun getFileIO(): FileIO
 
