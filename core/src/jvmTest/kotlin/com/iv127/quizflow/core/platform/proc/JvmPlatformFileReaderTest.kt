@@ -1,5 +1,6 @@
-package com.iv127.quizflow.core.platform.file
+package com.iv127.quizflow.core.platform.proc
 
+import com.iv127.quizflow.core.platform.file.PlatformFileReader
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -13,7 +14,7 @@ import kotlinx.io.files.FileNotFoundException
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 
-class PlatformFileReaderTest {
+class JvmPlatformFileReaderTest {
 
     private lateinit var tempFile: Path
 

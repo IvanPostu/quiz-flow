@@ -1,10 +1,7 @@
 package com.iv127.quizflow.core.platform.proc
 
-import java.io.BufferedReader
 import java.io.File
-import java.io.InputStreamReader
 import java.net.URL
-import java.util.Locale
 
 
 actual class PlatformProcess {
@@ -24,37 +21,24 @@ actual class PlatformProcess {
     }
 
     actual fun runShellScriptAndGetOutput(scriptContent: String): ProcessExecutionResult {
+        val (returnCode, out) = internalRunShellScriptAndGetOutput(scriptContent)
+        return ProcessExecutionResult(returnCode, out)
+    }
+
+    private fun internalRunShellScriptAndGetOutput(
+        scriptContent: String,
+    ): Pair<Int, String> {
+
         try {
-            val os = System.getProperty("os.name").lowercase(Locale.getDefault())
-            val processBuilder = if (os.contains("win")) {
-                ProcessBuilder("cmd.exe", "/c", scriptContent)
-            } else {
-                ProcessBuilder("/bin/sh", "-c", scriptContent)
-            }
+            val processBuilder = ProcessBuilder(scriptContent.split(Regex("(?<!(\"|').{0,255}) | (?!.*\\1.*)")))
+            processBuilder.redirectErrorStream(true)
 
             val process = processBuilder.start()
-
-
-            val output = StringBuilder()
-            val reader = BufferedReader(InputStreamReader(process.inputStream))
-            var line: String
-            while ((reader.readLine().also { line = it }) != null) {
-                output.append(line).append(System.lineSeparator())
-            }
-
-
-            val errorOutput = StringBuilder()
-            val errorReader = BufferedReader(InputStreamReader(process.errorStream))
-            var errorLine: String
-            while ((errorReader.readLine().also { errorLine = it }) != null) {
-                errorOutput.append(errorLine).append(System.lineSeparator())
-            }
-
-
+            val out = process.inputStream.bufferedReader().readText()
             val exitCode = process.waitFor()
-            return ProcessExecutionResult(exitCode, output.toString(), errorOutput.toString())
+            return Pair(exitCode, out)
         } catch (e: Exception) {
-            throw IllegalStateException("Can't run: $scriptContent", e)
+            throw IllegalStateException("Error executing command: ${e.message}", e)
         }
     }
 }

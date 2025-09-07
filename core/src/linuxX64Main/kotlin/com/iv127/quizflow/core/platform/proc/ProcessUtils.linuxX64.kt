@@ -36,7 +36,7 @@ actual class PlatformProcess {
     @OptIn(ExperimentalForeignApi::class)
     actual fun runShellScriptAndGetOutput(scriptContent: String): ProcessExecutionResult {
         val commandToExecute = "$scriptContent 2>&1"
-        val fp = popen(commandToExecute, "r") ?: error("Failed to run command: $scriptContent")
+        val fp = popen(commandToExecute, "r") ?: throw IllegalStateException("Failed to run command: $scriptContent")
 
         val stdout = buildString {
             val buffer = ByteArray(4096)
@@ -47,6 +47,6 @@ actual class PlatformProcess {
         }
 
         val status = pclose(fp)
-        return ProcessExecutionResult(status, stdout, "")
+        return ProcessExecutionResult(status, stdout)
     }
 }

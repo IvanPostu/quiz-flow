@@ -1,34 +1,25 @@
-package com.iv127.quizflow.core.platform.file.ccc
+package com.iv127.quizflow.core.platform.proc
 
 
 import com.iv127.quizflow.core.platform.file.PlatformFileReader
-import com.iv127.quizflow.core.platform.proc.PlatformProcess
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.fail
 import kotlinx.io.files.FileNotFoundException
 
-class PlatformFileReaderTest {
+class LinuxPlatformFileReaderTest {
 
     private lateinit var pathToFile: String
 
     @BeforeTest
     fun setup() {
-//        pathToFile = PlatformProcess().runShellScriptAndGetOutput(
-//            "" +
-//                "temp_file_path=$(mktemp);" +
-//                "echo -n 'Hello World' > \"\$temp_file_path\";" +
-//                "echo \$temp_file_path;"
-//        ).output.trimEnd()
-    }
-
-    @Test
-    fun test() {
-        val result = PlatformProcess().runShellScriptAndGetOutput(
-            "cat aa"
-        )
-        println(result)
+        pathToFile = PlatformProcess().runShellScriptAndGetOutput(
+            "" +
+                "temp_file_path=$(mktemp);" +
+                "echo -n 'Hello World' > \"\$temp_file_path\";" +
+                "echo -n \$temp_file_path;"
+        ).output
     }
 
     @Test
