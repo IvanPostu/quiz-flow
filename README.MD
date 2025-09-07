@@ -4,13 +4,11 @@ A web app that allows users to generate personalized quizzes by randomly selecti
 
 ## Description
 
-- 📝 **Create Custom Quizzes:** Easily build personalized quizzes and exams.
+- 📝 **Create Custom Quizzes:** Easily build personalized quizzes
 
-- 🔄 **Randomized Questions:** Generate unique tests with random question selection.
+- 🔄 **Randomized Questions:** Generate unique quizzes with random question selection
 
-- 📚 **Large Question Pool:** Access a wide range of curated questions.
-
-- 🌐 **Easy to Use:** Simple, intuitive platform for all users.
+- 🌐 **Easy to Use:** Simple, intuitive platform for all users
 
 ## Setup environment
 
@@ -32,9 +30,17 @@ npm install --prefix ./webapp-ui
 
 gcc -fPIC -shared -o native/simple/libsimple.so native/simple/simple.c
 
-# build sqlite, See reference 13
+# build sqlite amalgamation, See reference 13
 cd $PROJECT_ROOT/external/sqlite \
   && ./configure && make sqlite3.c \
+  && cp -f $PROJECT_ROOT/external/sqlite/sqlite3.c $PROJECT_ROOT/native/sqlite-amalgamation-3500400/sqlite3.c \
+  && cp -f $PROJECT_ROOT/external/sqlite/sqlite3.h $PROJECT_ROOT/native/sqlite-amalgamation-3500400/sqlite3.h \
+  && git clean -fdx \
+  && cd $PROJECT_ROOT
+
+# build sqlite dynamic library
+cd $PROJECT_ROOT/native/sqlite-amalgamation-3500400 \
+  && gcc -fPIC -shared -o libsqlite3.so sqlite3.c \
   && cd $PROJECT_ROOT
 ```
 

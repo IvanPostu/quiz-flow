@@ -270,3 +270,4 @@ threaddump*
 test.txt
 **/nativeInterop/cinterop/*.def
 test.db*
+native/sqlite-amalgamation-3500400
