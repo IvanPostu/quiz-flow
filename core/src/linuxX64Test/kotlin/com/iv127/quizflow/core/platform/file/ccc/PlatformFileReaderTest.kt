@@ -15,12 +15,20 @@ class PlatformFileReaderTest {
 
     @BeforeTest
     fun setup() {
-        pathToFile = PlatformProcess().runShellScriptAndGetOutput(
-            "" +
-                "temp_file_path=$(mktemp);" +
-                "echo -n 'Hello World' > \"\$temp_file_path\";" +
-                "echo \$temp_file_path;"
-        ).output.trimEnd()
+//        pathToFile = PlatformProcess().runShellScriptAndGetOutput(
+//            "" +
+//                "temp_file_path=$(mktemp);" +
+//                "echo -n 'Hello World' > \"\$temp_file_path\";" +
+//                "echo \$temp_file_path;"
+//        ).output.trimEnd()
+    }
+
+    @Test
+    fun test() {
+        val result = PlatformProcess().runShellScriptAndGetOutput(
+            "cat aa"
+        )
+        println(result)
     }
 
     @Test

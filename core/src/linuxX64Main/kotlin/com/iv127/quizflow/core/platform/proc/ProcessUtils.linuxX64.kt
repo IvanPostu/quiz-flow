@@ -1,12 +1,10 @@
 package com.iv127.quizflow.core.platform.proc
 
-import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.refTo
 import kotlinx.cinterop.toKString
-import platform.posix.FILE
-import platform.posix.fclose
 import platform.posix.fgets
+import platform.posix.pclose
 import platform.posix.popen
 import platform.posix.readlink
 
@@ -37,20 +35,18 @@ actual class PlatformProcess {
 
     @OptIn(ExperimentalForeignApi::class)
     actual fun runShellScriptAndGetOutput(scriptContent: String): ProcessExecutionResult {
-        val pipe: CPointer<FILE> =
-            popen(scriptContent, "r") ?: throw IllegalStateException("Failed to execute command")
+        val commandToExecute = "$scriptContent 2>&1"
+        val fp = popen(commandToExecute, "r") ?: error("Failed to run command: $scriptContent")
 
-        try {
-            val output = StringBuilder()
-            val buffer = ByteArray(BUFFER_SIZE)
-
+        val stdout = buildString {
+            val buffer = ByteArray(4096)
             while (true) {
-                val line = fgets(buffer.refTo(0), buffer.size, pipe) ?: break
-                output.append(line.toKString())
+                val input = fgets(buffer.refTo(0), buffer.size, fp) ?: break
+                append(input.toKString())
             }
-            return ProcessExecutionResult(0, output.toString(), "")
-        } finally {
-            fclose(pipe)
         }
+
+        val status = pclose(fp)
+        return ProcessExecutionResult(status, stdout, "")
     }
 }
