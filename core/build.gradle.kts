@@ -80,10 +80,16 @@ kotlin {
                 implementation(libs.koin.core)
             }
         }
+        val jvmMain by getting {
+            dependencies {
+                implementation("org.xerial:sqlite-jdbc:3.49.1.0")
+            }
+        }
         val jvmTest by getting {
             dependencies {
                 implementation(libs.kotlin.test)
                 implementation(libs.assertj)
+                implementation("org.slf4j:slf4j-simple:2.0.17")
             }
         }
         val linuxX64Test by getting {

@@ -1,7 +1,9 @@
-package com.iv127.quizflow.core.platform.sqlite
+package com.iv127.quizflow.core.sqlite
 
-import com.iv127.quizflow.core.platform.proc.PlatformProcess
-import com.iv127.quizflow.core.sqlite.LinuxSqliteDatabase
+import java.nio.file.Files
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.deleteExisting
+import kotlin.random.Random
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -10,21 +12,22 @@ import kotlin.test.fail
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
-class LinuxSqliteDatabaseTest {
+
+class JvmSqliteDatabaseTest {
     private lateinit var pathToFile: String
 
     @BeforeTest
+    @OptIn(ExperimentalTime::class)
     fun setup() {
-        pathToFile = PlatformProcess().runShellScriptAndGetOutput(
-            "" +
-                "temp_file_path=$(mktemp --suffix='.db');" +
-                "echo -n \$temp_file_path;"
-        ).output
+        val tempFilePrefix = "" + Random.nextInt() + "_" + Clock.System.now().toEpochMilliseconds()
+        val tempFile = Files.createTempFile(tempFilePrefix, ".db")
+        tempFile.deleteExisting()
+        pathToFile = tempFile.absolutePathString()
     }
 
     @Test
     fun testSelect() {
-        LinuxSqliteDatabase(pathToFile).use { sqliteDatabase ->
+        JvmSqliteDatabase(pathToFile).use { sqliteDatabase ->
             val result = sqliteDatabase.execute("SELECT 1 AS a, 2 AS b;")
 
             assertEquals(1, result.size)
@@ -41,8 +44,8 @@ class LinuxSqliteDatabaseTest {
     @Test
     fun testTransaction() {
         println(pathToFile)
-        LinuxSqliteDatabase(pathToFile).use { sqlite1 ->
-            LinuxSqliteDatabase(pathToFile).use { sqlite2 ->
+        JvmSqliteDatabase(pathToFile).use { sqlite1 ->
+            JvmSqliteDatabase(pathToFile).use { sqlite2 ->
                 sqlite1.execute(
                     """
                         CREATE TABLE users (
@@ -83,7 +86,10 @@ class LinuxSqliteDatabaseTest {
                 } catch (e: IllegalStateException) {
                     val timeTaken = Clock.System.now().toEpochMilliseconds() - now
                     assertTrue(timeTaken >= 800)
-                    assertEquals(e.message, "sqlite3_exec failed with code: 5 - database is locked")
+                    assertEquals(
+                        e.message,
+                        "Database error: [SQLITE_BUSY] The database file is locked (database is locked)"
+                    )
                 }
             }
         }

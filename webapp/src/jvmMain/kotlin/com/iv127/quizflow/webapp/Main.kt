@@ -5,6 +5,7 @@ import com.iv127.quizflow.core.model.question.ResourceUtils
 import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.platform.file.FileIO
 import com.iv127.quizflow.core.platform.proc.PlatformProcess
+import com.iv127.quizflow.core.sqlite.JvmSqliteDatabase
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.utils.IOUtils
 
@@ -24,7 +25,7 @@ fun main(args: Array<String>) {
         }
 
         override fun createSqliteDatabase(path: String): SqliteDatabase {
-            TODO("Not yet implemented")
+            return JvmSqliteDatabase(path)
         }
     })
 
