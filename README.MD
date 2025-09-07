@@ -84,3 +84,5 @@ gcc -fPIC -shared -o libsqlite3.so sqlite3.c
 13. <https://jvns.ca/blog/2019/10/28/sqlite-is-really-easy-to-compile/>
 14. <https://www.conventionalcommits.org/en/v1.0.0/>
 15. <https://sqlite.org/amalgamation.html>
+16. <https://www.w3schools.com/git/git_submodules.asp>
+17. <https://stackoverflow.com/questions/1777854/how-can-i-specify-a-branch-tag-when-adding-a-git-submodule>
