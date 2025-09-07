@@ -97,6 +97,9 @@ fun main(args: Array<String>) {
         override fun getFileIO(): FileIO {
             return FileIO()
         }
+
+        override fun close() {
+        }
     })
     appRef.getAndSet(serverApp)
 

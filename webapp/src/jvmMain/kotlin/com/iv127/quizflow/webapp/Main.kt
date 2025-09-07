@@ -19,6 +19,8 @@ fun main(args: Array<String>) {
             return FileIO()
         }
 
+        override fun close() {
+        }
     })
 
     val resourceUtils = ResourceUtils(FileIO(), ProcessUtils())

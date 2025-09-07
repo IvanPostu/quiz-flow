@@ -28,10 +28,13 @@ import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.Logger
 import kotlin.reflect.KClass
-import kotlin.time.ExperimentalTime
+import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
+import org.koin.core.logger.Level
+import org.koin.core.logger.MESSAGE
 import org.koin.core.parameter.ParametersHolder
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 
 private val applicationStates = mapOf(
     ApplicationStarting to "ApplicationStarting",
@@ -44,14 +47,18 @@ private val applicationStates = mapOf(
     ApplicationStopped to "ApplicationStopped"
 )
 
-@OptIn(ExperimentalTime::class)
 fun createApplicationModule(platformServices: PlatformServices): Application.() -> Unit {
+    val koinLogger = setupKoinLogger()
     val appModule = module {
-        single { platformServices }
+        single { platformServices }.onClose {
+            platformServices.close()
+            koinLogger.info("Platform services have successfully closed")
+        }
         factory { (clazz: KClass<*>) -> KtorSimpleLogger(getClassFullName(clazz)) }
     }
     val koinApp = startKoin {
         modules(appModule)
+        logger(koinLogger)
     }
     val log: Logger = koinApp.koin.get(Logger::class, parameters = {
         ParametersHolder(mutableListOf(ApplicationModule::class))
@@ -80,8 +87,7 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
                 })
             }
         }
-        this.monitor.subscribe(io.ktor.server.application.ApplicationStopping) {
-            log.info("Closing koinApp DI container")
+        this.monitor.subscribe(ApplicationStopping) {
             koinApp.close()
         }
         install(requestTracePlugin)
@@ -110,7 +116,6 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
             route("/api") {
                 routeInstances.forEach { it.setup(this) }
             }
-
             get("/") {
                 call.respondBytes(staticFilesProviderPlugin.getIndexHtmlStaticFileOrElse("Index html is missing!"))
             }
@@ -124,6 +129,26 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
                         call.respondRedirect("/", permanent = false)
                     }
                 }
+            }
+        }
+    }
+}
+
+private fun setupKoinLogger(): org.koin.core.logger.Logger {
+    val logger = KtorSimpleLogger(getClassFullName(KoinApplication::class))
+    return object : org.koin.core.logger.Logger() {
+        override fun display(level: Level, msg: MESSAGE) {
+            if (level == Level.DEBUG) {
+                logger.debug(msg)
+            }
+            if (level == Level.INFO) {
+                logger.info(msg)
+            }
+            if (level == Level.WARNING) {
+                logger.warn(msg)
+            }
+            if (level == Level.ERROR) {
+                logger.error(msg)
             }
         }
     }
