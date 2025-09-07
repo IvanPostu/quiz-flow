@@ -12,59 +12,62 @@ A web app that allows users to generate personalized quizzes by randomly selecti
 
 - 🌐 **Easy to Use:** Simple, intuitive platform for all users.
 
-## Setup dev env
+## Setup environment
 
-- **Install:** Intellij + Temurin OpenJDK-21
-- **Enter shell session:** `nix-shell --run bash`
-- **Build(without frontend):** `./gradlew clean build -PbuildType=RELEASE|DEBUG`
-  - `DEBUG` (default) takes ~5s
-  - `RELEASE` takes ~60s
-- **Build(with frontend):** `./gradlew clean :webapp-ui:runNpmBuild build -PbuildType=DEBUG`
+### Prerequisites
 
-- **Run:**
-  - **native:** `./webapp/build/packaged/quiz-flow-0.0.1.kexe`
-  - **jvm:** `java -jar ./webapp/build/packaged/quiz-flow-0.0.1.jar`
+- Intellij
+- Openjdk 21 (Temurin OpenJDK-21)
+- Nix shell
 
-## Debug
-
-- Run: `./gradlew clean build -PbuildType=DEBUG`
-
-- In Intellij create debug profile for jar and run `quiz-flow/webapp/build/packaged/quiz-flow-0.0.1.jar`
-  
-  ---
-
-- For the frontend run: `cd webapp-ui/` & `npm run start`
-
-Upload file:
-
-  ```sh
-  curl \
-    -F "testid=1" \
-    -F "filecomment=This is an text file" \
-    -F "file1=@/$PROJECT_ROOT/test.txt" \
-    http://localhost:8080/api/upload
-  ```
-
-## Build / Run native
+### Setup
 
 ```sh
-cd ./native/simple
-gcc -fPIC -shared -o libsimple.so simple.c
+nix-shell --run bash
 
-# reset path to dynamic lib, origin means path to the executable
-patchelf --set-rpath '$ORIGIN' ./quiz-flow-0.0.1.kexe
-# or
-LD_LIBRARY_PATH=".:$LD_LIBRARY_PATH" ./quiz-flow-0.0.1.kexe
+git submodule init
+git submodule update
+
+npm install --prefix ./webapp-ui
+
+gcc -fPIC -shared -o native/simple/libsimple.so native/simple/simple.c
+
+# build sqlite, See reference 13
+cd $PROJECT_ROOT/external/sqlite \
+  && ./configure && make sqlite3.c \
+  && cd $PROJECT_ROOT
 ```
 
-## Compile Sqlite
+### JVM debug
 
 ```sh
-# 1. download sqlite-amalgamation-3500400.zip from https://www.sqlite.org/download.html
+./gradlew build -PbuildType=DEBUG
+# IntelliJ idea: create debug profile for JAR - quiz-flow/webapp/build/packaged/quiz-flow-0.0.1.jar
+```
 
-gcc -fPIC -shared -o libsqlite3.so sqlite3.c -DSQLITE_OMIT_LOAD_EXTENSION -DSQLITE_THREADSAFE=0
+### Frontend development
 
-gcc -fPIC -shared -o libsqlite3.so sqlite3.c
+```sh
+npm install --prefix ./webapp-ui
+npm run start --prefix ./webapp-ui
+```
+
+### Release
+
+```sh
+./gradlew clean :webapp-ui:runNpmBuild build -PbuildType=RELEASE -Pkotlin.native.cacheKind=none
+```
+
+### Run
+
+```sh
+# Run native executable 
+./webapp/build/packaged/quiz-flow-0.0.1.kexe
+# Or
+LD_LIBRARY_PATH=".:$LD_LIBRARY_PATH" ./quiz-flow-0.0.1.kexe
+
+# Run jvm bundle
+java -jar ./webapp/build/packaged/quiz-flow-0.0.1.jar
 ```
 
 ## References

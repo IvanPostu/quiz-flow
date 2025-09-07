@@ -1,5 +1,5 @@
 let 
-  pkgs = import <nixpkgs> { config = { allowUnfree = true; }; };
+  pkgs = import <nixpkgs> { config = { allowUnfree = false; }; };
   PROJECT_ROOT = builtins.toString ./.;
 in
 pkgs.mkShell {
@@ -12,14 +12,13 @@ pkgs.mkShell {
     pkgs.zlib
     pkgs.nodejs_22
     pkgs.patchelf
-    # pkgs.glibc
+    pkgs.gcc13
   ];
 
   LANG = "en_US.UTF-8";
   LC_ALL = "en_US.UTF-8";
 
   shellHook = ''
-        # export GLIBC_PATH="${pkgs.glibc}"
         export PROJECT_ROOT="${PROJECT_ROOT}"
         export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
         export LD_LIBRARY_PATH="${pkgs.libxcrypt-legacy}/lib:$LD_LIBRARY_PATH"
