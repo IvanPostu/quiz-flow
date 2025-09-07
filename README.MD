@@ -82,3 +82,4 @@ gcc -fPIC -shared -o libsqlite3.so sqlite3.c
 11. **BEST** <https://flyingbytes.github.io/programming/android/kotlin/native/c/interop/interoperability/2022/09/10/Kotlin-Native-C-Interop.html>
 12. <https://stackoverflow.com/questions/47618276/how-to-use-sqlite-in-kotlin-native>
 13. <https://jvns.ca/blog/2019/10/28/sqlite-is-really-easy-to-compile/>
+14. <https://www.conventionalcommits.org/en/v1.0.0/>

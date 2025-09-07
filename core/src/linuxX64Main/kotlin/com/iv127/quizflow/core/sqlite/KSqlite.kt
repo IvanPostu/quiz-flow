@@ -1,4 +1,4 @@
-package com.iv127.quizflow.webapp
+package com.iv127.quizflow.core.sqlite
 
 import sqlite3.*
 import kotlinx.cinterop.*

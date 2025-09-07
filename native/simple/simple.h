@@ -1,7 +1,6 @@
 #ifndef SIMPLE_H
 #define SIMPLE_H
 
-// Declare the function to be shared
-void sayHello(char *str);
+char* concat(char* str1, char* str2);
 
 #endif // SIMPLE_H
