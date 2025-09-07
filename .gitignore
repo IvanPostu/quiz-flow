@@ -270,4 +270,4 @@ myheapdump*
 threaddump*
 test.txt
 webapp/src/nativeInterop/cinterop/*.def
-test.db
+test.db*
