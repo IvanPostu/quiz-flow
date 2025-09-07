@@ -260,7 +260,6 @@ cython_debug/
 .idea/
 .env
 .env.*
-*.sqlite3
 *.log
 .DS_Store
 Thumbs.db
