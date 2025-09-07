@@ -5,6 +5,8 @@ import com.iv127.quizflow.core.model.question.ResourceUtils
 import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.platform.file.FileIO
 import com.iv127.quizflow.core.platform.proc.PlatformProcess
+import com.iv127.quizflow.core.sqlite.LinuxSqliteDatabase
+import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.utils.IOUtils
 import kotlin.concurrent.AtomicReference
 import kotlinx.atomicfu.AtomicBoolean
@@ -14,6 +16,7 @@ import kotlinx.cinterop.staticCFunction
 import platform.posix.SIGINT
 import platform.posix.signal
 import platform.posix.sleep
+import platform.posix.usleep
 
 private val isShutdown: AtomicBoolean = atomic(false)
 private val appRef: AtomicReference<Application.Companion.QuizFlowApplication?> = AtomicReference(null)
@@ -38,6 +41,10 @@ fun main(args: Array<String>) {
 
         override fun close() {
         }
+
+        override fun createSqliteDatabase(path: String): SqliteDatabase {
+            return LinuxSqliteDatabase(path)
+        }
     })
     appRef.getAndSet(serverApp)
 
@@ -49,7 +56,7 @@ fun main(args: Array<String>) {
     })
 
     while (!isShutdown.value) {
-        sleep(1U)
+        usleep(500_000u); // 0.5 seconds
     }
 }
 

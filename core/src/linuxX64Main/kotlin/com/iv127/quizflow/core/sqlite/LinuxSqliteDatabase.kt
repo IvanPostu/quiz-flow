@@ -16,7 +16,7 @@ class LinuxSqliteDatabase(dbPath: String) : SqliteDatabase {
             result.add(map)
             0
         }
-        throw Exception()
+        return result
     }
 
     override fun close() {

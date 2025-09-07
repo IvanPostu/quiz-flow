@@ -20,11 +20,48 @@ class KSqliteTest {
     }
 
     @Test
+    fun testSelectLastInsertedId() {
+        val ksqlite = KSqlite(pathToFile)
+        try {
+            var count = 0
+            ksqlite.execute(
+                """
+                    CREATE TABLE users (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        email TEXT NOT NULL
+                    );
+                """.trimIndent()
+            ) { cols, data ->
+                count++
+                0
+            }
+            assertEquals(0, count, "Assert callback isn't executed")
+
+            var id = "0"
+            ksqlite.execute(
+                """
+                    INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com');
+                    INSERT INTO users (name, email) VALUES ('Bob', 'bob@example.com');
+                    INSERT INTO users (name, email) VALUES ('Charlie', 'charlie@example.com');
+                    SELECT last_insert_rowid() AS lastId;
+                """.trimIndent()
+            ) { cols, data ->
+                id = data[0]
+                count++
+                0
+            }
+            assertEquals(1, count, "Assert callback is executed once")
+            assertEquals(id, "3")
+        } finally {
+            ksqlite.close()
+        }
+    }
+
+    @Test
     fun testCreateTableInsertAndSelectDataFromSqliteDatabase() {
         val ksqlite = KSqlite(pathToFile)
         try {
-            var columns: Array<String> = arrayOf()
-            var dataRecords: Array<String> = arrayOf()
             var count = 0
             ksqlite.execute(
                 """
@@ -58,8 +95,6 @@ class KSqliteTest {
                     SELECT 1 AS e;
                 """.trimIndent()
             ) { cols, data ->
-                columns = cols
-                dataRecords = data
                 count++
                 0
             }
