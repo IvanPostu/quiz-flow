@@ -76,6 +76,7 @@ kotlin {
                 implementation(libs.ktor.server.cio)
                 implementation(libs.ktor.server.status.pages)
                 implementation(libs.koin.core)
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.0")
             }
         }
         val jvmMain by getting {
