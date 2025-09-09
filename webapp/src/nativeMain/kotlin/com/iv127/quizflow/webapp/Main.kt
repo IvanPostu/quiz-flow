@@ -1,9 +1,9 @@
 package com.iv127.quizflow.webapp
 
 import com.iv127.quizflow.core.Application
-import com.iv127.quizflow.core.model.question.ResourceUtils
 import com.iv127.quizflow.core.platform.file.FileIO
 import com.iv127.quizflow.core.platform.proc.PlatformProcess
+import com.iv127.quizflow.core.resource.Resource
 import com.iv127.quizflow.core.utils.IOUtils
 import kotlin.concurrent.AtomicReference
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -19,9 +19,9 @@ fun main(args: Array<String>) {
     println(PlatformProcess().getPathToExecutable())
     println(PlatformProcess().getPathToExecutableDirectory())
 
-    val resourceUtils = ResourceUtils(FileIO(), PlatformProcess())
-    println(IOUtils.byteArrayToString(resourceUtils.readResource("/a.txt")))
-    println(IOUtils.byteArrayToString(resourceUtils.readResource("/abc.json")))
+    val resourceUtils = Resource(FileIO(), PlatformProcess())
+    println(IOUtils.byteArrayToString(resourceUtils.readResource("a.txt")))
+    println(IOUtils.byteArrayToString(resourceUtils.readResource("abc.json")))
 
     val serverApp = Application.startQuizFlowApplication(args, PlatformServicesImpl())
     appRef.getAndSet(serverApp)

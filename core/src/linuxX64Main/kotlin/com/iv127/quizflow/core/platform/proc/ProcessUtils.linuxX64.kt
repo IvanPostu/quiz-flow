@@ -20,6 +20,7 @@ actual class PlatformProcess {
 
     actual fun getPathToExecutableDirectory(): String {
         val result = internalGetPathToExecutable()
+            .replaceAfterLast("/", "")
         return if (result.endsWith("/")) result.substring(0, result.length - 1) else result
     }
 
