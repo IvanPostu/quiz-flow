@@ -1,7 +1,5 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
-val ktor_version = "3.2.3"
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
 }
@@ -116,7 +114,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation("org.slf4j:slf4j-simple:2.0.17")
+                implementation(libs.slf4j.simple)
             }
         }
         val nativeMain by getting {
@@ -126,8 +124,8 @@ kotlin {
         }
         val nativeTest by getting {
             dependencies {
-                implementation(kotlin("test"))
-                implementation("io.ktor:ktor-server-test-host:$ktor_version")
+                implementation(libs.kotlin.test)
+                implementation(libs.ktor.server.test.host)
             }
         }
     }

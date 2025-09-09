@@ -1,5 +1,3 @@
-val ktor_version = "3.2.3"
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinPluginSerialization)
@@ -72,24 +70,24 @@ kotlin {
             }
             dependencies {
                 implementation(libs.kotlin.stdlib)
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-                implementation("org.jetbrains:markdown:0.7.3")
-                implementation("io.ktor:ktor-server-core:$ktor_version")
-                implementation("io.ktor:ktor-server-cio:$ktor_version")
-                implementation("io.ktor:ktor-server-status-pages:$ktor_version")
+                implementation(libs.kotlinx.serialization.json)
+                implementation(libs.markdown)
+                implementation(libs.ktor.server.core)
+                implementation(libs.ktor.server.cio)
+                implementation(libs.ktor.server.status.pages)
                 implementation(libs.koin.core)
             }
         }
         val jvmMain by getting {
             dependencies {
-                implementation("org.xerial:sqlite-jdbc:3.49.1.0")
+                implementation(libs.sqlite.jdbc)
             }
         }
         val jvmTest by getting {
             dependencies {
                 implementation(libs.kotlin.test)
                 implementation(libs.assertj)
-                implementation("org.slf4j:slf4j-simple:2.0.17")
+                implementation(libs.slf4j.simple)
             }
         }
         val linuxX64Test by getting {
