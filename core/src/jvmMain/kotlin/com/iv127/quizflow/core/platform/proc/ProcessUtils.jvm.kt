@@ -30,7 +30,7 @@ actual class PlatformProcess {
     ): Pair<Int, String> {
 
         try {
-            val processBuilder = ProcessBuilder(scriptContent.split(Regex("(?<!(\"|').{0,255}) | (?!.*\\1.*)")))
+            val processBuilder = ProcessBuilder("sh", "-c", scriptContent)
             processBuilder.redirectErrorStream(true)
 
             val process = processBuilder.start()
