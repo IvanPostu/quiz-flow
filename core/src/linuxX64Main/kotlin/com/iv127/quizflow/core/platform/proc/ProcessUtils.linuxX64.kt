@@ -19,8 +19,8 @@ actual class PlatformProcess {
     }
 
     actual fun getPathToExecutableDirectory(): String {
-        return internalGetPathToExecutable()
-            .replaceAfterLast("/", "")
+        val result = internalGetPathToExecutable()
+        return if (result.endsWith("/")) result.substring(0, result.length - 1) else result
     }
 
     @OptIn(ExperimentalForeignApi::class)
