@@ -11,7 +11,7 @@ pkgs.mkShell {
     pkgs.libxcrypt-legacy # required for .kexe app to run
     pkgs.zlib
     pkgs.nodejs_22
-    pkgs.patchelf
+    pkgs.patchelf # is used to override path to dynamic libraries for executables
     pkgs.gcc13
   ];
 
@@ -29,6 +29,8 @@ pkgs.mkShell {
 
         export JAVA_HOME=${pkgs.temurin-bin-21}
         export PATH=${pkgs.temurin-bin-21}/bin:$PATH
+
+        export DEBUG_APPLICATION_ROOT_FOLDER="$PROJECT_ROOT/webapp/build/packaged"
 
         chmod -R +x ${PROJECT_ROOT}/scripts
         export PATH=${PROJECT_ROOT}/scripts:$PATH

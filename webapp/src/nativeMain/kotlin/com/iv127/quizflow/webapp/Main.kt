@@ -16,7 +16,6 @@ private val appRef: AtomicReference<Application.Companion.QuizFlowApplication?> 
 
 @OptIn(ExperimentalForeignApi::class)
 fun main(args: Array<String>) {
-    println(PlatformProcess().getPathToExecutable())
     println(PlatformProcess().getPathToExecutableDirectory())
 
     val resourceUtils = Resource(FileIO(), PlatformProcess())

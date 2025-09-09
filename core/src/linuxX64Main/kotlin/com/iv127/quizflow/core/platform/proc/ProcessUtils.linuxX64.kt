@@ -14,10 +14,6 @@ actual class PlatformProcess {
         private const val BUFFER_SIZE = 8 * 1024
     }
 
-    actual fun getPathToExecutable(): String {
-        return internalGetPathToExecutable()
-    }
-
     actual fun getPathToExecutableDirectory(): String {
         val result = internalGetPathToExecutable()
             .replaceAfterLast("/", "")

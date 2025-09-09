@@ -5,7 +5,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class JvmPathUtilsTest {
+class LinuxPlatformPathTest {
 
 
     private lateinit var pathToFile: String
@@ -24,7 +24,7 @@ class JvmPathUtilsTest {
 
     @Test
     fun testFetFilenamesFromDirectory() {
-        val path = PathUtils()
+        val path = PlatformPath()
         val files = path.getFilenamesFromDirectory(pathToFile)
         assertEquals(3, files.size)
 

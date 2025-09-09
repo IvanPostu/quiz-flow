@@ -7,7 +7,6 @@ import com.iv127.quizflow.core.resource.Resource
 import com.iv127.quizflow.core.utils.IOUtils
 
 fun main(args: Array<String>) {
-    println(PlatformProcess().getPathToExecutable())
     println(PlatformProcess().getPathToExecutableDirectory())
     val serverApp = Application.startQuizFlowApplication(args, PlatformServicesImpl())
 

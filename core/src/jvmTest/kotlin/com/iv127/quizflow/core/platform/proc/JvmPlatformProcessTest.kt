@@ -1,17 +1,10 @@
 package com.iv127.quizflow.core.platform.proc
 
-import kotlin.test.Test
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import org.junit.Test
 
-class LinuxProcessUtilsTest {
-
-    @Test
-    fun testGetExecutablePath() {
-        val path = PlatformProcess().getPathToExecutable()
-        assertNotNull(path)
-        assertNotEquals('/', path.last())
-    }
+class JvmPlatformProcessTest {
 
     @Test
     fun testGetExecutableDirectoryPath() {

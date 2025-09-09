@@ -9,23 +9,20 @@ import platform.posix.opendir
 import platform.posix.readdir
 import platform.posix.strerror
 
-actual class PathUtils {
+actual class PlatformPath {
 
     @OptIn(ExperimentalForeignApi::class)
     actual fun getFilenamesFromDirectory(directoryPath: String): List<String> {
         val filenames = mutableListOf<String>()
 
-        // Attempt to open the directory
         val dir = opendir(directoryPath)
 
         if (dir == null) {
-            // Print the error message if opendir fails
             println("Failed to open directory: $directoryPath")
             println("Error: ${strerror(errno)?.toKString()}")
             throw IllegalStateException("Failed to open directory: $directoryPath")
         }
 
-        // Read directory contents if opened successfully
         var entry = readdir(dir)
 
         while (entry != null) {
@@ -36,10 +33,22 @@ actual class PathUtils {
             entry = readdir(dir)
         }
 
-        // Close the directory
         closedir(dir)
-
         return filenames
+    }
+
+    actual fun getPathSeparator(): String {
+        return "/"
+    }
+
+    actual fun resolve(first: String, vararg others: String): String {
+        val resultBuilder = StringBuilder(first)
+        for (part in others) {
+            resultBuilder
+                .append(getPathSeparator())
+                .append(part)
+        }
+        return resultBuilder.toString()
     }
 
 }
