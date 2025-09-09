@@ -90,6 +90,7 @@ java -jar ./webapp/build/packaged/quiz-flow-0.0.1.jar
 10. <https://discourse.nixos.org/t/how-to-refer-to-current-directory-in-shell-nix/9526/2>
 11. **BEST** <https://flyingbytes.github.io/programming/android/kotlin/native/c/interop/interoperability/2022/09/10/Kotlin-Native-C-Interop.html>
 12. <https://stackoverflow.com/questions/47618276/how-to-use-sqlite-in-kotlin-native>
+  12.1. <https://github.com/Kotlin/kotlinconf-spinner/tree/b1e66920ac7216d3dbc4b6b4625fb77efe23cff8/sql>
 13. <https://jvns.ca/blog/2019/10/28/sqlite-is-really-easy-to-compile/>
 14. <https://www.conventionalcommits.org/en/v1.0.0/>
 15. <https://sqlite.org/amalgamation.html>

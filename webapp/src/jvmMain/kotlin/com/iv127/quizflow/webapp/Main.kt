@@ -12,22 +12,7 @@ import com.iv127.quizflow.core.utils.IOUtils
 fun main(args: Array<String>) {
     println(PlatformProcess().getPathToExecutable())
     println(PlatformProcess().getPathToExecutableDirectory())
-    val serverApp = Application.startQuizFlowApplication(args, object : PlatformServices {
-        override fun getProcessUtils(): PlatformProcess {
-            return PlatformProcess()
-        }
-
-        override fun getFileIO(): FileIO {
-            return FileIO()
-        }
-
-        override fun close() {
-        }
-
-        override fun createSqliteDatabase(path: String): SqliteDatabase {
-            return JvmSqliteDatabase(path)
-        }
-    })
+    val serverApp = Application.startQuizFlowApplication(args, PlatformServicesImpl())
 
     val resourceUtils = ResourceUtils(FileIO(), PlatformProcess())
     println(IOUtils.byteArrayToString(resourceUtils.readResource("/a.txt")))

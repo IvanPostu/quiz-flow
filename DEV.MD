@@ -24,6 +24,14 @@ curl \
 http://localhost:8080/api/upload
 ```
 
+## Requests
+
+```sh
+curl -i http://localhost:8080/api/health-check
+```
+
+## Run the app
+
 ```sh
 # reset path to dynamic lib, origin means path to the executable
 patchelf --set-rpath '$ORIGIN' ./quiz-flow-0.0.1.kexe

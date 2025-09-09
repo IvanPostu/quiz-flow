@@ -4,4 +4,4 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class HealthCheckResponse(@SerialName("status") private val status: String)
+data class HealthCheckResponse(@SerialName("status") val status: String)
