@@ -9,7 +9,7 @@ class JvmSqliteDatabase(dbPath: String) : SqliteDatabase {
 
     private val jdbcConnection: java.sql.Connection = DriverManager.getConnection("jdbc:sqlite:$dbPath")
 
-    override fun execute(statement: String): List<Map<String, String>> {
+    override fun executeAndGetResultSet(statement: String): List<Map<String, String>> {
         var attempts = 0
         while (true) {
             if (attempts > 0) {
@@ -17,15 +17,32 @@ class JvmSqliteDatabase(dbPath: String) : SqliteDatabase {
             }
             try {
                 jdbcConnection.createStatement().use { stmt ->
-                    // TODO: big hammer approach, fix this hack in the future
-                    if (statement.lowercase().contains("select")) {
-                        return resultSetToList(stmt.executeQuery(statement))
-                    }
-                    stmt.executeUpdate(statement)
-                    return emptyList()
+                    return resultSetToList(stmt.executeQuery(statement))
                 }
             } catch (e: SQLException) {
-                // TODO rough hack, to fix
+                // Hack, but there is no other way
+                if (e.message == "[SQLITE_BUSY] The database file is locked (database is locked)" && attempts < 5) {
+                    attempts++
+                    continue
+                }
+                throw IllegalStateException("Database error: " + e.message, e)
+            }
+        }
+    }
+
+
+    override fun executeAndGetChangedRowsCount(statement: String): Int {
+        var attempts = 0
+        while (true) {
+            if (attempts > 0) {
+                Thread.sleep(200); // 0.2 seconds
+            }
+            try {
+                jdbcConnection.createStatement().use { stmt ->
+                    return stmt.executeUpdate(statement)
+                }
+            } catch (e: SQLException) {
+                // Hack, but there is no other way
                 if (e.message == "[SQLITE_BUSY] The database file is locked (database is locked)" && attempts < 5) {
                     attempts++
                     continue
@@ -54,4 +71,5 @@ class JvmSqliteDatabase(dbPath: String) : SqliteDatabase {
         }
         return resultList
     }
+
 }

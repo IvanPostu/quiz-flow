@@ -18,6 +18,7 @@ import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
 import platform.posix.usleep
 import sqlite3.SQLITE_BUSY
+import sqlite3.sqlite3_changes
 import sqlite3.sqlite3_close
 import sqlite3.sqlite3_errmsg
 import sqlite3.sqlite3_exec
@@ -32,7 +33,7 @@ private fun fromCArray(ptr: CPointer<CPointerVar<ByteVar>>, count: Int) =
     Array(count, { index -> (ptr + index)!!.pointed.value!!.toKString() })
 
 @OptIn(ExperimentalForeignApi::class)
-class KSqlite {
+class KSqlite : AutoCloseable {
     var dbPath: String = ""
     var db: DbConnection = null
 
@@ -53,7 +54,7 @@ class KSqlite {
     val cpointer
         get() = db as COpaquePointer?
 
-    fun execute(command: String, callback: ((Array<String>, Array<String>) -> Int)? = null) {
+    fun execute(command: String, callback: ((Array<String>, Array<String>) -> Int)? = null): Int {
         memScoped {
             val error = this.alloc<CPointerVar<ByteVar>>()
             val callbackStable = if (callback != null) StableRef.create(callback) else null
@@ -80,6 +81,7 @@ class KSqlite {
                 if (rc != 0) {
                     throw IllegalStateException("sqlite3_exec failed with code: $rc - ${error.value!!.toKString()}")
                 }
+                return sqlite3_changes(db)
             } finally {
                 callbackStable?.dispose()
                 sqlite3_free(error.value)
@@ -92,7 +94,7 @@ class KSqlite {
 
     override fun toString(): String = "SQLite database in $dbPath"
 
-    fun close() {
+    override fun close() {
         if (db != null) {
             sqlite3_close(db)
             db = null

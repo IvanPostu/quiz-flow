@@ -22,10 +22,45 @@ class LinuxSqliteDatabaseTest {
         ).output
     }
 
+
+    @Test
+    fun testUpdateAndGetChangedRowsCount() {
+        LinuxSqliteDatabase(pathToFile).use { sqliteDatabase ->
+            try {
+                sqliteDatabase.executeAndGetResultSet(
+                    """
+                    CREATE TABLE users (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        email TEXT NOT NULL
+                    );
+                """.trimIndent()
+                )
+                sqliteDatabase.executeAndGetResultSet(
+                    """
+                    INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com');
+                    INSERT INTO users (name, email) VALUES ('Bob', 'bob@example.com');
+                    INSERT INTO users (name, email) VALUES ('Charlie', 'charlie@example.com');
+                    SELECT last_insert_rowid() AS lastId;
+                """.trimIndent()
+                )
+
+                val changedRowsCount = sqliteDatabase.executeAndGetChangedRowsCount(
+                    """
+                    UPDATE users SET email='changed@mail.com' WHERE users.name IN ('Alice', 'Bob');
+                """.trimIndent()
+                )
+                assertEquals(2, changedRowsCount)
+            } finally {
+                sqliteDatabase.close()
+            }
+        }
+    }
+
     @Test
     fun testSelect() {
         LinuxSqliteDatabase(pathToFile).use { sqliteDatabase ->
-            val result = sqliteDatabase.execute("SELECT 1 AS a, 2 AS b;")
+            val result = sqliteDatabase.executeAndGetResultSet("SELECT 1 AS a, 2 AS b;")
 
             assertEquals(1, result.size)
             val row = result.first()
@@ -43,7 +78,7 @@ class LinuxSqliteDatabaseTest {
         println(pathToFile)
         LinuxSqliteDatabase(pathToFile).use { sqlite1 ->
             LinuxSqliteDatabase(pathToFile).use { sqlite2 ->
-                sqlite1.execute(
+                sqlite1.executeAndGetResultSet(
                     """
                         CREATE TABLE users (
                             id INTEGER PRIMARY KEY,
@@ -53,28 +88,28 @@ class LinuxSqliteDatabaseTest {
                    """.trimIndent()
                 )
 
-                sqlite1.execute("BEGIN TRANSACTION;")
-                sqlite1.execute(
+                sqlite1.executeAndGetResultSet("BEGIN TRANSACTION;")
+                sqlite1.executeAndGetResultSet(
                     """
                         INSERT INTO users (name, email) VALUES ('N1', 'a@example.com');
                         INSERT INTO users (name, email) VALUES ('N2', 'a@example.com');
                         INSERT INTO users (name, email) VALUES ('N3', 'a@example.com');
                     """.trimIndent()
                 )
-                sqlite1.execute("COMMIT;")
+                sqlite1.executeAndGetResultSet("COMMIT;")
 
-                sqlite1.execute("BEGIN TRANSACTION;")
-                sqlite1.execute(
+                sqlite1.executeAndGetResultSet("BEGIN TRANSACTION;")
+                sqlite1.executeAndGetResultSet(
                     """
                         INSERT INTO users (name, email) VALUES ('N4', 'a@example.com');
                     """.trimIndent()
                 )
 
-                sqlite2.execute("BEGIN TRANSACTION;")
-                sqlite2.execute("SELECT * FROM users")
+                sqlite2.executeAndGetResultSet("BEGIN TRANSACTION;")
+                sqlite2.executeAndGetResultSet("SELECT * FROM users")
                 val now = Clock.System.now().toEpochMilliseconds()
                 try {
-                    sqlite2.execute(
+                    sqlite2.executeAndGetResultSet(
                         """
                             INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com');
                         """.trimIndent()

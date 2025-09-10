@@ -4,7 +4,7 @@ class LinuxSqliteDatabase(dbPath: String) : SqliteDatabase {
 
     private val kSqlite: KSqlite = KSqlite(dbPath)
 
-    override fun execute(statement: String): List<Map<String, String>> {
+    override fun executeAndGetResultSet(statement: String): List<Map<String, String>> {
         val result: MutableList<Map<String, String>> = ArrayList()
         kSqlite.execute(statement) { cols, data ->
             val map: LinkedHashMap<String, String> = LinkedHashMap()
@@ -17,6 +17,10 @@ class LinuxSqliteDatabase(dbPath: String) : SqliteDatabase {
             0
         }
         return result
+    }
+
+    override fun executeAndGetChangedRowsCount(statement: String): Int {
+        return kSqlite.execute(statement)
     }
 
     override fun close() {
