@@ -49,6 +49,9 @@ cd $PROJECT_ROOT/native/sqlite-amalgamation-3500400 \
 ```sh
 ./gradlew build -PbuildType=DEBUG
 # IntelliJ idea: create debug profile for JAR - quiz-flow/webapp/build/packaged/quiz-flow-0.0.1.jar
+
+# clean and build
+./gradlew clean webapp:package build -PbuildType=DEBUG
 ```
 
 ### Frontend development

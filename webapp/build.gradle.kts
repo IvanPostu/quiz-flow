@@ -60,7 +60,7 @@ kotlin {
                 include("**/*")
                 into("resources")
             }
-            from(project(":core").file("src/commonMain/resources")) {
+from(project(":core").file("src/commonMain/resources")) {
                 include("**/*")
                 exclude("public") // exclude public folder
                 into("resources")
@@ -87,15 +87,6 @@ kotlin {
             dependsOn(thePackageTask)
         }
         named("build").get().dependsOn(zipTask.get())
-
-        register<Exec>("runPackaged") {
-            group = "package"
-            description = "Run the exe file in the \"packaged\" directory."
-
-            workingDir = File("${outputDir}/packaged")
-
-            dependsOn(thePackageTask)
-        }
     }
 
     nativeTarget.apply {
