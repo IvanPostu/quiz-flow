@@ -1,0 +1,134 @@
+package com.iv127.quizflow.core.rest.routes
+
+import com.iv127.quizflow.core.model.question.QuestionsSet
+import com.iv127.quizflow.core.rest.requests.QuestionsSetCreateRequest
+import com.iv127.quizflow.core.rest.requests.QuestionsSetUpdateRequest
+import com.iv127.quizflow.core.rest.responses.QuestionsSetResponse
+import com.iv127.quizflow.core.server.JsonWebResponse
+import com.iv127.quizflow.core.server.webResponse
+import com.iv127.quizflow.core.sqlite.SqliteDatabase
+import com.iv127.quizflow.core.sqlite.SqliteTimestampUtils
+import io.ktor.server.request.receive
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.put
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlinx.serialization.json.Json
+import org.koin.core.KoinApplication
+import org.koin.core.qualifier.named
+
+@OptIn(ExperimentalTime::class)
+class QuestionsSetRoutes(val koinApp: KoinApplication) : ApiRoute {
+
+    companion object {
+        private val ROUTE_PATH: String = "/questions-set"
+    }
+
+    override fun setup(parent: Route) {
+        parent.get("$ROUTE_PATH/{id}", webResponse {
+            val id = call.parameters["id"] ?: throw IllegalArgumentException("id pathParam is empty")
+            JsonWebResponse.create(get(id))
+        })
+        parent.get(ROUTE_PATH, webResponse {
+            JsonWebResponse.create(list())
+        })
+        parent.post(ROUTE_PATH, webResponse {
+            val request = call.receive<QuestionsSetCreateRequest>()
+            JsonWebResponse.create(create(request))
+        })
+        parent.delete("$ROUTE_PATH/{id}", webResponse {
+            val id = call.parameters["id"] ?: throw IllegalArgumentException("id pathParam is empty")
+            JsonWebResponse.create(archive(id))
+        })
+        parent.put("$ROUTE_PATH/{id}", webResponse {
+            val id = call.parameters["id"] ?: throw IllegalArgumentException("id pathParam is empty")
+            val request = call.receive<QuestionsSetUpdateRequest>()
+            JsonWebResponse.create(update(id, request))
+        })
+    }
+
+    private fun get(id: String): QuestionsSetResponse {
+        koinApp.koin.get<SqliteDatabase>(named("appDb")).use { db ->
+            return selectById(id, db)
+        }
+    }
+
+    private fun list(): List<QuestionsSetResponse> {
+        koinApp.koin.get<SqliteDatabase>(named("appDb")).use { db ->
+            return db.executeAndGetResultSet("SELECT t.* FROM questions_set AS t")
+                .map { record ->
+                    val deserialized: QuestionsSet = Json.decodeFromString(record["json"].toString())
+                    QuestionsSetResponse(record["id"].toString(), deserialized.name, deserialized.description)
+                }
+        }
+    }
+
+    private fun create(request: QuestionsSetCreateRequest): QuestionsSetResponse {
+        if (request.name.isBlank()) {
+            throw IllegalArgumentException("name field shouldn't be blank")
+        }
+        koinApp.koin.get<SqliteDatabase>(named("appDb")).use { db ->
+            val createdAt = SqliteTimestampUtils.toValue(Clock.System.now())
+            val questionsSet = QuestionsSet("-1", request.name, request.description)
+            db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
+            db.executeAndGetChangedRowsCount(
+                """
+                        INSERT INTO questions_set (
+                            created_at,
+                            archived_at,
+                            json) VALUES ('$createdAt', NULL, '${Json.encodeToString(questionsSet)}');
+                    """.trimIndent()
+            )
+            val insertedId = db.executeAndGetResultSet("SELECT last_insert_rowid() AS lastId;")[0]["lastId"]!!
+            val questionsSetWithId = QuestionsSet(insertedId, request.name, request.description)
+            db.executeAndGetChangedRowsCount(
+                """
+                        UPDATE questions_set SET json='${Json.encodeToString(questionsSetWithId)}'
+                        WHERE questions_set.id=$insertedId;
+                    """.trimIndent()
+            )
+            db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
+            return QuestionsSetResponse(questionsSetWithId.id, questionsSetWithId.name, questionsSetWithId.description)
+        }
+    }
+
+    private fun update(id: String, request: QuestionsSetUpdateRequest): QuestionsSetResponse {
+        koinApp.koin.get<SqliteDatabase>(named("appDb")).use { db ->
+            val existing = selectById(id, db)
+            val questionsSet = QuestionsSet(existing.id, request.name, request.description)
+            db.executeAndGetChangedRowsCount(
+                """
+                    UPDATE questions_set SET json='${Json.encodeToString(questionsSet)}'
+                    WHERE questions_set.id=${existing.id};
+                """.trimIndent()
+            )
+            return selectById(id, db)
+        }
+    }
+
+    private fun archive(id: String): QuestionsSetResponse {
+        koinApp.koin.get<SqliteDatabase>(named("appDb")).use { db ->
+            val existing = selectById(id, db)
+            val archivedAt = SqliteTimestampUtils.toValue(Clock.System.now())
+            db.executeAndGetChangedRowsCount(
+                """
+                    UPDATE questions_set SET archived_at='$archivedAt'
+                    WHERE questions_set.id=${existing.id};
+                """.trimIndent()
+            )
+            return selectById(id, db)
+        }
+    }
+
+    private fun selectById(id: String, db: SqliteDatabase): QuestionsSetResponse {
+        return db.executeAndGetResultSet("SELECT t.* FROM questions_set AS t WHERE t.id=$id")
+            .map { record ->
+                val deserialized: QuestionsSet = Json.decodeFromString(record["json"].toString())
+                QuestionsSetResponse(record["id"].toString(), deserialized.name, deserialized.description)
+            }.first()
+    }
+
+}

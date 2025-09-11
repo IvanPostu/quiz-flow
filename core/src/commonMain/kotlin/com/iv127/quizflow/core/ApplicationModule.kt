@@ -2,9 +2,13 @@ package com.iv127.quizflow.core
 
 import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.rest.routes.HealthCheckRoutes
+import com.iv127.quizflow.core.rest.routes.QuestionsSetRoutes
 import com.iv127.quizflow.core.rest.routes.QuizRoutes
+import com.iv127.quizflow.core.sqlite.SqliteDatabase
+import com.iv127.quizflow.core.sqlite.migrator.DatabaseMigrator
 import com.iv127.quizflow.core.utils.getClassFullName
 import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.ApplicationModulesLoaded
@@ -17,6 +21,7 @@ import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.application.ServerReady
 import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.application.install
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.uri
@@ -33,6 +38,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.core.logger.MESSAGE
 import org.koin.core.parameter.ParametersHolder
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.dsl.onClose
 
@@ -47,26 +53,34 @@ private val applicationStates = mapOf(
     ApplicationStopped to "ApplicationStopped"
 )
 
+private val APP_DB_NAME = "app.db"
+
 fun createApplicationModule(platformServices: PlatformServices): Application.() -> Unit {
     val koinLogger = setupKoinLogger()
+    val stateListener = ApplicationStateListener()
+
     val appModule = module {
         single { platformServices }.onClose {
             platformServices.close()
             koinLogger.info("Platform services have successfully closed")
         }
+        single { stateListener }
         factory { (clazz: KClass<*>) -> KtorSimpleLogger(getClassFullName(clazz)) }
+        factory(named("appDb")) { getAppDatabase(platformServices) }
     }
-    val koinApp = startKoin {
+    val koinApp: KoinApplication = startKoin {
         modules(appModule)
         logger(koinLogger)
     }
     val log: Logger = koinApp.koin.get(Logger::class, parameters = {
         ParametersHolder(mutableListOf(ApplicationModule::class))
     })
+    checkAndLogIfDebugApplicationRootFolderEnvVariableWasSet(platformServices, log)
 
     val routeInstances = listOf(
         HealthCheckRoutes(),
         QuizRoutes(),
+        QuestionsSetRoutes(koinApp)
     )
     val processUtils = platformServices.getProcessUtils()
     val fileIo = platformServices.getFileIO()
@@ -78,7 +92,6 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         }
     }
 
-    val stateListener = ApplicationStateListener()
     return {
         for (event in applicationStates) {
             this.monitor.subscribe(event.key) {
@@ -89,6 +102,9 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         }
         this.monitor.subscribe(ApplicationStopping) {
             koinApp.close()
+        }
+        install(ContentNegotiation) {
+            json() // uses kotlinx.serialization.json.Json by default
         }
         install(requestTracePlugin)
         intercept(ApplicationCallPipeline.Call) {
@@ -114,7 +130,9 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
 
         routing {
             route("/api") {
-                routeInstances.forEach { it.setup(this) }
+                for (routeInstance in routeInstances) {
+                    routeInstance.setup(this)
+                }
             }
             get("/") {
                 call.respondBytes(staticFilesProviderPlugin.getIndexHtmlStaticFileOrElse("Index html is missing!"))
@@ -132,6 +150,26 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
             }
         }
     }
+}
+
+private fun checkAndLogIfDebugApplicationRootFolderEnvVariableWasSet(platformServices: PlatformServices, log: Logger) {
+    val debugApplicationRootFolder = platformServices.getProcessUtils()
+        .runShellScriptAndGetOutput("echo -n \$DEBUG_APPLICATION_ROOT_FOLDER").output
+    if (debugApplicationRootFolder.isNotBlank()) {
+        log.warn(
+            "Env variable DEBUG_APPLICATION_ROOT_FOLDER=${
+                debugApplicationRootFolder
+            } is returned by getPathToExecutableDirectory(), make sure it is used for development only"
+        )
+    }
+}
+
+private fun getAppDatabase(platformServices: PlatformServices): SqliteDatabase {
+    val pathToExecutable = platformServices.getProcessUtils().getPathToExecutableDirectory()
+    val dbPath = platformServices.getPathUtils().resolve(pathToExecutable, "db", APP_DB_NAME)
+    val dbInstance = platformServices
+        .getSqliteDatabase(dbPath, DatabaseMigrator(platformServices.getPathUtils(), platformServices.getResource()))
+    return dbInstance
 }
 
 private fun setupKoinLogger(): org.koin.core.logger.Logger {

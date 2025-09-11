@@ -60,7 +60,7 @@ kotlin {
                 include("**/*")
                 into("resources")
             }
-from(project(":core").file("src/commonMain/resources")) {
+            from(project(":core").file("src/commonMain/resources")) {
                 include("**/*")
                 exclude("public") // exclude public folder
                 into("resources")
@@ -71,6 +71,10 @@ from(project(":core").file("src/commonMain/resources")) {
 
             destinationDir = file("${outputDir}/packaged")
             includeEmptyDirs = false
+
+            doLast {
+                mkdir("$destinationDir/db")
+            }
             dependsOn("nativeProcessResources")
             dependsOn("assemble")
         }

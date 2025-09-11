@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class QuizSetUpdateRequest(
-    @SerialName("name") private val name: String,
-    @SerialName("description") private val description: String
+data class QuestionsSetCreateRequest(
+    @SerialName("name") val name: String,
+    @SerialName("description") val description: String
 )

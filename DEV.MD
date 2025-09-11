@@ -28,6 +28,18 @@ http://localhost:8080/api/upload
 
 ```sh
 curl -i http://localhost:8080/api/health-check
+
+
+# questions set endpoints
+curl -X POST http://localhost:8080/api/questions-set -H "Content-Type: application/json" -d '{"name":"test","description":"aa111"}'
+
+curl -i -X GET http://localhost:8080/api/questions-set -H "Content-Type: application/json"
+
+curl -X GET http://localhost:8080/api/questions-set/1 -H "Content-Type: application/json"
+
+curl -X DELETE http://localhost:8080/api/questions-set/1 -H "Content-Type: application/json"
+
+curl -X PUT http://localhost:8080/api/questions-set/1 -H "Content-Type: application/json" -d '{"name":"test1","description":"1aa111"}' 
 ```
 
 ## Run the app

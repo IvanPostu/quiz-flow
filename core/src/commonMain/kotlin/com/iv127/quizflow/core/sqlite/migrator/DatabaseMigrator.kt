@@ -4,6 +4,8 @@ import com.iv127.quizflow.core.platform.file.PlatformPath
 import com.iv127.quizflow.core.resource.Resource
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.SqliteTimestampUtils
+import com.iv127.quizflow.core.utils.getClassFullName
+import io.ktor.util.logging.KtorSimpleLogger
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -17,6 +19,7 @@ class DatabaseMigrator(
     companion object {
         const val MIGRATION_TABLE_NAME = "migration_history"
         private const val MIGRATION_RESOURCE_FOLDER = "migrations"
+        private val LOG = KtorSimpleLogger(getClassFullName(DatabaseMigrator::class))
     }
 
     private var migrationWasVerified = false
@@ -53,11 +56,13 @@ class DatabaseMigrator(
                             "Migration content for the filename: $migrationFilename is not equal to the one from migration history table"
                         )
                     }
+                    continue
                 }
                 val migrationContent = readMigrationScriptContent(migrationFilename)
                 val version = extractNumberBeforeUnderscore(migrationFilename)
                 executeMigration(db, migrationContent, migrationFilename)
                 insertMigrationRecord(db, migrationContent, migrationFilename, version)
+                LOG.info("Migration: $migrationFilename has been successfully applied")
             }
             migrationWasVerified = true
         }

@@ -1,24 +1,14 @@
 package com.iv127.quizflow.core.platform.proc
 
-import com.iv127.quizflow.core.utils.getClassFullName
-import io.ktor.util.logging.KtorSimpleLogger
 import java.io.File
 import java.net.URL
 
 
 actual class PlatformProcess {
-    companion object {
-        private val LOG = KtorSimpleLogger(getClassFullName(PlatformProcess::class))
-    }
 
     actual fun getPathToExecutableDirectory(): String {
         val debugApplicationRootFolder = runShellScriptAndGetOutput("echo -n \$DEBUG_APPLICATION_ROOT_FOLDER").output
         if (debugApplicationRootFolder.isNotBlank()) {
-            LOG.warn(
-                "Env variable DEBUG_APPLICATION_ROOT_FOLDER=${
-                    debugApplicationRootFolder
-                } is returned by getPathToExecutableDirectory(), make sure it is used for development only"
-            )
             return debugApplicationRootFolder
         }
         val result = internalGetPathToExecutable()
