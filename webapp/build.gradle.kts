@@ -46,16 +46,7 @@ kotlin {
     }
 
     tasks {
-        val thePackageTask = register("package", Copy::class) {
-            this.group = "package"
-            this.description = "Copies the ${buildType.toString().lowercase()} exe and resources into one directory"
-
-            from("${outputDir}/bin/native/${buildType.toString().lowercase()}Executable") {
-                include("**/*")
-            }
-            from("${outputDir}/libs") {
-                include("${targetBaseName}.jar")
-            }
+        val customProcessResources = register("customProcessResources", Copy::class) {
             from("${outputDir}/processedResources/native/main") {
                 include("**/*")
                 into("resources")
@@ -75,10 +66,25 @@ kotlin {
             doLast {
                 mkdir("$destinationDir/db")
             }
+
             dependsOn("nativeProcessResources")
             dependsOn("assemble")
         }
+        val thePackageTask = register("package", Copy::class) {
+            this.group = "package"
+            this.description = "Copies the ${buildType.toString().lowercase()} exe and resources into one directory"
 
+            from("${outputDir}/bin/native/${buildType.toString().lowercase()}Executable") {
+                include("**/*")
+            }
+            from("${outputDir}/libs") {
+                include("${targetBaseName}.jar")
+            }
+
+            destinationDir = file("${outputDir}/packaged")
+            includeEmptyDirs = false
+            dependsOn(customProcessResources)
+        }
         val zipTask = register<Zip>("packageToZip") {
             group = "package"
             description = "Copies the ${buildType.toString().lowercase()} exe and resources into one ZIP file."
@@ -91,6 +97,8 @@ kotlin {
             dependsOn(thePackageTask)
         }
         named("build").get().dependsOn(zipTask.get())
+        named("nativeTest").get().dependsOn(customProcessResources.get())
+        named("jvmTest").get().dependsOn(customProcessResources.get())
     }
 
     nativeTarget.apply {

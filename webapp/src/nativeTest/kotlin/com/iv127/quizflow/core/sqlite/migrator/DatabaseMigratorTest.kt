@@ -1,10 +1,10 @@
-package com.iv127.quizflow.core.sqlite.migrator
+package  com.iv127.quizflow.core.sqlite.migrator
 
 import com.iv127.quizflow.core.platform.file.FileIO
 import com.iv127.quizflow.core.platform.file.PlatformPath
 import com.iv127.quizflow.core.platform.proc.PlatformProcess
 import com.iv127.quizflow.core.resource.Resource
-import com.iv127.quizflow.core.sqlite.JvmSqliteDatabase
+import com.iv127.quizflow.core.sqlite.LinuxSqliteDatabase
 import com.iv127.quizflow.core.sqlite.migrator.DatabaseMigrator.Companion.MIGRATION_TABLE_NAME
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -25,7 +25,7 @@ class DatabaseMigratorTest {
 
     @Test
     fun testAppMigrator() {
-        JvmSqliteDatabase(pathToFile).use { sqliteDatabase ->
+        LinuxSqliteDatabase(pathToFile).use { sqliteDatabase ->
             val migrator = DatabaseMigrator(PlatformPath(), Resource(FileIO(), PlatformProcess()))
             migrator.migrate(sqliteDatabase)
             val dbResult = sqliteDatabase

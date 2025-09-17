@@ -15,6 +15,10 @@ actual class PlatformProcess {
     }
 
     actual fun getPathToExecutableDirectory(): String {
+        val debugApplicationRootFolder = runShellScriptAndGetOutput("echo -n \$DEBUG_APPLICATION_ROOT_FOLDER").output
+        if (debugApplicationRootFolder.isNotBlank()) {
+            return debugApplicationRootFolder
+        }
         val result = internalGetPathToExecutable()
             .replaceAfterLast("/", "")
         return if (result.endsWith("/")) result.substring(0, result.length - 1) else result

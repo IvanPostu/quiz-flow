@@ -30,7 +30,10 @@ typealias DbConnection = CPointer<cnames.structs.sqlite3>?
 
 @OptIn(ExperimentalForeignApi::class)
 private fun fromCArray(ptr: CPointer<CPointerVar<ByteVar>>, count: Int) =
-    Array(count, { index -> (ptr + index)!!.pointed.value!!.toKString() })
+    Array(count, { index ->
+        val value = (ptr + index)!!.pointed.value
+        value?.toKString()
+    })
 
 @OptIn(ExperimentalForeignApi::class)
 class KSqlite : AutoCloseable {
@@ -54,7 +57,7 @@ class KSqlite : AutoCloseable {
     val cpointer
         get() = db as COpaquePointer?
 
-    fun execute(command: String, callback: ((Array<String>, Array<String>) -> Int)? = null): Int {
+    fun execute(command: String, callback: ((Array<String?>, Array<String?>) -> Int)? = null): Int {
         memScoped {
             val error = this.alloc<CPointerVar<ByteVar>>()
             val callbackStable = if (callback != null) StableRef.create(callback) else null
@@ -70,7 +73,7 @@ class KSqlite : AutoCloseable {
                         db, command, if (callback != null)
                             staticCFunction { ptr, count, data, columns ->
                                 val callbackFunction =
-                                    ptr!!.asStableRef<(Array<String>, Array<String>) -> Int>().get()
+                                    ptr!!.asStableRef<(Array<String?>, Array<String?>) -> Int>().get()
                                 val columnsArray = fromCArray(columns!!, count)
                                 val dataArray = fromCArray(data!!, count)
                                 callbackFunction(columnsArray, dataArray)

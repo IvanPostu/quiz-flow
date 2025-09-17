@@ -58,7 +58,10 @@ class QuestionsSetRoutes(val koinApp: KoinApplication) : ApiRoute {
 
     private fun list(): List<QuestionsSetResponse> {
         koinApp.koin.get<SqliteDatabase>(named("appDb")).use { db ->
-            return db.executeAndGetResultSet("SELECT t.* FROM questions_set AS t")
+            return db.executeAndGetResultSet("""
+                SELECT t.id, t.created_at, t.archived_at, t.json 
+                FROM questions_set AS t;
+            """.trimIndent())
                 .map { record ->
                     val deserialized: QuestionsSet = Json.decodeFromString(record["json"].toString())
                     QuestionsSetResponse(record["id"].toString(), deserialized.name, deserialized.description)
