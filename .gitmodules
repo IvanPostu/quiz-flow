@@ -2,3 +2,7 @@
 	path = external/sqlite
 	url = git@github.com:sqlite/sqlite.git
 	branch = tags/version-3.50.4
+[submodule "external/libbcrypt"]
+	path = external/libbcrypt
+	url = git@github.com:rg3/libbcrypt.git
+	branch = future
