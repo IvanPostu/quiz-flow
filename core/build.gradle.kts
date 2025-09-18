@@ -58,9 +58,18 @@ kotlin {
                           sqlite3_unlock_notify
                     """.trimIndent()
                 )
+                val bcryptDefFile = file("src/nativeInterop/cinterop/bcrypt.def")
+                bcryptDefFile.writeText(
+                    """
+                        compilerOpts = -I $parentProjectAbsolutePath/native/bcrypt
+                        headers = bcrypt.h
+                        linkerOpts = -L $parentProjectAbsolutePath/native/bcrypt -lbcrypt
+                    """.trimIndent()
+                )
                 cinterops {
                     val libsimple by creating
                     val sqlite3 by creating
+                    val bcrypt by creating
                 }
             }
         }

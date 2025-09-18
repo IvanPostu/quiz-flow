@@ -26,6 +26,7 @@ pkgs.mkShell {
         
         export LD_LIBRARY_PATH="${PROJECT_ROOT}/native/simple:$LD_LIBRARY_PATH"
         export LD_LIBRARY_PATH="${PROJECT_ROOT}/native/sqlite-amalgamation-3500400:$LD_LIBRARY_PATH"
+        export LD_LIBRARY_PATH="${PROJECT_ROOT}/native/bcrypt:$LD_LIBRARY_PATH"
 
         export JAVA_HOME=${pkgs.temurin-bin-21}
         export PATH=${pkgs.temurin-bin-21}/bin:$PATH

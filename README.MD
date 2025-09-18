@@ -42,12 +42,20 @@ cd $PROJECT_ROOT/external/sqlite \
 cd $PROJECT_ROOT/native/sqlite-amalgamation-3500400 \
   && gcc -fPIC -shared -o libsqlite3.so sqlite3.c \
   && cd $PROJECT_ROOT
+
+cd $PROJECT_ROOT/external/libbcrypt \
+  && ( make EXTRA_CFLAGS="-fPIC" || [ -e ./libbcrypt.so.1.0.0 ] ) \
+  && cp -f $PROJECT_ROOT/external/libbcrypt/bcrypt.h $PROJECT_ROOT/native/bcrypt/bcrypt.h \
+  && cp -f $PROJECT_ROOT/external/libbcrypt/libbcrypt.so.1.0.0 $PROJECT_ROOT/native/bcrypt/libbcrypt.so.1 \
+  && git clean -fdx \
+  && cd $PROJECT_ROOT
 ```
 
 ### JVM debug
 
 ```sh
 ./gradlew build -PbuildType=DEBUG
+./gradlew build -PbuildType=DEBUG -Pkotlin.native.cacheKind=none
 # IntelliJ idea: create debug profile for JAR - quiz-flow/webapp/build/packaged/quiz-flow-0.0.1.jar
 
 # clean and build
