@@ -1,10 +1,10 @@
-package com.iv127.quizflow.core.rest.requests
+package com.iv127.quizflow.core.rest.questionsset
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class QuestionsSetCreateRequest(
+data class QuestionsSetUpdateRequest(
     @SerialName("name") val name: String,
     @SerialName("description") val description: String
 )

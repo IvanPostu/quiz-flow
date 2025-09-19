@@ -1,7 +1,7 @@
 package com.iv127.quizflow.webapp
 
 import com.iv127.quizflow.core.createApplicationModule
-import com.iv127.quizflow.core.rest.responses.HealthCheckResponse
+import com.iv127.quizflow.core.rest.healthcheck.HealthCheckResponse
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode

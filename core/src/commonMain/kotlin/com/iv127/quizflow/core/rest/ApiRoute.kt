@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.rest.routes
+package com.iv127.quizflow.core.rest
 
 import io.ktor.server.routing.Route
 

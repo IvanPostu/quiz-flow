@@ -1,9 +1,9 @@
 package com.iv127.quizflow.core
 
 import com.iv127.quizflow.core.platform.PlatformServices
-import com.iv127.quizflow.core.rest.routes.HealthCheckRoutes
-import com.iv127.quizflow.core.rest.routes.QuestionsSetRoutes
-import com.iv127.quizflow.core.rest.routes.QuizRoutes
+import com.iv127.quizflow.core.rest.healthcheck.HealthCheckRoutes
+import com.iv127.quizflow.core.rest.questionsset.QuestionsSetRoutes
+import com.iv127.quizflow.core.rest.QuizRoutes
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.migrator.DatabaseMigrator
 import com.iv127.quizflow.core.utils.getClassFullName

@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.rest.routes
+package com.iv127.quizflow.core.rest
 
 import com.iv127.quizflow.core.utils.IOUtils
 import io.ktor.http.content.PartData
@@ -10,6 +10,7 @@ import io.ktor.server.routing.post
 import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
 
+// TODO going to be removed
 class QuizRoutes : ApiRoute {
     override fun setup(parent: Route) {
         parent.post("/upload") {

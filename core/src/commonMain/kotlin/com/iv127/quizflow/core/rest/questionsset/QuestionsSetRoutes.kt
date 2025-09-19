@@ -1,9 +1,7 @@
-package com.iv127.quizflow.core.rest.routes
+package com.iv127.quizflow.core.rest.questionsset
 
 import com.iv127.quizflow.core.model.question.QuestionsSet
-import com.iv127.quizflow.core.rest.requests.QuestionsSetCreateRequest
-import com.iv127.quizflow.core.rest.requests.QuestionsSetUpdateRequest
-import com.iv127.quizflow.core.rest.responses.QuestionsSetResponse
+import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse
 import com.iv127.quizflow.core.sqlite.SqliteDatabase

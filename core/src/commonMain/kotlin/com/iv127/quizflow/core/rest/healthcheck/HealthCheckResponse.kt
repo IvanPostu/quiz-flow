@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.rest.responses
+package com.iv127.quizflow.core.rest.healthcheck
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
