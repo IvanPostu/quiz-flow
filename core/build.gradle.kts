@@ -63,7 +63,7 @@ kotlin {
                     """
                         compilerOpts = -I $parentProjectAbsolutePath/native/bcrypt
                         headers = bcrypt.h
-                        linkerOpts = -L $parentProjectAbsolutePath/native/bcrypt -lbcrypt
+                        linkerOpts = -L $parentProjectAbsolutePath/native/bcrypt -l:libbcrypt.so.1
                     """.trimIndent()
                 )
                 cinterops {
