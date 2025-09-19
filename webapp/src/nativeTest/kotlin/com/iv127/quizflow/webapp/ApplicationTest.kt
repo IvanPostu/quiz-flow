@@ -1,5 +1,6 @@
 package com.iv127.quizflow.webapp
 
+import com.iv127.quizflow.core.application.ApplicationState
 import com.iv127.quizflow.core.createApplicationModule
 import com.iv127.quizflow.core.rest.healthcheck.HealthCheckResponse
 import io.ktor.client.request.get
@@ -12,6 +13,7 @@ import kotlin.test.assertNotNull
 import kotlinx.serialization.json.Json
 
 class ApplicationTest {
+
     @Test
     fun testRoot() = testApplication {
         application {
@@ -23,7 +25,8 @@ class ApplicationTest {
 
             assertNotNull(body)
             val deserialized: HealthCheckResponse = Json.decodeFromString(body)
-            assertEquals("SUCCESS", deserialized.status)
+            assertEquals(ApplicationState.APPLICATION_STARTED, deserialized.state)
         }
     }
+
 }

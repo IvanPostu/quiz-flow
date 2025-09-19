@@ -1,9 +1,10 @@
 package com.iv127.quizflow.core
 
+import com.iv127.quizflow.core.application.ApplicationState
 import com.iv127.quizflow.core.platform.PlatformServices
+import com.iv127.quizflow.core.rest.QuizRoutes
 import com.iv127.quizflow.core.rest.healthcheck.HealthCheckRoutes
 import com.iv127.quizflow.core.rest.questionsset.QuestionsSetRoutes
-import com.iv127.quizflow.core.rest.QuizRoutes
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.migrator.DatabaseMigrator
 import com.iv127.quizflow.core.utils.getClassFullName
@@ -11,14 +12,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCallPipeline
-import io.ktor.server.application.ApplicationModulesLoaded
-import io.ktor.server.application.ApplicationModulesLoading
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStarting
-import io.ktor.server.application.ApplicationStopPreparing
-import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.ApplicationStopping
-import io.ktor.server.application.ServerReady
 import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -42,18 +36,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.dsl.onClose
 
-private val applicationStates = mapOf(
-    ApplicationStarting to "ApplicationStarting",
-    ApplicationModulesLoading to "ApplicationModulesLoading",
-    ApplicationModulesLoaded to "ApplicationModulesLoaded",
-    ApplicationStarted to "ApplicationStarted",
-    ServerReady to "ServerReady",
-    ApplicationStopPreparing to "ApplicationStopPreparing",
-    ApplicationStopping to "ApplicationStopping",
-    ApplicationStopped to "ApplicationStopped"
-)
-
-private val APP_DB_NAME = "app.db"
+private const val APP_DB_NAME = "app.db"
 
 fun createApplicationModule(platformServices: PlatformServices): Application.() -> Unit {
     val koinLogger = setupKoinLogger()
@@ -78,7 +61,7 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
     checkAndLogIfDebugApplicationRootFolderEnvVariableWasSet(platformServices, log)
 
     val routeInstances = listOf(
-        HealthCheckRoutes(),
+        HealthCheckRoutes(koinApp),
         QuizRoutes(),
         QuestionsSetRoutes(koinApp)
     )
@@ -93,11 +76,9 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
     }
 
     return {
-        for (event in applicationStates) {
-            this.monitor.subscribe(event.key) {
-                stateListener.transition(event.key, {
-                    applicationStates[it]!!
-                })
+        for (entry in ApplicationState.entries) {
+            this.monitor.subscribe(entry.event) {
+                stateListener.transition(entry.event)
             }
         }
         this.monitor.subscribe(ApplicationStopping) {
