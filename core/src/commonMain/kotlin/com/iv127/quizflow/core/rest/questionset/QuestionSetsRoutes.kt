@@ -1,6 +1,6 @@
 package com.iv127.quizflow.core.rest.questionset
 
-import com.iv127.quizflow.core.model.question.QuestionsSet
+import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse
@@ -61,7 +61,7 @@ class QuestionSetsRoutes(val koinApp: KoinApplication) : ApiRoute {
                 FROM questions_set AS t;
             """.trimIndent())
                 .map { record ->
-                    val deserialized: QuestionsSet = Json.decodeFromString(record["json"].toString())
+                    val deserialized: QuestionSet = Json.decodeFromString(record["json"].toString())
                     QuestionSetResponse(record["id"].toString(), deserialized.name, deserialized.description)
                 }
         }
@@ -73,7 +73,7 @@ class QuestionSetsRoutes(val koinApp: KoinApplication) : ApiRoute {
         }
         koinApp.koin.get<SqliteDatabase>(named("appDb")).use { db ->
             val createdAt = SqliteTimestampUtils.toValue(Clock.System.now())
-            val questionsSet = QuestionsSet("-1", request.name, request.description)
+            val questionsSet = QuestionSet("-1", request.name, request.description)
             db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
             db.executeAndGetChangedRowsCount(
                 """
@@ -84,7 +84,7 @@ class QuestionSetsRoutes(val koinApp: KoinApplication) : ApiRoute {
                     """.trimIndent()
             )
             val insertedId = db.executeAndGetResultSet("SELECT last_insert_rowid() AS lastId;")[0]["lastId"]!!
-            val questionsSetWithId = QuestionsSet(insertedId, request.name, request.description)
+            val questionsSetWithId = QuestionSet(insertedId, request.name, request.description)
             db.executeAndGetChangedRowsCount(
                 """
                         UPDATE questions_set SET json='${Json.encodeToString(questionsSetWithId)}'
@@ -99,7 +99,7 @@ class QuestionSetsRoutes(val koinApp: KoinApplication) : ApiRoute {
     private fun update(id: String, request: QuestionSetUpdateRequest): QuestionSetResponse {
         koinApp.koin.get<SqliteDatabase>(named("appDb")).use { db ->
             val existing = selectById(id, db)
-            val questionsSet = QuestionsSet(existing.id, request.name, request.description)
+            val questionsSet = QuestionSet(existing.id, request.name, request.description)
             db.executeAndGetChangedRowsCount(
                 """
                     UPDATE questions_set SET json='${Json.encodeToString(questionsSet)}'
@@ -127,7 +127,7 @@ class QuestionSetsRoutes(val koinApp: KoinApplication) : ApiRoute {
     private fun selectById(id: String, db: SqliteDatabase): QuestionSetResponse {
         return db.executeAndGetResultSet("SELECT t.* FROM questions_set AS t WHERE t.id=$id")
             .map { record ->
-                val deserialized: QuestionsSet = Json.decodeFromString(record["json"].toString())
+                val deserialized: QuestionSet = Json.decodeFromString(record["json"].toString())
                 QuestionSetResponse(record["id"].toString(), deserialized.name, deserialized.description)
             }.first()
     }

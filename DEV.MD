@@ -50,6 +50,10 @@ curl -X POST http://localhost:8080/api/users \
 
 curl -X GET http://localhost:8080/api/users
 
+curl \
+    -F "filecomment=This is an text file" \
+    -F "file=@/$PROJECT_ROOT/../docubase-documents/Java/OCP21/OCP21.MD" \
+    http://localhost:8080/api/question-sets/1/questions
 ```
 
 ## Run the app
