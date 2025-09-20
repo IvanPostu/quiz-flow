@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.rest.questionsset
+package com.iv127.quizflow.core.rest.questionset
 
 import com.iv127.quizflow.core.model.question.QuestionsSet
 import com.iv127.quizflow.core.rest.ApiRoute
