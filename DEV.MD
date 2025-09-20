@@ -26,12 +26,12 @@ curl \
     -F "file1=@/$PROJECT_ROOT/test.txt" \
     http://localhost:8080/api/upload
 
-curl \
+curl -X POST http://localhost:8080/api/upload2 \
     -H "Content-Type: multipart/form-data" \
     -F "testid=1" \
     -F "filecomment=This is an text file" \
-    -F "file1=@/$PROJECT_ROOT/test.txt" \
-    http://localhost:8080/api/upload2
+    -F "file1=@/$PROJECT_ROOT/test.txt" 
+    
 ```
 
 ## Requests
