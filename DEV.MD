@@ -20,10 +20,18 @@ rm -rf ./.git/modules/external/
 
 ```sh
 curl \
--F "testid=1" \
--F "filecomment=This is an text file" \
--F "file1=@/$PROJECT_ROOT/test.txt" \
-http://localhost:8080/api/upload
+    -H "Content-Type: multipart/form-data" \
+    -F "testid=1" \
+    -F "filecomment=This is an text file" \
+    -F "file1=@/$PROJECT_ROOT/test.txt" \
+    http://localhost:8080/api/upload
+
+curl \
+    -H "Content-Type: multipart/form-data" \
+    -F "testid=1" \
+    -F "filecomment=This is an text file" \
+    -F "file1=@/$PROJECT_ROOT/test.txt" \
+    http://localhost:8080/api/upload2
 ```
 
 ## Requests

@@ -2,6 +2,7 @@ package com.iv127.quizflow.core
 
 import com.iv127.quizflow.core.application.ApplicationState
 import com.iv127.quizflow.core.platform.PlatformServices
+import com.iv127.quizflow.core.rest.QuizRoutes
 import com.iv127.quizflow.core.rest.healthcheck.HealthCheckRoutes
 import com.iv127.quizflow.core.rest.question.QuestionsRoutes
 import com.iv127.quizflow.core.rest.questionset.QuestionSetsRoutes
@@ -65,7 +66,8 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         HealthCheckRoutes(koinApp),
         QuestionSetsRoutes(koinApp),
         UsersRoutes(koinApp),
-        QuestionsRoutes(koinApp)
+        QuestionsRoutes(koinApp),
+        QuizRoutes()
     )
     val processUtils = platformServices.getProcessUtils()
     val fileIo = platformServices.getFileIO()
