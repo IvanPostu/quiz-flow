@@ -107,3 +107,4 @@ java -jar ./webapp/build/packaged/quiz-flow-0.0.1.jar
 15. <https://sqlite.org/amalgamation.html>
 16. <https://www.w3schools.com/git/git_submodules.asp>
 17. <https://stackoverflow.com/questions/1777854/how-can-i-specify-a-branch-tag-when-adding-a-git-submodule>
+18. <https://stackoverflow.com/questions/20342058/which-uuid-version-to-use>

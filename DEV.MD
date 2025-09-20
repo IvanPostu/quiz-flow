@@ -33,15 +33,23 @@ curl -i http://localhost:8080/api/health-check
 
 
 # questions set endpoints
-curl -X POST http://localhost:8080/api/questions-set -H "Content-Type: application/json" -d '{"name":"test","description":"aa111"}'
+curl -X POST http://localhost:8080/api/question-sets -H "Content-Type: application/json" -d '{"name":"test","description":"aa111"}'
 
-curl -i -X GET http://localhost:8080/api/questions-set -H "Content-Type: application/json"
+curl -i -X GET http://localhost:8080/api/question-sets -H "Content-Type: application/json"
 
-curl -X GET http://localhost:8080/api/questions-set/1 -H "Content-Type: application/json"
+curl -X GET http://localhost:8080/api/question-sets/1 -H "Content-Type: application/json"
 
-curl -X DELETE http://localhost:8080/api/questions-set/1 -H "Content-Type: application/json"
+curl -X DELETE http://localhost:8080/api/question-sets/1 -H "Content-Type: application/json"
 
-curl -X PUT http://localhost:8080/api/questions-set/1 -H "Content-Type: application/json" -d '{"name":"test1","description":"1aa111"}' 
+curl -X PUT http://localhost:8080/api/question-sets/1 -H "Content-Type: application/json" -d '{"name":"test1","description":"1aa111"}' 
+
+# users
+curl -X POST http://localhost:8080/api/users \
+    -H "Content-Type: application/json" \
+    -d '{"username":"admin","password":"admin"}'
+
+curl -X GET http://localhost:8080/api/users
+
 ```
 
 ## Run the app
