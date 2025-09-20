@@ -1,5 +1,7 @@
 package com.iv127.quizflow.core.rest.question
 
+import com.iv127.quizflow.core.ktor.Multipart
+import com.iv127.quizflow.core.ktor.MultipartPart
 import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolver
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolverFactory
@@ -9,23 +11,20 @@ import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.utils.getClassFullName
-import io.ktor.http.content.PartData
-import io.ktor.http.content.forEachPart
-import io.ktor.server.request.receiveMultipart
+import io.ktor.server.request.contentType
+import io.ktor.server.request.receiveChannel
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readRemaining
-import kotlin.time.ExperimentalTime
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
 import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 
-@OptIn(ExperimentalTime::class)
 class QuestionsRoutes(val koinApp: KoinApplication) : ApiRoute {
-
     companion object {
         private val ROUTE_PATH: String = "/question-sets/{question_set_id}/questions"
         private val LOG = KtorSimpleLogger(getClassFullName(QuestionsRoutes::class))
@@ -47,31 +46,17 @@ class QuestionsRoutes(val koinApp: KoinApplication) : ApiRoute {
     }
 
     private suspend fun upload(context: RoutingContext, questionSetId: String): List<QuestionResponse> {
-        val multipartData = context.call.receiveMultipart()
-        val listOfByteArray = ArrayList<ByteArray>()
-        var fileContent = ByteArray(0)
-        multipartData.forEachPart { part ->
-            when (part) {
-                is PartData.FormItem -> {
-                    LOG.debug("FormItem: ${part.name} = ${part.value}")
-                }
+        val contentType = context.call.request.contentType()
+        val boundary = contentType.parameter("boundary") ?: throw IllegalArgumentException("Boundary not found")
+        val channel: ByteReadChannel = context.call.receiveChannel()
+        val rawBody = channel.readRemaining().readByteArray()
+        val multipartData = Multipart.parseMultipart(rawBody, boundary)
 
-                is PartData.FileItem -> {
-                    val fileBytes = part.provider().readRemaining().readByteArray()
-                    val fileName = part.originalFileName as String
-                    listOfByteArray.add(fileBytes)
+        val filePart = multipartData.parts.first {
+            it is MultipartPart.FilePart && it.name == "file"
+        } as MultipartPart.FilePart
 
-                    if (part.name == "file") {
-                        fileContent = fileBytes
-                        LOG.debug("$fileName - consumed: ${fileBytes.size} bytes")
-                    }
-                }
-
-                else -> {}
-            }
-            part.dispose()
-        }
-        val questions = questionResolver.resolve(fileContent.decodeToString())
+        val questions = questionResolver.resolve(filePart.content.decodeToString())
             .asResult()
             .getOrThrow()
 
