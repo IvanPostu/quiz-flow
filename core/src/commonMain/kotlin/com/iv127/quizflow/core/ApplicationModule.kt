@@ -4,7 +4,7 @@ import com.iv127.quizflow.core.application.ApplicationState
 import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.rest.QuizRoutes
 import com.iv127.quizflow.core.rest.healthcheck.HealthCheckRoutes
-import com.iv127.quizflow.core.rest.questionsset.QuestionsSetRoutes
+import com.iv127.quizflow.core.rest.questionsset.QuestionSetsRoutes
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.migrator.DatabaseMigrator
 import com.iv127.quizflow.core.utils.getClassFullName
@@ -63,7 +63,7 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
     val routeInstances = listOf(
         HealthCheckRoutes(koinApp),
         QuizRoutes(),
-        QuestionsSetRoutes(koinApp)
+        QuestionSetsRoutes(koinApp)
     )
     val processUtils = platformServices.getProcessUtils()
     val fileIo = platformServices.getFileIO()

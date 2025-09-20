@@ -19,10 +19,10 @@ import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 
 @OptIn(ExperimentalTime::class)
-class QuestionsSetRoutes(val koinApp: KoinApplication) : ApiRoute {
+class QuestionSetsRoutes(val koinApp: KoinApplication) : ApiRoute {
 
     companion object {
-        private val ROUTE_PATH: String = "/questions-set"
+        private val ROUTE_PATH: String = "/question-sets"
     }
 
     override fun setup(parent: Route) {
@@ -34,7 +34,7 @@ class QuestionsSetRoutes(val koinApp: KoinApplication) : ApiRoute {
             JsonWebResponse.create(list())
         })
         parent.post(ROUTE_PATH, webResponse {
-            val request = call.receive<QuestionsSetCreateRequest>()
+            val request = call.receive<QuestionSetCreateRequest>()
             JsonWebResponse.create(create(request))
         })
         parent.delete("$ROUTE_PATH/{id}", webResponse {
@@ -43,18 +43,18 @@ class QuestionsSetRoutes(val koinApp: KoinApplication) : ApiRoute {
         })
         parent.put("$ROUTE_PATH/{id}", webResponse {
             val id = call.parameters["id"] ?: throw IllegalArgumentException("id pathParam is empty")
-            val request = call.receive<QuestionsSetUpdateRequest>()
+            val request = call.receive<QuestionSetUpdateRequest>()
             JsonWebResponse.create(update(id, request))
         })
     }
 
-    private fun get(id: String): QuestionsSetResponse {
+    private fun get(id: String): QuestionSetResponse {
         koinApp.koin.get<SqliteDatabase>(named("appDb")).use { db ->
             return selectById(id, db)
         }
     }
 
-    private fun list(): List<QuestionsSetResponse> {
+    private fun list(): List<QuestionSetResponse> {
         koinApp.koin.get<SqliteDatabase>(named("appDb")).use { db ->
             return db.executeAndGetResultSet("""
                 SELECT t.id, t.created_at, t.archived_at, t.json 
@@ -62,12 +62,12 @@ class QuestionsSetRoutes(val koinApp: KoinApplication) : ApiRoute {
             """.trimIndent())
                 .map { record ->
                     val deserialized: QuestionsSet = Json.decodeFromString(record["json"].toString())
-                    QuestionsSetResponse(record["id"].toString(), deserialized.name, deserialized.description)
+                    QuestionSetResponse(record["id"].toString(), deserialized.name, deserialized.description)
                 }
         }
     }
 
-    private fun create(request: QuestionsSetCreateRequest): QuestionsSetResponse {
+    private fun create(request: QuestionSetCreateRequest): QuestionSetResponse {
         if (request.name.isBlank()) {
             throw IllegalArgumentException("name field shouldn't be blank")
         }
@@ -92,11 +92,11 @@ class QuestionsSetRoutes(val koinApp: KoinApplication) : ApiRoute {
                     """.trimIndent()
             )
             db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
-            return QuestionsSetResponse(questionsSetWithId.id, questionsSetWithId.name, questionsSetWithId.description)
+            return QuestionSetResponse(questionsSetWithId.id, questionsSetWithId.name, questionsSetWithId.description)
         }
     }
 
-    private fun update(id: String, request: QuestionsSetUpdateRequest): QuestionsSetResponse {
+    private fun update(id: String, request: QuestionSetUpdateRequest): QuestionSetResponse {
         koinApp.koin.get<SqliteDatabase>(named("appDb")).use { db ->
             val existing = selectById(id, db)
             val questionsSet = QuestionsSet(existing.id, request.name, request.description)
@@ -110,7 +110,7 @@ class QuestionsSetRoutes(val koinApp: KoinApplication) : ApiRoute {
         }
     }
 
-    private fun archive(id: String): QuestionsSetResponse {
+    private fun archive(id: String): QuestionSetResponse {
         koinApp.koin.get<SqliteDatabase>(named("appDb")).use { db ->
             val existing = selectById(id, db)
             val archivedAt = SqliteTimestampUtils.toValue(Clock.System.now())
@@ -124,11 +124,11 @@ class QuestionsSetRoutes(val koinApp: KoinApplication) : ApiRoute {
         }
     }
 
-    private fun selectById(id: String, db: SqliteDatabase): QuestionsSetResponse {
+    private fun selectById(id: String, db: SqliteDatabase): QuestionSetResponse {
         return db.executeAndGetResultSet("SELECT t.* FROM questions_set AS t WHERE t.id=$id")
             .map { record ->
                 val deserialized: QuestionsSet = Json.decodeFromString(record["json"].toString())
-                QuestionsSetResponse(record["id"].toString(), deserialized.name, deserialized.description)
+                QuestionSetResponse(record["id"].toString(), deserialized.name, deserialized.description)
             }.first()
     }
 
