@@ -87,6 +87,37 @@ class JvmSqliteDatabaseTest {
 
     }
 
+    @Test
+    fun testPreparedSelect() {
+        JvmSqliteDatabase(pathToFile).use { sqlite1 ->
+            sqlite1.executeAndGetChangedRowsCount(
+                """
+                        CREATE TABLE users (
+                            id INTEGER PRIMARY KEY,
+                            name TEXT NOT NULL,
+                            email TEXT NOT NULL
+                        );
+                   """.trimIndent()
+            )
+
+            sqlite1.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
+            sqlite1.executeAndGetChangedRowsCount(
+                """
+                        INSERT INTO users (name, email) VALUES ('N1', 'a1@example.com');
+                        INSERT INTO users (name, email) VALUES ('N2', 'a2@example.com');
+                        INSERT INTO users (name, email) VALUES ('N3', 'a3@example.com');
+                    """.trimIndent()
+            )
+            sqlite1.executeAndGetChangedRowsCount("COMMIT;")
+
+            val result = sqlite1.executeAndGetResultSet("SELECT * FROM users WHERE name=?", listOf("N2"))
+            assertEquals(1, result.size)
+            assertEquals("2", result[0]["id"])
+            assertEquals("N2", result[0]["name"])
+            assertEquals("a2@example.com", result[0]["email"])
+        }
+    }
+
     @OptIn(ExperimentalTime::class)
     @Test
     fun testTransaction() {

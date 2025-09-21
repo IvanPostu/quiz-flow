@@ -1,8 +1,13 @@
 package com.iv127.quizflow.core.sqlite
 
+import java.sql.Date
 import java.sql.DriverManager
+import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.SQLException
+import java.sql.Time
+import java.sql.Timestamp
+import java.sql.Types
 
 
 class JvmSqliteDatabase(dbPath: String) : SqliteDatabase {
@@ -10,24 +15,12 @@ class JvmSqliteDatabase(dbPath: String) : SqliteDatabase {
     private val jdbcConnection: java.sql.Connection = DriverManager.getConnection("jdbc:sqlite:$dbPath")
 
     override fun executeAndGetResultSet(statement: String): List<Map<String, String>> {
-        var attempts = 0
-        while (true) {
-            if (attempts > 0) {
-                Thread.sleep(200); // 0.2 seconds
-            }
-            try {
-                jdbcConnection.createStatement().use { stmt ->
-                    return resultSetToList(stmt.executeQuery(statement))
-                }
-            } catch (e: SQLException) {
-                // Hack, but there is no other way
-                if (e.message == "[SQLITE_BUSY] The database file is locked (database is locked)" && attempts < 5) {
-                    attempts++
-                    continue
-                }
-                throw IllegalStateException("Database error: " + e.message, e)
-            }
-        }
+        return executeWithRetriesAndGetResultSet(statement, emptyList())
+    }
+
+
+    override fun executeAndGetResultSet(statement: String, args: List<Any>): List<Map<String, String?>> {
+        return executeWithRetriesAndGetResultSet(statement, args)
     }
 
 
@@ -54,6 +47,58 @@ class JvmSqliteDatabase(dbPath: String) : SqliteDatabase {
 
     override fun close() {
         jdbcConnection.close()
+    }
+
+    private fun executeWithRetriesAndGetResultSet(statement: String, args: List<Any>): List<Map<String, String>> {
+        var attempts = 0
+        while (true) {
+            if (attempts > 0) {
+                Thread.sleep(200); // 0.2 seconds
+            }
+            try {
+                jdbcConnection.prepareStatement(statement).use { stmt ->
+                    var i = 1
+                    for (arg in args) {
+                        setPreparedStatementParameter(stmt, i++, arg)
+                    }
+                    return resultSetToList(stmt.executeQuery())
+                }
+            } catch (e: SQLException) {
+                // Hack, but there is no other way
+                if (e.message == "[SQLITE_BUSY] The database file is locked (database is locked)" && attempts < 5) {
+                    attempts++
+                    continue
+                }
+                throw IllegalStateException("Database error: " + e.message, e)
+            }
+        }
+    }
+
+    @Throws(SQLException::class)
+    private fun setPreparedStatementParameter(stmt: PreparedStatement, index: Int, param: Any?) {
+        if (param == null) {
+            stmt.setNull(index, Types.NULL)
+        } else if (param is String) {
+            stmt.setString(index, param)
+        } else if (param is Int) {
+            stmt.setInt(index, param)
+        } else if (param is Double) {
+            stmt.setDouble(index, param)
+        } else if (param is Float) {
+            stmt.setFloat(index, param)
+        } else if (param is Long) {
+            stmt.setLong(index, param)
+        } else if (param is Boolean) {
+            stmt.setBoolean(index, param)
+        } else if (param is Date) {
+            stmt.setDate(index, param as Date?)
+        } else if (param is Time) {
+            stmt.setTime(index, param)
+        } else if (param is Timestamp) {
+            stmt.setTimestamp(index, param as Timestamp?)
+        } else {
+            throw SQLException("Unsupported parameter type: " + param.javaClass.name)
+        }
     }
 
     @Throws(SQLException::class)

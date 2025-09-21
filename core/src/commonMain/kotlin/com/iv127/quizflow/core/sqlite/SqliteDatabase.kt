@@ -4,6 +4,8 @@ interface SqliteDatabase : AutoCloseable {
 
     fun executeAndGetResultSet(statement: String): List<Map<String, String?>>
 
+    fun executeAndGetResultSet(statement: String, args: List<Any>): List<Map<String, String?>>
+
     fun executeAndGetChangedRowsCount(statement: String): Int
 
 }

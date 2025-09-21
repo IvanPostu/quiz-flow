@@ -134,8 +134,9 @@ class KSqlite(dbPath: String) : AutoCloseable {
                         columnNames[i] = textBytes.toKString()
                     }
                 }
+                var attempts = 0
                 while (true) {
-                    val rc = sqlite3_step(stmt.value);
+                    val rc = sqlite3_step(stmt.value)
 
                     if (rc == SQLITE_ROW) {  // SELECT query
                         val values: Array<String?> = arrayOfNulls(numColumns)
@@ -150,12 +151,17 @@ class KSqlite(dbPath: String) : AutoCloseable {
                         }
                     } else if (rc == SQLITE_DONE) {
                         return sqlite3_changes(db) - changesCountBeforeOperation
+                    } else if (rc == SQLITE_BUSY) {
+                        attempts++
+                        if (attempts >= 5) {
+                            throw IllegalStateException("Execution failed, db is busy")
+                        }
                     } else {
                         throw IllegalStateException("Execution failed: ${sqlite3_errmsg(db)?.toKString()}")
                     }
                 }
             } finally {
-                sqlite3_finalize(stmt.value);
+                sqlite3_finalize(stmt.value)
             }
         }
     }
@@ -170,7 +176,7 @@ class KSqlite(dbPath: String) : AutoCloseable {
 
                 do {
                     if (attempts > 0) {
-                        usleep(200_000u); // 0.2 seconds
+                        usleep(200_000u) // 0.2 seconds
                     }
                     rc = sqlite3_exec(
                         db, command, if (callback != null)
@@ -181,7 +187,7 @@ class KSqlite(dbPath: String) : AutoCloseable {
                                 val dataArray = fromCArray(data!!, count)
                                 callbackFunction(columnsArray, dataArray)
                             } else null, callbackStable?.asCPointer(), error.ptr)
-                    attempts++;
+                    attempts++
                 } while (rc == SQLITE_BUSY && attempts < 5)
 
                 if (rc != 0) {

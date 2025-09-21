@@ -55,11 +55,13 @@ cd $PROJECT_ROOT/external/libbcrypt \
 
 ```sh
 ./gradlew build -PbuildType=DEBUG
-./gradlew build -PbuildType=DEBUG -Pkotlin.native.cacheKind=none
 # IntelliJ idea: create debug profile for JAR - quiz-flow/webapp/build/packaged/quiz-flow-0.0.1.jar
 
+# Since DEBUG_APPLICATION_ROOT_FOLDER env variable was specified in shell.nix
+# the app can be run directly using Intellij.
+
 # clean and build
-./gradlew clean webapp:package build -PbuildType=DEBUG
+./gradlew clean webapp:package build -PbuildType=DEBUG -Pkotlin.native.cacheKind=none
 ```
 
 ### Frontend development
