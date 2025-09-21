@@ -1,22 +1,18 @@
 package com.iv127.quizflow.core.sqlite
 
 import kotlinx.cinterop.ByteVar
-import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.CPointerVar
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.NativePlacement
 import kotlinx.cinterop.StableRef
 import kotlinx.cinterop.UByteVarOf
 import kotlinx.cinterop.alloc
-import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.asStableRef
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.plus
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.ptr
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.set
+import kotlinx.cinterop.refTo
 import kotlinx.cinterop.staticCFunction
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
@@ -25,7 +21,12 @@ import sqlite3.SQLITE_BUSY
 import sqlite3.SQLITE_DONE
 import sqlite3.SQLITE_OK
 import sqlite3.SQLITE_ROW
-import sqlite3.SQLITE_STATIC
+import sqlite3.SQLITE_TRANSIENT
+import sqlite3.sqlite3_bind_blob
+import sqlite3.sqlite3_bind_double
+import sqlite3.sqlite3_bind_int
+import sqlite3.sqlite3_bind_int64
+import sqlite3.sqlite3_bind_null
 import sqlite3.sqlite3_bind_text
 import sqlite3.sqlite3_changes
 import sqlite3.sqlite3_close
@@ -51,11 +52,11 @@ private fun fromCArray(ptr: CPointer<CPointerVar<ByteVar>>, count: Int) =
     })
 
 @OptIn(ExperimentalForeignApi::class)
-class KSqlite : AutoCloseable {
+class KSqlite(dbPath: String) : AutoCloseable {
     var dbPath: String = ""
     var db: DbConnection = null
 
-    constructor(dbPath: String) {
+    init {
         memScoped {
             val dbPtr = alloc<CPointerVar<cnames.structs.sqlite3>>()
             if (sqlite3_open(dbPath, dbPtr.ptr) != 0) {
@@ -65,32 +66,64 @@ class KSqlite : AutoCloseable {
         }
     }
 
-    constructor(db: COpaquePointer?) {
-        this.db = db?.reinterpret()
-    }
-
-    val cpointer
-        get() = db as COpaquePointer?
-
     fun executeStatement(
         command: String,
-        args: List<Any>,
+        args: List<Any?>,
         callback: ((Array<String?>, Array<String?>) -> Int)? = null
     ): Int {
         memScoped {
             val stmt = alloc<CPointerVar<cnames.structs.sqlite3_stmt>>()
             try {
+                val changesCountBeforeOperation = sqlite3_changes(db)
                 if (sqlite3_prepare_v2(db, command, -1, stmt.ptr, null) != SQLITE_OK) {
                     throw IllegalStateException("Cannot prepare statement: ${sqlite3_errmsg(db)}")
                 }
 
                 for (i in args.indices) {
                     val arg = args[i]
-                    val str = arg as String
-                    println(str)
-                    if (sqlite3_bind_text(stmt.value, i + 1, str, -1, SQLITE_STATIC) != SQLITE_OK) {
-                        throw IllegalStateException("Cannot bind argument: ${sqlite3_errmsg(db)}")
+                    if (arg is String) {
+                        if (sqlite3_bind_text(stmt.value, i + 1, arg, -1, SQLITE_TRANSIENT) != SQLITE_OK) {
+                            throw IllegalStateException("Cannot bind argument: ${sqlite3_errmsg(db)}")
+                        }
+                        continue
                     }
+                    if (arg is Int) {
+                        if (sqlite3_bind_int(stmt.value, i + 1, arg) != SQLITE_OK) {
+                            throw IllegalStateException("Cannot bind argument: ${sqlite3_errmsg(db)}")
+                        }
+                        continue
+                    }
+                    if (arg is Long) {
+                        if (sqlite3_bind_int64(stmt.value, i + 1, arg) != SQLITE_OK) {
+                            throw IllegalStateException("Cannot bind argument: ${sqlite3_errmsg(db)}")
+                        }
+                        continue
+                    }
+                    if (arg is Double) {
+                        if (sqlite3_bind_double(stmt.value, i + 1, arg) != SQLITE_OK) {
+                            throw IllegalStateException("Cannot bind argument: ${sqlite3_errmsg(db)}")
+                        }
+                        continue
+                    }
+                    if (arg is Float) {
+                        if (sqlite3_bind_double(stmt.value, i + 1, arg.toDouble()) != SQLITE_OK) {
+                            throw IllegalStateException("Cannot bind argument: ${sqlite3_errmsg(db)}")
+                        }
+                        continue
+                    }
+                    if (arg is ByteArray) {
+                        if (sqlite3_bind_blob(stmt.value, i + 1, arg.refTo(0), -1, SQLITE_TRANSIENT) != SQLITE_OK) {
+                            throw IllegalStateException("Cannot bind argument: ${sqlite3_errmsg(db)}")
+                        }
+                        continue
+                    }
+                    if (arg == null) {
+                        if (sqlite3_bind_null(stmt.value, i + 1) != SQLITE_OK) {
+                            throw IllegalStateException("Cannot bind argument: ${sqlite3_errmsg(db)}")
+                        }
+                        continue
+                    }
+                    throw IllegalArgumentException("Illegal argument[$i] - $arg")
                 }
 
                 val numColumns: Int = sqlite3_column_count(stmt.value)
@@ -101,10 +134,6 @@ class KSqlite : AutoCloseable {
                         columnNames[i] = textBytes.toKString()
                     }
                 }
-                if (callback != null) {
-                    callback(columnNames, emptyArray())
-                }
-
                 while (true) {
                     val rc = sqlite3_step(stmt.value);
 
@@ -120,7 +149,7 @@ class KSqlite : AutoCloseable {
                             callback(columnNames, values)
                         }
                     } else if (rc == SQLITE_DONE) {
-                        return sqlite3_changes(db)
+                        return sqlite3_changes(db) - changesCountBeforeOperation
                     } else {
                         throw IllegalStateException("Execution failed: ${sqlite3_errmsg(db)?.toKString()}")
                     }
@@ -166,9 +195,6 @@ class KSqlite : AutoCloseable {
         }
     }
 
-    // TODO: use sql3_prepare instead!
-    fun escape(input: String): String = input.replace("'", "''")
-
     override fun toString(): String = "SQLite database in $dbPath"
 
     override fun close() {
@@ -192,26 +218,4 @@ private fun cPointerToString(cPointer: CPointer<UByteVarOf<UByte>>): String {
     val byteArr = byteArray.toByteArray()
 
     return byteArr.toKString()
-}
-
-@OptIn(ExperimentalForeignApi::class)
-private fun stringToCharPointer(nativePlacement: NativePlacement, str: String): CPointer<ByteVar> {
-    val length = str.length
-    val nativeCharPointer = nativePlacement.allocArray<ByteVar>(length + 1) // +1 for null terminator
-
-    str.forEachIndexed { index, char ->
-        nativeCharPointer[index] = char.toByte() // Convert each Char to a Byte
-    }
-
-    nativeCharPointer[length] = 0.toByte()
-
-    return nativeCharPointer
-}
-
-private fun sstr(str: String): String {
-    val zeroByte: Byte = 0
-    return StringBuilder()
-        .append(str)
-        .append(zeroByte)
-        .toString()
 }

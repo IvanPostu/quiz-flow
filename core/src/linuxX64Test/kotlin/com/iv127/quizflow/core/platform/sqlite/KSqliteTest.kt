@@ -17,55 +17,46 @@ class KSqliteTest {
                 "temp_file_path=$(mktemp --suffix='.db');" +
                 "echo -n \$temp_file_path;"
         ).output
-        println(pathToFile)
     }
 
     @Test
-    fun testQ() {
+    fun testPreparedSelectStatement() {
         KSqlite(pathToFile).use { ksqlite ->
-            try {
-                var count = 0
-                ksqlite.execute(
-                    """
+            var count = 0
+            ksqlite.execute(
+                """
                     CREATE TABLE users (
                         id INTEGER PRIMARY KEY,
                         name TEXT NOT NULL,
                         email TEXT NOT NULL
                     );
                 """.trimIndent()
-                ) { cols, data ->
-                    count++
-                    0
-                }
-                assertEquals(0, count, "Assert callback isn't executed")
+            ) { cols, data ->
+                count++
+                0
+            }
+            assertEquals(0, count, "Assert callback isn't executed")
 
-                ksqlite.execute(
-                    """
+            ksqlite.execute(
+                """
                     INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com');
                     INSERT INTO users (name, email) VALUES ('Bob', 'bob@example.com');
                     INSERT INTO users (name, email) VALUES ('Charlie', 'charlie@example.com');
                 """.trimIndent()
-                ) { cols, data ->
-                    count++
-                    0
-                }
-                assertEquals(0, count, "Assert callback isn't executed")
-            } finally {
-                ksqlite.close()
-            }
-        }
-
-        KSqlite(pathToFile).use { ksqlite ->
-            println(99)
-            val q = ksqlite.executeStatement( "SELECT * FROM users WHERE name LIKE '%l%';", listOf()
             ) { cols, data ->
-                cols.forEach { print("$it ") }
-                println()
-                data.forEach { print("$it ") }
+                count++
                 0
             }
-            println(q)
-            println(999)
+            assertEquals(0, count, "Assert callback isn't executed")
+
+            val changesCount = ksqlite.executeStatement(
+                "SELECT * FROM users WHERE name = ?;", listOf("Alice")
+            ) { cols, data ->
+                count++
+                0
+            }
+            assertEquals(1, count)
+            assertEquals(0, changesCount)
         }
     }
 
