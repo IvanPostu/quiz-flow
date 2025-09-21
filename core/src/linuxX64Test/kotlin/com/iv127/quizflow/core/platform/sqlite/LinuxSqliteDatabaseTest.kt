@@ -106,7 +106,6 @@ class LinuxSqliteDatabaseTest {
     @OptIn(ExperimentalTime::class)
     @Test
     fun testTransaction() {
-        println(pathToFile)
         LinuxSqliteDatabase(pathToFile).use { sqlite1 ->
             LinuxSqliteDatabase(pathToFile).use { sqlite2 ->
                 sqlite1.executeAndGetResultSet(
@@ -148,7 +147,7 @@ class LinuxSqliteDatabaseTest {
                     fail()
                 } catch (e: IllegalStateException) {
                     val timeTaken = Clock.System.now().toEpochMilliseconds() - now
-                    assertTrue(timeTaken >= 800)
+                    assertTrue(timeTaken in 1000..1100, "Expected $timeTaken to be between 1000 and 1100")
                     assertEquals(e.message, "sqlite3_exec failed with code: 5 - database is locked")
                 }
             }

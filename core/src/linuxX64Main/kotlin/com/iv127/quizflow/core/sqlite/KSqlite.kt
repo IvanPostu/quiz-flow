@@ -188,7 +188,7 @@ class KSqlite(dbPath: String) : AutoCloseable {
                                 callbackFunction(columnsArray, dataArray)
                             } else null, callbackStable?.asCPointer(), error.ptr)
                     attempts++
-                } while (rc == SQLITE_BUSY && attempts < 5)
+                } while (rc == SQLITE_BUSY && attempts < 6)
 
                 if (rc != 0) {
                     throw IllegalStateException("sqlite3_exec failed with code: $rc - ${error.value!!.toKString()}")

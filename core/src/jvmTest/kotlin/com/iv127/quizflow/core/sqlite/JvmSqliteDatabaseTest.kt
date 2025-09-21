@@ -162,7 +162,7 @@ class JvmSqliteDatabaseTest {
                     fail()
                 } catch (e: IllegalStateException) {
                     val timeTaken = Clock.System.now().toEpochMilliseconds() - now
-                    assertTrue(timeTaken >= 800)
+                    assertTrue(timeTaken in 1000..1100, "Expected $timeTaken to be between 1000 and 1100")
                     assertEquals(
                         e.message,
                         "Database error: [SQLITE_BUSY] The database file is locked (database is locked)"
