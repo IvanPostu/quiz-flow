@@ -40,6 +40,10 @@ class LinuxSqliteDatabase(dbPath: String) : SqliteDatabase {
         return kSqlite.execute(statement)
     }
 
+    override fun executeAndGetChangedRowsCount(statement: String, args: List<Any>): Int {
+        return kSqlite.executeStatement(statement, args)
+    }
+
     override fun close() {
         kSqlite.close()
     }

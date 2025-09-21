@@ -8,4 +8,6 @@ interface SqliteDatabase : AutoCloseable {
 
     fun executeAndGetChangedRowsCount(statement: String): Int
 
+    fun executeAndGetChangedRowsCount(statement: String, args: List<Any>): Int
+
 }

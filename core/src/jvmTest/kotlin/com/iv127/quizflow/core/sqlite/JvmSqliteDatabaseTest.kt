@@ -122,34 +122,35 @@ class JvmSqliteDatabaseTest {
     @Test
     fun testTransaction() {
         JvmSqliteDatabase(pathToFile).use { sqlite1 ->
-            JvmSqliteDatabase(pathToFile).use { sqlite2 ->
-                sqlite1.executeAndGetChangedRowsCount(
-                    """
+
+            sqlite1.executeAndGetChangedRowsCount(
+                """
                         CREATE TABLE users (
                             id INTEGER PRIMARY KEY,
                             name TEXT NOT NULL,
                             email TEXT NOT NULL
                         );
                    """.trimIndent()
-                )
+            )
 
-                sqlite1.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
-                sqlite1.executeAndGetChangedRowsCount(
-                    """
+            sqlite1.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
+            sqlite1.executeAndGetChangedRowsCount(
+                """
                         INSERT INTO users (name, email) VALUES ('N1', 'a@example.com');
                         INSERT INTO users (name, email) VALUES ('N2', 'a@example.com');
                         INSERT INTO users (name, email) VALUES ('N3', 'a@example.com');
                     """.trimIndent()
-                )
-                sqlite1.executeAndGetChangedRowsCount("COMMIT;")
+            )
+            sqlite1.executeAndGetChangedRowsCount("COMMIT;")
 
-                sqlite1.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
-                sqlite1.executeAndGetChangedRowsCount(
-                    """
+            sqlite1.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
+            sqlite1.executeAndGetChangedRowsCount(
+                """
                         INSERT INTO users (name, email) VALUES ('N4', 'a@example.com');
                     """.trimIndent()
-                )
+            )
 
+            JvmSqliteDatabase(pathToFile).use { sqlite2 ->
                 sqlite2.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
                 sqlite2.executeAndGetResultSet("SELECT * FROM users")
                 val now = Clock.System.now().toEpochMilliseconds()
@@ -169,8 +170,28 @@ class JvmSqliteDatabaseTest {
                     )
                 }
             }
+            JvmSqliteDatabase(pathToFile).use { sqlite2 ->
+                sqlite2.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
+                sqlite2.executeAndGetResultSet("SELECT * FROM users")
+                val now = Clock.System.now().toEpochMilliseconds()
+                try {
+                    sqlite2.executeAndGetChangedRowsCount(
+                        """
+                            INSERT INTO users (name, email) VALUES (?, 'alice@example.com');
+                        """.trimIndent(),
+                        listOf("Aaaaa")
+                    )
+                    fail()
+                } catch (e: IllegalStateException) {
+                    val timeTaken = Clock.System.now().toEpochMilliseconds() - now
+                    assertTrue(timeTaken in 1000..1100, "Expected $timeTaken to be between 1000 and 1100")
+                    assertEquals(
+                        e.message,
+                        "Database error: [SQLITE_BUSY] The database file is locked (database is locked)"
+                    )
+                }
+            }
         }
-
     }
 
 }

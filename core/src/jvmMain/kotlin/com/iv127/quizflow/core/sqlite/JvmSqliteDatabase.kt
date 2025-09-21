@@ -18,29 +18,26 @@ class JvmSqliteDatabase(dbPath: String) : SqliteDatabase {
         return executeWithRetriesAndGetResultSet(statement, emptyList())
     }
 
-
     override fun executeAndGetResultSet(statement: String, args: List<Any>): List<Map<String, String?>> {
         return executeWithRetriesAndGetResultSet(statement, args)
     }
 
-
     override fun executeAndGetChangedRowsCount(statement: String): Int {
-        var attempts = 0
-        while (true) {
-            if (attempts > 0) {
-                Thread.sleep(200); // 0.2 seconds
+        return executeWithRetries(1000, 5) {
+            jdbcConnection.createStatement().use { stmt ->
+                stmt.executeUpdate(statement)
             }
-            try {
-                jdbcConnection.createStatement().use { stmt ->
-                    return stmt.executeUpdate(statement)
+        }
+    }
+
+    override fun executeAndGetChangedRowsCount(statement: String, args: List<Any>): Int {
+        return executeWithRetries(1000, 5) {
+            jdbcConnection.prepareStatement(statement).use { stmt ->
+                var i = 1
+                for (arg in args) {
+                    setPreparedStatementParameter(stmt, i++, arg)
                 }
-            } catch (e: SQLException) {
-                // Hack, but there is no other way
-                if (e.message == "[SQLITE_BUSY] The database file is locked (database is locked)" && attempts < 5) {
-                    attempts++
-                    continue
-                }
-                throw IllegalStateException("Database error: " + e.message, e)
+                stmt.executeUpdate()
             }
         }
     }
@@ -50,22 +47,29 @@ class JvmSqliteDatabase(dbPath: String) : SqliteDatabase {
     }
 
     private fun executeWithRetriesAndGetResultSet(statement: String, args: List<Any>): List<Map<String, String>> {
+        return executeWithRetries(1000, 5) {
+            jdbcConnection.prepareStatement(statement).use { stmt ->
+                var i = 1
+                for (arg in args) {
+                    setPreparedStatementParameter(stmt, i++, arg)
+                }
+                resultSetToList(stmt.executeQuery())
+            }
+        }
+    }
+
+    private fun <T> executeWithRetries(timeRoomMillis: Long, retries: Int, closure: () -> T): T {
+        val oneAttemptDuration = timeRoomMillis / retries
         var attempts = 0
         while (true) {
             if (attempts > 0) {
-                Thread.sleep(200); // 0.2 seconds
+                Thread.sleep(oneAttemptDuration); // 0.2 seconds
             }
             try {
-                jdbcConnection.prepareStatement(statement).use { stmt ->
-                    var i = 1
-                    for (arg in args) {
-                        setPreparedStatementParameter(stmt, i++, arg)
-                    }
-                    return resultSetToList(stmt.executeQuery())
-                }
+                return closure()
             } catch (e: SQLException) {
                 // Hack, but there is no other way
-                if (e.message == "[SQLITE_BUSY] The database file is locked (database is locked)" && attempts < 5) {
+                if (e.message == "[SQLITE_BUSY] The database file is locked (database is locked)" && attempts < retries) {
                     attempts++
                     continue
                 }
