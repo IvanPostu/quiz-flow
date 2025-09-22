@@ -10,13 +10,11 @@ import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
-import com.iv127.quizflow.core.utils.getClassFullName
 import io.ktor.server.request.contentType
 import io.ktor.server.request.receiveChannel
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
-import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
@@ -27,7 +25,6 @@ import org.koin.core.qualifier.named
 class QuestionsRoutes(val koinApp: KoinApplication) : ApiRoute {
     companion object {
         private val ROUTE_PATH: String = "/question-sets/{question_set_id}/questions"
-        private val LOG = KtorSimpleLogger(getClassFullName(QuestionsRoutes::class))
     }
 
     private val db: () -> SqliteDatabase = {
@@ -70,9 +67,10 @@ class QuestionsRoutes(val koinApp: KoinApplication) : ApiRoute {
                         t.archived_at,
                         t.json 
                     FROM questions_set AS t
-                    WHERE t.id=${questionSetId};
+                    WHERE t.id=?;
                 """
-                    .trimIndent()
+                    .trimIndent(),
+                listOf(questionSetId)
             )
 
             if (resultRecords.isEmpty()) {
@@ -85,19 +83,15 @@ class QuestionsRoutes(val koinApp: KoinApplication) : ApiRoute {
             )
             db.executeAndGetChangedRowsCount(
                 """
-                        UPDATE questions_set SET json='${Json.encodeToString(questionSet)}'
+                        UPDATE questions_set SET json=?
                         WHERE questions_set.id=${questionSet.id};
-                    """.trimIndent()
+                    """.trimIndent(),
+                listOf(Json.encodeToString(questionSetWithQuestions))
             )
             db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
             return questions
                 .map {
-                    QuestionResponse(
-                        it.question,
-                        it.answerOptions,
-                        it.correctAnswerIndexes,
-                        it.correctAnswerExplanation
-                    )
+                    QuestionResponseMapper.mapToResponse(it)
                 }.toList()
         }
     }

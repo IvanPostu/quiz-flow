@@ -1,7 +1,9 @@
 package com.iv127.quizflow.core.rest.questionset
 
+import com.iv127.quizflow.core.model.question.Question
 import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.rest.ApiRoute
+import com.iv127.quizflow.core.rest.question.QuestionResponseMapper
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
@@ -56,13 +58,20 @@ class QuestionSetsRoutes(val koinApp: KoinApplication) : ApiRoute {
 
     private fun list(): List<QuestionSetResponse> {
         koinApp.koin.get<SqliteDatabase>(named("appDb")).use { db ->
-            return db.executeAndGetResultSet("""
-                SELECT t.id, t.created_at, t.archived_at, t.json 
-                FROM questions_set AS t;
-            """.trimIndent())
+            return db.executeAndGetResultSet(
+                """
+                    SELECT t.id, t.created_at, t.archived_at, t.json 
+                    FROM questions_set AS t;
+                """.trimIndent()
+            )
                 .map { record ->
                     val deserialized: QuestionSet = Json.decodeFromString(record["json"].toString())
-                    QuestionSetResponse(record["id"].toString(), deserialized.name, deserialized.description)
+                    QuestionSetResponse(
+                        record["id"].toString(),
+                        deserialized.name,
+                        deserialized.description,
+                        mapQuestionsToResponses(deserialized.questions)
+                    )
                 }
         }
     }
@@ -92,7 +101,12 @@ class QuestionSetsRoutes(val koinApp: KoinApplication) : ApiRoute {
                     """.trimIndent()
             )
             db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
-            return QuestionSetResponse(questionsSetWithId.id, questionsSetWithId.name, questionsSetWithId.description)
+            return QuestionSetResponse(
+                questionsSetWithId.id,
+                questionsSetWithId.name,
+                questionsSetWithId.description,
+                mapQuestionsToResponses(questionsSetWithId.questions)
+            )
         }
     }
 
@@ -128,8 +142,17 @@ class QuestionSetsRoutes(val koinApp: KoinApplication) : ApiRoute {
         return db.executeAndGetResultSet("SELECT t.* FROM questions_set AS t WHERE t.id=$id")
             .map { record ->
                 val deserialized: QuestionSet = Json.decodeFromString(record["json"].toString())
-                QuestionSetResponse(record["id"].toString(), deserialized.name, deserialized.description)
+                QuestionSetResponse(
+                    record["id"].toString(),
+                    deserialized.name,
+                    deserialized.description,
+                    mapQuestionsToResponses(deserialized.questions)
+                )
             }.first()
     }
+
+    private fun mapQuestionsToResponses(questions: List<Question>) = questions.map {
+        QuestionResponseMapper.mapToResponse(it)
+    }.toList()
 
 }
