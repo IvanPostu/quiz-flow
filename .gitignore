@@ -274,3 +274,4 @@ native/sqlite-amalgamation-3500400/*
 !native/sqlite-amalgamation-3500400/.gitkeep
 native/bcrypt/*
 !native/bcrypt/.gitkeep
+test.json
