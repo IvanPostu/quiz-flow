@@ -1,7 +1,8 @@
 package com.iv127.quizflow.core.model.question.resolver
 
-import com.iv127.quizflow.core.model.question.Question
 import com.iv127.quizflow.core.lang.Outcome
+import com.iv127.quizflow.core.lang.UUIDv4
+import com.iv127.quizflow.core.model.question.Question
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.ast.CompositeASTNode
@@ -130,7 +131,7 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
             acc
         }.toString()
 
-        val astNodesOfAnswers = dividedByDoubleEOLs.get(dividedByDoubleEOLs.size - 2)
+        val astNodesOfAnswers = dividedByDoubleEOLs[dividedByDoubleEOLs.size - 2]
         if (astNodesOfAnswers.isEmpty()) {
             return Result.failure(
                 QuestionsResolveException(
@@ -166,6 +167,7 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
 
         return Result.success(
             Question(
+                UUIDv4.generate(),
                 questionTextBuilder.toString().trimEnd(),
                 answerOptionsByLetters.values.toList(),
                 correctAnswerIndexes,

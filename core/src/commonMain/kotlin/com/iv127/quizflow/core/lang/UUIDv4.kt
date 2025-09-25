@@ -29,7 +29,7 @@ class UUIDv4 {
         }
 
         private fun toHexStringPadded(value: Int, length: Int): String {
-            return value.toString(16).padStart(length, '0')
+            return value.toUInt().toString(16).padStart(length, '0')
         }
     }
 }

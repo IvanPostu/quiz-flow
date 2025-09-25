@@ -41,15 +41,17 @@ curl -i http://localhost:8080/api/health-check
 
 
 # questions set endpoints
-curl -X POST http://localhost:8080/api/question-sets -H "Content-Type: application/json" -d '{"name":"test","description":"aa111"}'
+curl -i -X POST http://localhost:8080/api/question-sets -H "Content-Type: application/json" -d '{"name":"test","description":"aa111"}'
+
+curl -X PUT http://localhost:8080/api/question-sets/82ec3ee0-0199-1000-73e0-000062fe28a3 -H "Content-Type: application/json" -d '{"name":"test1","description":"1aa111"}' 
 
 curl -i -X GET http://localhost:8080/api/question-sets -H "Content-Type: application/json"
 
-curl -X GET http://localhost:8080/api/question-sets/1 -H "Content-Type: application/json"
+curl -X GET http://localhost:8080/api/question-sets/82ec3ee0-0199-1000-73e0-000062fe28a3 -H "Content-Type: application/json"
 
-curl -X DELETE http://localhost:8080/api/question-sets/1 -H "Content-Type: application/json"
+curl -X DELETE http://localhost:8080/api/question-sets/82ec3ee0-0199-1000-73e0-000062fe28a3 -H "Content-Type: application/json"
 
-curl -X PUT http://localhost:8080/api/question-sets/1 -H "Content-Type: application/json" -d '{"name":"test1","description":"1aa111"}' 
+
 
 # users
 curl -X POST http://localhost:8080/api/users \
@@ -63,12 +65,11 @@ curl \
     -F "file=@/$PROJECT_ROOT/../docubase-documents/Java/OCP21/OCP21.MD"
     
 
-curl -X POST http://localhost:8080/api/question-sets/1/questions \
+curl -X POST http://localhost:8080/api/question-sets/82ec3ee0-0199-1000-73e0-000062fe28a3/questions \
     -H "Content-Type: multipart/form-data" \
     -F "testid=1" \
     -F "filecomment=This is an text file" \
     -F "file=@/$PROJECT_ROOT/../docubase-documents/Java/OCP21/OCP21.MD"
-
 ```
 
 ## Run the app

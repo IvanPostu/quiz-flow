@@ -7,6 +7,8 @@ import com.iv127.quizflow.core.rest.healthcheck.HealthCheckRoutes
 import com.iv127.quizflow.core.rest.question.QuestionsRoutes
 import com.iv127.quizflow.core.rest.questionset.QuestionSetsRoutes
 import com.iv127.quizflow.core.rest.user.UsersRoutes
+import com.iv127.quizflow.core.services.QuestionSetService
+import com.iv127.quizflow.core.services.impl.QuestionSetServiceImpl
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.migrator.DatabaseMigrator
 import com.iv127.quizflow.core.utils.getClassFullName
@@ -52,6 +54,11 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         single { stateListener }
         factory { (clazz: KClass<*>) -> KtorSimpleLogger(getClassFullName(clazz)) }
         factory(named("appDb")) { getAppDatabase(platformServices) }
+        single<QuestionSetService> {
+            QuestionSetServiceImpl() {
+                get<SqliteDatabase>(named("appDb"))
+            }
+        }
     }
     val koinApp: KoinApplication = startKoin {
         modules(appModule)

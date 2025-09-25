@@ -6,6 +6,7 @@ class QuestionResponseMapper {
     companion object {
         fun mapToResponse(question: Question): QuestionResponse =
             QuestionResponse(
+                question.id,
                 question.question,
                 question.answerOptions,
                 question.correctAnswerIndexes,

@@ -1,6 +1,6 @@
 CREATE TABLE users (
     primary_key INTEGER PRIMARY KEY,
-    id VARCHAR(255) NOT NULL,
+    id VARCHAR(64) NOT NULL,
     created_at TIMESTAMP,
     archived_at TIMESTAMP,
     username VARCHAR(255) NOT NULL,

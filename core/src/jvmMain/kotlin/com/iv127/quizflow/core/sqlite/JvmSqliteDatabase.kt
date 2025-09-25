@@ -18,7 +18,7 @@ class JvmSqliteDatabase(dbPath: String) : SqliteDatabase {
         return executeWithRetriesAndGetResultSet(statement, emptyList())
     }
 
-    override fun executeAndGetResultSet(statement: String, args: List<Any>): List<Map<String, String?>> {
+    override fun executeAndGetResultSet(statement: String, args: List<Any?>): List<Map<String, String?>> {
         return executeWithRetriesAndGetResultSet(statement, args)
     }
 
@@ -30,7 +30,7 @@ class JvmSqliteDatabase(dbPath: String) : SqliteDatabase {
         }
     }
 
-    override fun executeAndGetChangedRowsCount(statement: String, args: List<Any>): Int {
+    override fun executeAndGetChangedRowsCount(statement: String, args: List<Any?>): Int {
         return executeWithRetries(1000, 5) {
             jdbcConnection.prepareStatement(statement).use { stmt ->
                 var i = 1
@@ -46,7 +46,7 @@ class JvmSqliteDatabase(dbPath: String) : SqliteDatabase {
         jdbcConnection.close()
     }
 
-    private fun executeWithRetriesAndGetResultSet(statement: String, args: List<Any>): List<Map<String, String>> {
+    private fun executeWithRetriesAndGetResultSet(statement: String, args: List<Any?>): List<Map<String, String>> {
         return executeWithRetries(1000, 5) {
             jdbcConnection.prepareStatement(statement).use { stmt ->
                 var i = 1
