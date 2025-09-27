@@ -1,6 +1,7 @@
 package com.iv127.quizflow.api.automation.tests.route
 
 import com.iv127.quizflow.api.automation.tests.rest.impl.QuestionSetsRoutesTestImpl
+import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetUpdateRequest
 import io.ktor.client.HttpClient
@@ -19,11 +20,11 @@ import org.junit.jupiter.api.Test
 
 class QuestionSetsRouteTest {
 
-    private lateinit var client: HttpClient
+    private lateinit var httpClient: HttpClient
 
     @BeforeEach
     fun setup() {
-        client = HttpClient(CIO) {
+        httpClient = HttpClient(CIO) {
             install(ContentNegotiation) {
                 json()
             }
@@ -36,12 +37,12 @@ class QuestionSetsRouteTest {
 
     @AfterEach
     fun tearDown() {
-        client.close()
+        httpClient.close()
     }
 
     @Test
     fun testCreateUpdateGetGetListAndDelete() = runTest {
-        val questionSetsRoutes = QuestionSetsRoutesTestImpl(client)
+        val questionSetsRoutes = QuestionSetsRoutesTestImpl(httpClient)
         val createRequest = QuestionSetCreateRequest("Example of questionnaire", "Example of description")
         val created = questionSetsRoutes.create(createRequest)
 
@@ -50,7 +51,7 @@ class QuestionSetsRouteTest {
         assertThat(created.description).isEqualTo("Example of description")
         assertThat(created.id).isNotBlank()
 
-        var questionSetFromList = questionSetsRoutes.list()
+        var questionSetFromList = questionSetsRoutes.list(0, Int.MAX_VALUE, SortOrder.ASC)
             .find { it.id == created.id }!!
         var questionSet = questionSetsRoutes.get(created.id)
         assertThat(listOf(questionSetFromList, questionSet))
@@ -69,7 +70,7 @@ class QuestionSetsRouteTest {
             .isNotBlank()
             .isEqualTo(created.id)
 
-        questionSetFromList = questionSetsRoutes.list()
+        questionSetFromList = questionSetsRoutes.list(0, Int.MAX_VALUE, SortOrder.ASC)
             .find { it.id == updated.id }!!
         questionSet = questionSetsRoutes.get(updated.id)
         assertThat(listOf(questionSetFromList, questionSet))

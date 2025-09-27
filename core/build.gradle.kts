@@ -96,17 +96,18 @@ kotlin {
                 implementation(libs.sqlite.jdbc)
             }
         }
-        val jvmTest by getting {
+        val commonTest by getting {
             dependencies {
                 implementation(libs.kotlin.test)
+            }
+        }
+        val jvmTest by getting {
+            dependencies {
                 implementation(libs.assertj)
                 implementation(libs.slf4j.simple)
             }
         }
         val linuxX64Test by getting {
-            dependencies {
-                implementation(libs.kotlin.test)
-            }
         }
     }
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

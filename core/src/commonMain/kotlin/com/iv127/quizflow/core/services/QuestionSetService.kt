@@ -3,6 +3,7 @@ package com.iv127.quizflow.core.services
 import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.model.question.QuestionSetBuilder
 import com.iv127.quizflow.core.model.question.QuestionSetVersion
+import com.iv127.quizflow.core.rest.api.SortOrder
 
 interface QuestionSetService {
 
@@ -19,6 +20,6 @@ interface QuestionSetService {
 
     fun getQuestionSetWithVersionOrElseLatest(id: String, version: Int?): Pair<QuestionSet, QuestionSetVersion>
 
-    fun getQuestionSetList(): List<QuestionSet>
+    fun getQuestionSetList(limit: Int, offset: Int, sortOrder: SortOrder): List<QuestionSet>
 
 }

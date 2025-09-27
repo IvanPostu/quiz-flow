@@ -1,6 +1,7 @@
 package com.iv127.quizflow.api.automation.tests.rest.impl
 
 import com.iv127.quizflow.api.automation.tests.GlobalConfig
+import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetResponse
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetUpdateRequest
@@ -28,8 +29,12 @@ class QuestionSetsRoutesTestImpl(
         return response.body<QuestionSetResponse>()
     }
 
-    override suspend fun list(): List<QuestionSetResponse> {
-        val response: HttpResponse = client.get("${config.baseUrl}/api/question-sets") {
+    override suspend fun list(offset: Int, limit: Int, sortOrder: SortOrder): List<QuestionSetResponse> {
+        val response: HttpResponse = client.get(
+            """
+            ${config.baseUrl}/api/question-sets?limit=$limit&offset=$offset&sortOrder=${sortOrder.name}
+        """.trimIndent()
+        ) {
             contentType(ContentType.Application.Json)
         }
         return response.body<List<QuestionSetResponse>>()

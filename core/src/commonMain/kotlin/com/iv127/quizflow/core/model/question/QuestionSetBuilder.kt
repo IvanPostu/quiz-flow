@@ -1,13 +1,17 @@
 package com.iv127.quizflow.core.model.question
 
 import com.iv127.quizflow.core.lang.UUIDv4
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 class QuestionSetBuilder {
     private val id: String;
     private val _questions: MutableList<Question> = mutableListOf()
     private var latestVersion: Int = 0
     var name: String = ""
     var description: String = ""
+    var createdDate = Clock.System.now()
 
     constructor() {
         this.id = UUIDv4.generate()
@@ -18,6 +22,7 @@ class QuestionSetBuilder {
         this.name = questionSet.name
         this.description = questionSet.description
         this.latestVersion = questionSet.latestVersion
+        this.createdDate = questionSet.createdDate
         this._questions.addAll(questionSetVersion.questions)
     }
 
@@ -32,7 +37,8 @@ class QuestionSetBuilder {
             id = id,
             name = name,
             description = description,
-            latestVersion = latestVersion
+            latestVersion = latestVersion,
+            createdDate = createdDate
         )
         val questionSetVersion = QuestionSetVersion(
             id = id,

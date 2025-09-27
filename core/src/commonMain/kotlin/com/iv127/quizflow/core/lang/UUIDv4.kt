@@ -8,7 +8,7 @@ class UUIDv4 {
     companion object {
         @OptIn(ExperimentalTime::class)
         fun generate(): String {
-            val timestamp = Clock.System.now().toEpochMilliseconds()
+            val timestamp: Long = Clock.System.now().toEpochMilliseconds()
             val timeLow = (timestamp and 0xFFFFFFFFL).toInt()
             val timeMid = ((timestamp shr 32) and 0xFFFFL).toInt()
             val timeHighAndVersion = ((timestamp shr 48) and 0x0FFFL or 0x1000L).toInt() // Set version (1)

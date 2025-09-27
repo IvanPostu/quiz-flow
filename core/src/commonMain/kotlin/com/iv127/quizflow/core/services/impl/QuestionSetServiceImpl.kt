@@ -3,6 +3,7 @@ package com.iv127.quizflow.core.services.impl
 import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.model.question.QuestionSetBuilder
 import com.iv127.quizflow.core.model.question.QuestionSetVersion
+import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.services.QuestionSetService
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.SqliteTimestampUtils
@@ -16,7 +17,6 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
         val (questionSet, questionSetVersion) = QuestionSetBuilder()
             .apply(createFunc)
             .buildAndIncrement()
-        val createdAt = SqliteTimestampUtils.toValue(Clock.System.now())
         dbSupplier().use { db ->
             db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
             db.executeAndGetChangedRowsCount(
@@ -30,8 +30,15 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
                         ?, ?, ?, ?, ?);
                 """.trimIndent(),
                 listOf<Any?>
-                    (questionSet.id, questionSet.latestVersion, createdAt, null, Json.encodeToString(questionSet))
+                    (
+                    questionSet.id,
+                    questionSet.latestVersion,
+                    SqliteTimestampUtils.toValue(questionSet.createdDate),
+                    null,
+                    Json.encodeToString(questionSet)
+                )
             )
+            val createdAt = SqliteTimestampUtils.toValue(Clock.System.now())
             db.executeAndGetChangedRowsCount(
                 """
                     INSERT INTO question_set_versions (
@@ -130,10 +137,43 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
         }
     }
 
-    override fun getQuestionSetList(): List<QuestionSet> {
+    override fun getQuestionSetList(limit: Int, offset: Int, sortOrder: SortOrder): List<QuestionSet> {
+        val isAscSortOrder = SortOrder.ASC == sortOrder
         return dbSupplier().use { db ->
+            val offsetPrimaryKey: Int
+            if (isAscSortOrder) {
+                offsetPrimaryKey = db.executeAndGetResultSet(
+                    """
+                    SELECT IFNULL(MAX(t1.primary_key), ?) AS offset_value FROM (
+                        SELECT t.primary_key 
+                        FROM question_sets AS t 
+                        ORDER BY t.primary_key ASC LIMIT ?
+                    ) t1;
+                    """.trimIndent(),
+                    listOf(0, offset)
+                ).first()["offset_value"]!!.toInt()
+            } else {
+                offsetPrimaryKey = db.executeAndGetResultSet(
+                    """
+                    SELECT IFNULL(MIN(t1.primary_key), ?) AS offset_value FROM (
+                        SELECT t.primary_key 
+                        FROM question_sets AS t 
+                        ORDER BY t.primary_key DESC LIMIT ?
+                    ) t1;
+                    """.trimIndent(),
+                    listOf(Int.MAX_VALUE, offset)
+                ).first()["offset_value"]!!.toInt()
+            }
+
+
             db.executeAndGetResultSet(
-                "SELECT t.* FROM question_sets AS t"
+                """
+                    SELECT t.* FROM question_sets AS t 
+                    WHERE t.primary_key ${if (isAscSortOrder) ">" else "<"} ?
+                    ORDER BY t.primary_key ${if (isAscSortOrder) "ASC" else "DESC"}
+                    LIMIT ?;
+                """.trimIndent(),
+                listOf(offsetPrimaryKey, limit)
             ).map { record ->
                 val deserialized: QuestionSet = Json.decodeFromString(record["json"].toString())
                 deserialized

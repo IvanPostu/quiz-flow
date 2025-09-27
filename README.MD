@@ -119,3 +119,5 @@ java -jar ./webapp/build/packaged/quiz-flow-0.0.1.jar
 18. <https://stackoverflow.com/questions/20342058/which-uuid-version-to-use>
 19. <https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-test/>
 20. <https://www.youtube.com/watch?v=nKCsIHWircA>
+21. <https://www.npmjs.com/package/uuidv7>
+22. <https://github.com/huarangmeng/uuid>

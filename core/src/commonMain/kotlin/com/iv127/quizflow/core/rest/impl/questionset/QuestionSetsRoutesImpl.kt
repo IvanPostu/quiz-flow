@@ -2,6 +2,7 @@ package com.iv127.quizflow.core.rest.impl.questionset
 
 import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.rest.ApiRoute
+import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetResponse
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetUpdateRequest
@@ -16,6 +17,7 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
+import kotlin.time.ExperimentalTime
 import org.koin.core.KoinApplication
 
 class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, ApiRoute {
@@ -28,7 +30,10 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
             JsonWebResponse.create(get(id))
         })
         parent.get(ROUTE_PATH, webResponse {
-            JsonWebResponse.create(list())
+            val limit: Int = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
+            val offset: Int = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
+            val sortOrder: SortOrder = SortOrder.valueOf(call.request.queryParameters["sortOrder"] ?: "ASC")
+            JsonWebResponse.create(list(limit, offset, sortOrder))
         })
         parent.post(ROUTE_PATH, webResponse {
             val request = call.receive<QuestionSetCreateRequest>()
@@ -49,8 +54,8 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
         return mapQuestionSetResponse(questionSetService.getQuestionSet(id))
     }
 
-    override suspend fun list(): List<QuestionSetResponse> {
-        return questionSetService.getQuestionSetList()
+    override suspend fun list(offset: Int, limit: Int, sortOrder: SortOrder): List<QuestionSetResponse> {
+        return questionSetService.getQuestionSetList(limit, offset, sortOrder)
             .map { mapQuestionSetResponse(it) }
     }
 
@@ -78,10 +83,12 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
         return mapQuestionSetResponse(questionSet)
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun mapQuestionSetResponse(questionSet: QuestionSet) = QuestionSetResponse(
         questionSet.id,
         questionSet.name,
         questionSet.description,
         questionSet.latestVersion,
+        questionSet.createdDate
     )
 }
