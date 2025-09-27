@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.rest.questionset
+package com.iv127.quizflow.core.rest.api.questionset
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

@@ -1,8 +1,8 @@
 package com.iv127.quizflow.webapp
 
-import com.iv127.quizflow.core.application.ApplicationState
 import com.iv127.quizflow.core.createApplicationModule
-import com.iv127.quizflow.core.rest.healthcheck.HealthCheckResponse
+import com.iv127.quizflow.core.rest.api.healthcheck.ApplicationStateResponse
+import com.iv127.quizflow.core.rest.api.healthcheck.HealthCheckResponse
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -25,7 +25,7 @@ class ApplicationTest {
 
             assertNotNull(body)
             val deserialized: HealthCheckResponse = Json.decodeFromString(body)
-            assertEquals(ApplicationState.APPLICATION_STARTED, deserialized.state)
+            assertEquals(ApplicationStateResponse.APPLICATION_STARTED, deserialized.state)
         }
     }
 

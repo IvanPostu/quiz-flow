@@ -18,4 +18,5 @@ dependencyResolutionManagement {
 include(":webapp")
 include(":webapp-ui")
 include(":core")
+include(":rest")
 include(":api-automation-tests")

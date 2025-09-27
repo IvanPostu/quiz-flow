@@ -1,6 +1,7 @@
-package com.iv127.quizflow.core.rest.question
+package com.iv127.quizflow.core.rest.impl.question
 
 import com.iv127.quizflow.core.model.question.Question
+import com.iv127.quizflow.core.rest.api.question.QuestionResponse
 
 class QuestionResponseMapper {
     companion object {

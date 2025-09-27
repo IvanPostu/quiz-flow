@@ -1,8 +1,11 @@
-package com.iv127.quizflow.core.rest.user
+package com.iv127.quizflow.core.rest.impl.user
 
 import com.iv127.quizflow.core.lang.UUIDv4
 import com.iv127.quizflow.core.model.User
-import com.iv127.quizflow.core.rest.ApiRoute
+import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
+import com.iv127.quizflow.core.rest.api.user.UserResponse
+import com.iv127.quizflow.core.rest.api.user.UsersRoutes
+import com.iv127.quizflow.core.rest.api.user.UsersRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
@@ -18,15 +21,12 @@ import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 
 @OptIn(ExperimentalTime::class)
-class UsersRoutes(val koinApp: KoinApplication) : ApiRoute {
+class UsersRoutesImpl(val koinApp: KoinApplication) : UsersRoutes {
 
     private val db: () -> SqliteDatabase = {
         koinApp.koin.get<SqliteDatabase>(named("appDb"))
     }
 
-    companion object {
-        private val ROUTE_PATH: String = "/users"
-    }
 
     override fun setup(parent: Route) {
         parent.get(ROUTE_PATH, webResponse {
@@ -38,7 +38,7 @@ class UsersRoutes(val koinApp: KoinApplication) : ApiRoute {
         })
     }
 
-    private fun list(): List<UserResponse> {
+    override fun list(): List<UserResponse> {
         db().use { db ->
             return db.executeAndGetResultSet(
                 """
@@ -53,7 +53,7 @@ class UsersRoutes(val koinApp: KoinApplication) : ApiRoute {
         }
     }
 
-    private fun create(request: UserCreateRequest): UserResponse {
+    override fun create(request: UserCreateRequest): UserResponse {
         if (request.username.isBlank()) {
             throw IllegalArgumentException("username field shouldn't be blank")
         }

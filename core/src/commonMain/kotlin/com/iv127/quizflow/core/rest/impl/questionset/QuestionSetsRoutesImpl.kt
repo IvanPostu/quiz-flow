@@ -1,7 +1,11 @@
-package com.iv127.quizflow.core.rest.questionset
+package com.iv127.quizflow.core.rest.impl.questionset
 
 import com.iv127.quizflow.core.model.question.QuestionSet
-import com.iv127.quizflow.core.rest.ApiRoute
+import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
+import com.iv127.quizflow.core.rest.api.questionset.QuestionSetResponse
+import com.iv127.quizflow.core.rest.api.questionset.QuestionSetUpdateRequest
+import com.iv127.quizflow.core.rest.api.questionset.QuestionSetsRoutes
+import com.iv127.quizflow.core.rest.api.questionset.QuestionSetsRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse
 import com.iv127.quizflow.core.services.QuestionSetService
@@ -13,11 +17,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import org.koin.core.KoinApplication
 
-class QuestionSetsRoutes(koinApp: KoinApplication) : ApiRoute {
-
-    companion object {
-        private const val ROUTE_PATH: String = "/question-sets"
-    }
+class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes {
 
     private val questionSetService: QuestionSetService by koinApp.koin.inject()
 
@@ -44,16 +44,16 @@ class QuestionSetsRoutes(koinApp: KoinApplication) : ApiRoute {
         })
     }
 
-    private fun get(id: String): QuestionSetResponse {
+    override fun get(id: String): QuestionSetResponse {
         return mapQuestionSetResponse(questionSetService.getQuestionSet(id))
     }
 
-    private fun list(): List<QuestionSetResponse> {
+    override fun list(): List<QuestionSetResponse> {
         return questionSetService.getQuestionSetList()
             .map { mapQuestionSetResponse(it) }
     }
 
-    private fun create(request: QuestionSetCreateRequest): QuestionSetResponse {
+    override fun create(request: QuestionSetCreateRequest): QuestionSetResponse {
         if (request.name.isBlank()) {
             throw IllegalArgumentException("name field shouldn't be blank")
         }
@@ -64,7 +64,7 @@ class QuestionSetsRoutes(koinApp: KoinApplication) : ApiRoute {
         return mapQuestionSetResponse(questionSet)
     }
 
-    private fun update(id: String, request: QuestionSetUpdateRequest): QuestionSetResponse {
+    override fun update(id: String, request: QuestionSetUpdateRequest): QuestionSetResponse {
         val questionSet = questionSetService.updateQuestionSet(id) { builder ->
             builder.name = request.name
             builder.description = request.description
@@ -72,7 +72,7 @@ class QuestionSetsRoutes(koinApp: KoinApplication) : ApiRoute {
         return mapQuestionSetResponse(questionSet)
     }
 
-    private fun archive(id: String): QuestionSetResponse {
+    override fun archive(id: String): QuestionSetResponse {
         val questionSet = questionSetService.archive(id)
         return mapQuestionSetResponse(questionSet)
     }
@@ -83,5 +83,4 @@ class QuestionSetsRoutes(koinApp: KoinApplication) : ApiRoute {
         questionSet.description,
         questionSet.latestVersion,
     )
-
 }

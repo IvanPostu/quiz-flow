@@ -1,11 +1,13 @@
-package com.iv127.quizflow.core.rest.question
+package com.iv127.quizflow.core.rest.impl.question
 
 import com.iv127.quizflow.core.ktor.Multipart
 import com.iv127.quizflow.core.ktor.MultipartPart
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolver
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolverFactory
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolverType
-import com.iv127.quizflow.core.rest.ApiRoute
+import com.iv127.quizflow.core.rest.api.question.QuestionResponse
+import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes
+import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse
 import com.iv127.quizflow.core.services.QuestionSetService
@@ -20,10 +22,7 @@ import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
 import org.koin.core.KoinApplication
 
-class QuestionsRoutes(koinApp: KoinApplication) : ApiRoute {
-    companion object {
-        private const val ROUTE_PATH: String = "/question-sets/{question_set_id}/questions"
-    }
+class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes {
 
     private val questionSetService: QuestionSetService by koinApp.koin.inject()
 
@@ -51,7 +50,7 @@ class QuestionsRoutes(koinApp: KoinApplication) : ApiRoute {
         })
     }
 
-    private fun list(questionSetId: String): List<QuestionResponse> {
+    override fun list(questionSetId: String): List<QuestionResponse> {
         return questionSetService.getQuestionSetWithVersionOrElseLatest(questionSetId, null)
             .second
             .questions.map {
@@ -59,7 +58,7 @@ class QuestionsRoutes(koinApp: KoinApplication) : ApiRoute {
             }
     }
 
-    private fun get(questionSetId: String, questionId: String): QuestionResponse {
+    override fun get(questionSetId: String, questionId: String): QuestionResponse {
         val question = questionSetService.getQuestionSetWithVersionOrElseLatest(questionSetId, null)
             .second
             .questions
@@ -67,7 +66,7 @@ class QuestionsRoutes(koinApp: KoinApplication) : ApiRoute {
         return QuestionResponseMapper.mapToResponse(question!!)
     }
 
-    private suspend fun upload(context: RoutingContext, questionSetId: String): List<QuestionResponse> {
+    override suspend fun upload(context: RoutingContext, questionSetId: String): List<QuestionResponse> {
         val contentType = context.call.request.contentType()
         val boundary = contentType.parameter("boundary") ?: throw IllegalArgumentException("Boundary not found")
         val channel: ByteReadChannel = context.call.receiveChannel()

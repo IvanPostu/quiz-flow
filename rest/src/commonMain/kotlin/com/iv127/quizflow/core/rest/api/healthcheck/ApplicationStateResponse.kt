@@ -1,0 +1,13 @@
+package com.iv127.quizflow.core.rest.api.healthcheck
+
+
+enum class ApplicationStateResponse {
+    APPLICATION_STARTING,
+    APPLICATION_MODULES_LOADING,
+    APPLICATION_MODULES_LOADED,
+    APPLICATION_STARTED,
+    SERVER_READY,
+    APPLICATION_STOP_PREPARING,
+    APPLICATION_STOPPING,
+    APPLICATION_STOPPED;
+}

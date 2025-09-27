@@ -27,7 +27,7 @@ tasks.test {
         }
 
         if (!hasTestsArg) {
-            println("Skipping tests: No --tests argument provided.")
+            logger.lifecycle("Skipping tests: No --tests argument provided.")
         }
 
         hasTestsArg

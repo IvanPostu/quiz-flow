@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.rest.user
+package com.iv127.quizflow.core.rest.api.user
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

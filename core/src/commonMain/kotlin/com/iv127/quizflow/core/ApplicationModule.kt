@@ -2,11 +2,11 @@ package com.iv127.quizflow.core
 
 import com.iv127.quizflow.core.application.ApplicationState
 import com.iv127.quizflow.core.platform.PlatformServices
-import com.iv127.quizflow.core.rest.QuizRoutes
-import com.iv127.quizflow.core.rest.healthcheck.HealthCheckRoutes
-import com.iv127.quizflow.core.rest.question.QuestionsRoutes
-import com.iv127.quizflow.core.rest.questionset.QuestionSetsRoutes
-import com.iv127.quizflow.core.rest.user.UsersRoutes
+import com.iv127.quizflow.core.rest.api.ApiRoute
+import com.iv127.quizflow.core.rest.impl.healthcheck.HealthCheckRoutesImpl
+import com.iv127.quizflow.core.rest.impl.question.QuestionsRoutesImpl
+import com.iv127.quizflow.core.rest.impl.questionset.QuestionSetsRoutesImpl
+import com.iv127.quizflow.core.rest.impl.user.UsersRoutesImpl
 import com.iv127.quizflow.core.services.QuestionSetService
 import com.iv127.quizflow.core.services.impl.QuestionSetServiceImpl
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
@@ -69,12 +69,11 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
     })
     checkAndLogIfDebugApplicationRootFolderEnvVariableWasSet(platformServices, log)
 
-    val routeInstances = listOf(
-        HealthCheckRoutes(koinApp),
-        QuestionSetsRoutes(koinApp),
-        UsersRoutes(koinApp),
-        QuestionsRoutes(koinApp),
-        QuizRoutes()
+    val routeInstances: List<ApiRoute> = listOf(
+        HealthCheckRoutesImpl(koinApp),
+        QuestionSetsRoutesImpl(koinApp),
+        UsersRoutesImpl(koinApp),
+        QuestionsRoutesImpl(koinApp),
     )
     val processUtils = platformServices.getProcessUtils()
     val fileIo = platformServices.getFileIO()
