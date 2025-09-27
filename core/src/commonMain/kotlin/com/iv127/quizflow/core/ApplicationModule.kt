@@ -2,7 +2,7 @@ package com.iv127.quizflow.core
 
 import com.iv127.quizflow.core.application.ApplicationState
 import com.iv127.quizflow.core.platform.PlatformServices
-import com.iv127.quizflow.core.rest.api.ApiRoute
+import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.impl.healthcheck.HealthCheckRoutesImpl
 import com.iv127.quizflow.core.rest.impl.question.QuestionsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.questionset.QuestionSetsRoutesImpl

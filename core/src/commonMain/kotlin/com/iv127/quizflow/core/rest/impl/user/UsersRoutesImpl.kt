@@ -2,6 +2,7 @@ package com.iv127.quizflow.core.rest.impl.user
 
 import com.iv127.quizflow.core.lang.UUIDv4
 import com.iv127.quizflow.core.model.User
+import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
 import com.iv127.quizflow.core.rest.api.user.UserResponse
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes
@@ -21,7 +22,7 @@ import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 
 @OptIn(ExperimentalTime::class)
-class UsersRoutesImpl(val koinApp: KoinApplication) : UsersRoutes {
+class UsersRoutesImpl(val koinApp: KoinApplication) : UsersRoutes, ApiRoute {
 
     private val db: () -> SqliteDatabase = {
         koinApp.koin.get<SqliteDatabase>(named("appDb"))

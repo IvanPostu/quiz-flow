@@ -2,6 +2,7 @@ package com.iv127.quizflow.core.rest.impl.healthcheck
 
 import com.iv127.quizflow.core.ApplicationStateListener
 import com.iv127.quizflow.core.application.ApplicationState
+import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.healthcheck.ApplicationStateResponse
 import com.iv127.quizflow.core.rest.api.healthcheck.HealthCheckResponse
 import com.iv127.quizflow.core.rest.api.healthcheck.HealthCheckRoutes
@@ -12,7 +13,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import org.koin.core.KoinApplication
 
-class HealthCheckRoutesImpl(koinApp: KoinApplication) : HealthCheckRoutes {
+class HealthCheckRoutesImpl(koinApp: KoinApplication) : HealthCheckRoutes, ApiRoute {
 
     private val stateListener: ApplicationStateListener by koinApp.koin.inject()
 

@@ -1,9 +1,8 @@
 package com.iv127.quizflow.core.rest.api.question
 
-import com.iv127.quizflow.core.rest.api.ApiRoute
-import io.ktor.server.routing.RoutingContext
+import com.iv127.quizflow.core.rest.api.MultipartData
 
-interface QuestionsRoutes : ApiRoute {
+interface QuestionsRoutes {
     companion object {
         const val QUESTION_SET_ID_PLACEHOLDER: String = "/question-sets/{question_set_id}/questions"
         const val ROUTE_PATH: String = "/question-sets/{$QUESTION_SET_ID_PLACEHOLDER}/questions"
@@ -13,6 +12,6 @@ interface QuestionsRoutes : ApiRoute {
 
     fun get(questionSetId: String, questionId: String): QuestionResponse
 
-    suspend fun upload(context: RoutingContext, questionSetId: String): List<QuestionResponse>
+    suspend fun upload(multipartDataList: List<MultipartData>, questionSetId: String): List<QuestionResponse>
 
 }

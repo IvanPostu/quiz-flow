@@ -1,6 +1,7 @@
 package com.iv127.quizflow.core.rest.impl.questionset
 
 import com.iv127.quizflow.core.model.question.QuestionSet
+import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetResponse
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetUpdateRequest
@@ -17,7 +18,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import org.koin.core.KoinApplication
 
-class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes {
+class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, ApiRoute {
 
     private val questionSetService: QuestionSetService by koinApp.koin.inject()
 
@@ -44,16 +45,16 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes {
         })
     }
 
-    override fun get(id: String): QuestionSetResponse {
+    override suspend fun get(id: String): QuestionSetResponse {
         return mapQuestionSetResponse(questionSetService.getQuestionSet(id))
     }
 
-    override fun list(): List<QuestionSetResponse> {
+    override suspend fun list(): List<QuestionSetResponse> {
         return questionSetService.getQuestionSetList()
             .map { mapQuestionSetResponse(it) }
     }
 
-    override fun create(request: QuestionSetCreateRequest): QuestionSetResponse {
+    override suspend fun create(request: QuestionSetCreateRequest): QuestionSetResponse {
         if (request.name.isBlank()) {
             throw IllegalArgumentException("name field shouldn't be blank")
         }
@@ -64,7 +65,7 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes {
         return mapQuestionSetResponse(questionSet)
     }
 
-    override fun update(id: String, request: QuestionSetUpdateRequest): QuestionSetResponse {
+    override suspend fun update(id: String, request: QuestionSetUpdateRequest): QuestionSetResponse {
         val questionSet = questionSetService.updateQuestionSet(id) { builder ->
             builder.name = request.name
             builder.description = request.description
@@ -72,7 +73,7 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes {
         return mapQuestionSetResponse(questionSet)
     }
 
-    override fun archive(id: String): QuestionSetResponse {
+    override suspend fun archive(id: String): QuestionSetResponse {
         val questionSet = questionSetService.archive(id)
         return mapQuestionSetResponse(questionSet)
     }

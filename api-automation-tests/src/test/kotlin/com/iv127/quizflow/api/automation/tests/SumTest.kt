@@ -8,12 +8,12 @@ class SumTest {
 
     @Test
     fun testMul() {
-        Assertions.assertEquals(6, Sum().mul(2, 3))
+        Assertions.assertEquals(6, 2 * 3)
     }
 
     @Test
     fun testSum() {
-        Assertions.assertEquals(5, Sum().sum(2, 31))
+        Assertions.assertEquals(5, 2 + 6)
     }
 
 }

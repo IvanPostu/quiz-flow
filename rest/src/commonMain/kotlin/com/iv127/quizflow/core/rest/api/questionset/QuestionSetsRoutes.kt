@@ -1,21 +1,19 @@
 package com.iv127.quizflow.core.rest.api.questionset
 
-import com.iv127.quizflow.core.rest.api.ApiRoute
-
-interface QuestionSetsRoutes : ApiRoute {
+interface QuestionSetsRoutes {
 
     companion object {
         const val ROUTE_PATH: String = "/question-sets"
     }
 
-    fun get(id: String): QuestionSetResponse
+    suspend fun get(id: String): QuestionSetResponse
 
-    fun list(): List<QuestionSetResponse>
+    suspend fun list(): List<QuestionSetResponse>
 
-    fun create(request: QuestionSetCreateRequest): QuestionSetResponse
+    suspend fun create(request: QuestionSetCreateRequest): QuestionSetResponse
 
-    fun update(id: String, request: QuestionSetUpdateRequest): QuestionSetResponse
+    suspend fun update(id: String, request: QuestionSetUpdateRequest): QuestionSetResponse
 
-    fun archive(id: String): QuestionSetResponse
+    suspend fun archive(id: String): QuestionSetResponse
 
 }

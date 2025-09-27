@@ -1,15 +1,15 @@
 package com.iv127.quizflow.core.ktor
 
+import com.iv127.quizflow.core.rest.api.MultipartData
 import io.ktor.http.ContentType
 import io.ktor.utils.io.core.toByteArray
 
 class Multipart {
     companion object {
-        data class CustomMultipartData(val parts: List<MultipartPart>)
 
         // replacement for: ktor's call.receiveMultipart() which doesn't work on linux_x64
-        fun parseMultipart(byteArray: ByteArray, boundary: String): CustomMultipartData {
-            val parts = mutableListOf<MultipartPart>()
+        fun parseMultipart(byteArray: ByteArray, boundary: String): List<MultipartData> {
+            val parts = mutableListOf<MultipartData>()
 
             val boundaryBytes = "--$boundary".toByteArray()
             val rawParts = byteArray.split(boundaryBytes)
@@ -20,8 +20,7 @@ class Multipart {
                     part?.let { parts.add(it) }
                 }
             }
-
-            return CustomMultipartData(parts)
+            return parts
         }
 
         private fun ByteArray.split(delimiter: ByteArray): List<ByteArray> {
@@ -38,7 +37,7 @@ class Multipart {
             return result
         }
 
-        private fun parsePart(rawPart: ByteArray): MultipartPart? {
+        private fun parsePart(rawPart: ByteArray): MultipartData? {
             val partString = rawPart.decodeToString()
             val headersEndIndex = partString.indexOf("\r\n\r\n")
 
@@ -58,9 +57,9 @@ class Multipart {
             return if (filename != null) {
                 val contentTypeHeader = contentType?.substringAfter("Content-Type: ")?.trim()
                 val contentTypeObj = contentTypeHeader?.let { ContentType.parse(it) }
-                MultipartPart.FilePart(name ?: "", filename, contentTypeObj, body)
+                MultipartData.FilePart(name ?: "", filename, contentTypeObj, body)
             } else {
-                MultipartPart.FormField(name ?: "", body.decodeToString())
+                MultipartData.FormField(name ?: "", body.decodeToString())
             }
         }
 

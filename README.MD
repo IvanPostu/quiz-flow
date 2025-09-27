@@ -43,6 +43,7 @@ cd $PROJECT_ROOT/native/sqlite-amalgamation-3500400 \
   && gcc -fPIC -shared -o libsqlite3.so sqlite3.c \
   && cd $PROJECT_ROOT
 
+# build libbcrypt dynamic library
 cd $PROJECT_ROOT/external/libbcrypt \
   && ( make EXTRA_CFLAGS="-fPIC" || [ -e ./libbcrypt.so.1.0.0 ] ) \
   && cp -f $PROJECT_ROOT/external/libbcrypt/bcrypt.h $PROJECT_ROOT/native/bcrypt/bcrypt.h \
@@ -65,6 +66,9 @@ $PROJECT_ROOT/webapp/build/packaged/quiz-flow-0.0.1.kexe
 
 # clean and build
 ./gradlew clean webapp:package build -PbuildType=DEBUG -Pkotlin.native.cacheKind=none
+
+# Example of running automation test
+./gradlew :api-automation-tests:testMain --tests "com.iv127.quizflow.api.automation.tests.SumTest"
 ```
 
 ### Frontend development

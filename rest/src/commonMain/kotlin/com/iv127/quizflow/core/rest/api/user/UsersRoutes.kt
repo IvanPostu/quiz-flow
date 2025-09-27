@@ -1,10 +1,8 @@
 package com.iv127.quizflow.core.rest.api.user
 
-import com.iv127.quizflow.core.rest.api.ApiRoute
-
-interface UsersRoutes : ApiRoute {
+interface UsersRoutes {
     companion object {
-        val ROUTE_PATH: String = "/users"
+        const val ROUTE_PATH: String = "/users"
     }
 
     fun list(): List<UserResponse>

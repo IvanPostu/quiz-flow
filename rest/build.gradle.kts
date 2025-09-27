@@ -4,7 +4,6 @@ plugins {
 }
 
 kotlin {
-    val parentProjectAbsolutePath = rootProject.projectDir.absolutePath
     val hostOs = System.getProperty("os.name")
     val arch = System.getProperty("os.arch")
     val isMingwX64 = hostOs.startsWith("Windows")
@@ -21,7 +20,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                compileOnly(libs.ktor.server.core)
+                implementation(libs.ktor.serialization.kotlinx.json)
             }
         }
         val jvmMain by getting {

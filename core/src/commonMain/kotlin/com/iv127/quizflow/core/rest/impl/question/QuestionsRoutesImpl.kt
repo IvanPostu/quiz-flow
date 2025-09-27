@@ -1,10 +1,11 @@
 package com.iv127.quizflow.core.rest.impl.question
 
 import com.iv127.quizflow.core.ktor.Multipart
-import com.iv127.quizflow.core.ktor.MultipartPart
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolver
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolverFactory
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolverType
+import com.iv127.quizflow.core.rest.ApiRoute
+import com.iv127.quizflow.core.rest.api.MultipartData
 import com.iv127.quizflow.core.rest.api.question.QuestionResponse
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes.Companion.ROUTE_PATH
@@ -14,7 +15,6 @@ import com.iv127.quizflow.core.services.QuestionSetService
 import io.ktor.server.request.contentType
 import io.ktor.server.request.receiveChannel
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.utils.io.ByteReadChannel
@@ -22,7 +22,7 @@ import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
 import org.koin.core.KoinApplication
 
-class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes {
+class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes, ApiRoute {
 
     private val questionSetService: QuestionSetService by koinApp.koin.inject()
 
@@ -45,7 +45,14 @@ class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes {
         parent.post(ROUTE_PATH, webResponse {
             val questionSetId = call.parameters["question_set_id"]
                 ?: throw IllegalArgumentException("question_set_id pathParam is empty")
-            val response = upload(this, questionSetId)
+
+            val contentType = this.call.request.contentType()
+            val boundary = contentType.parameter("boundary") ?: throw IllegalArgumentException("Boundary not found")
+            val channel: ByteReadChannel = this.call.receiveChannel()
+            val rawBody = channel.readRemaining().readByteArray()
+            val multipartData = Multipart.parseMultipart(rawBody, boundary)
+
+            val response = upload(multipartData, questionSetId)
             JsonWebResponse.create(response)
         })
     }
@@ -66,16 +73,10 @@ class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes {
         return QuestionResponseMapper.mapToResponse(question!!)
     }
 
-    override suspend fun upload(context: RoutingContext, questionSetId: String): List<QuestionResponse> {
-        val contentType = context.call.request.contentType()
-        val boundary = contentType.parameter("boundary") ?: throw IllegalArgumentException("Boundary not found")
-        val channel: ByteReadChannel = context.call.receiveChannel()
-        val rawBody = channel.readRemaining().readByteArray()
-        val multipartData = Multipart.parseMultipart(rawBody, boundary)
-
-        val filePart = multipartData.parts.first {
-            it is MultipartPart.FilePart && it.name == "file"
-        } as MultipartPart.FilePart
+    override suspend fun upload(multipartDataList: List<MultipartData>, questionSetId: String): List<QuestionResponse> {
+        val filePart = multipartDataList.first {
+            it is MultipartData.FilePart && it.name == "file"
+        } as MultipartData.FilePart
 
         val questions = questionResolver.resolve(filePart.content.decodeToString())
             .asResult()
