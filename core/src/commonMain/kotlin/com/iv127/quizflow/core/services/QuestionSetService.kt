@@ -2,17 +2,23 @@ package com.iv127.quizflow.core.services
 
 import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.model.question.QuestionSetBuilder
+import com.iv127.quizflow.core.model.question.QuestionSetVersion
 
 interface QuestionSetService {
 
-    fun createQuestionSet(createFunc: (questionSetBuilder: QuestionSetBuilder) -> Unit): QuestionSet
+    fun createQuestionSet(createFunc: (questionSetBuilder: QuestionSetBuilder) -> Unit): Pair<QuestionSet, QuestionSetVersion>
 
-    fun updateQuestionSet(id: String, updateFunc: (questionSetBuilder: QuestionSetBuilder) -> Unit): QuestionSet
+    fun updateQuestionSet(
+        id: String,
+        updateFunc: (questionSetBuilder: QuestionSetBuilder) -> Unit
+    ): Pair<QuestionSet, QuestionSetVersion>
 
     fun archive(id: String): QuestionSet
 
     fun getQuestionSet(id: String): QuestionSet
 
-    fun getQuestionSet(): List<QuestionSet>
+    fun getQuestionSetWithVersionOrElseLatest(id: String, version: Int?): Pair<QuestionSet, QuestionSetVersion>
+
+    fun getQuestionSetList(): List<QuestionSet>
 
 }

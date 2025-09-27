@@ -9,6 +9,5 @@ data class QuestionSetResponse(
     @SerialName("id") val id: String,
     @SerialName("name") val name: String,
     @SerialName("description") val description: String,
-    @SerialName("version") val version: Int,
-    @SerialName("questions") val questions: List<QuestionResponse>,
+    @SerialName("latest_version") val latestVersion: Int,
 )

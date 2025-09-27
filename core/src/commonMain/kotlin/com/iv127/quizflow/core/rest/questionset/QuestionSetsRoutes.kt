@@ -1,9 +1,7 @@
 package com.iv127.quizflow.core.rest.questionset
 
-import com.iv127.quizflow.core.model.question.Question
 import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.rest.ApiRoute
-import com.iv127.quizflow.core.rest.question.QuestionResponseMapper
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse
 import com.iv127.quizflow.core.services.QuestionSetService
@@ -51,7 +49,7 @@ class QuestionSetsRoutes(koinApp: KoinApplication) : ApiRoute {
     }
 
     private fun list(): List<QuestionSetResponse> {
-        return questionSetService.getQuestionSet()
+        return questionSetService.getQuestionSetList()
             .map { mapQuestionSetResponse(it) }
     }
 
@@ -62,7 +60,7 @@ class QuestionSetsRoutes(koinApp: KoinApplication) : ApiRoute {
         val questionSet = questionSetService.createQuestionSet { builder ->
             builder.name = request.name
             builder.description = request.description
-        }
+        }.first
         return mapQuestionSetResponse(questionSet)
     }
 
@@ -70,7 +68,7 @@ class QuestionSetsRoutes(koinApp: KoinApplication) : ApiRoute {
         val questionSet = questionSetService.updateQuestionSet(id) { builder ->
             builder.name = request.name
             builder.description = request.description
-        }
+        }.first
         return mapQuestionSetResponse(questionSet)
     }
 
@@ -83,12 +81,7 @@ class QuestionSetsRoutes(koinApp: KoinApplication) : ApiRoute {
         questionSet.id,
         questionSet.name,
         questionSet.description,
-        questionSet.version,
-        mapQuestionsToResponses(questionSet.questions)
+        questionSet.latestVersion,
     )
-
-    private fun mapQuestionsToResponses(questions: List<Question>) = questions.map {
-        QuestionResponseMapper.mapToResponse(it)
-    }.toList()
 
 }

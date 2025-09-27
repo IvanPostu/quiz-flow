@@ -2,6 +2,7 @@ package com.iv127.quizflow.core.services.impl
 
 import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.model.question.QuestionSetBuilder
+import com.iv127.quizflow.core.model.question.QuestionSetVersion
 import com.iv127.quizflow.core.services.QuestionSetService
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.SqliteTimestampUtils
@@ -11,61 +12,89 @@ import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalTime::class)
 class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuestionSetService {
-    override fun createQuestionSet(createFunc: (questionSetBuilder: QuestionSetBuilder) -> Unit): QuestionSet {
-        val questionSet: QuestionSet = QuestionSetBuilder()
+    override fun createQuestionSet(createFunc: (questionSetBuilder: QuestionSetBuilder) -> Unit): Pair<QuestionSet, QuestionSetVersion> {
+        val (questionSet, questionSetVersion) = QuestionSetBuilder()
             .apply(createFunc)
-            .build()
-
+            .buildAndIncrement()
         val createdAt = SqliteTimestampUtils.toValue(Clock.System.now())
         dbSupplier().use { db ->
             db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
             db.executeAndGetChangedRowsCount(
                 """
-                    INSERT INTO questions_set (
+                    INSERT INTO question_sets (
                         id,
-                        version,
+                        latest_version,
                         created_at,
                         archived_at,
                         json) VALUES (
                         ?, ?, ?, ?, ?);
                 """.trimIndent(),
-                listOf<Any?>(questionSet.id, questionSet.version, createdAt, null, Json.encodeToString(questionSet))
+                listOf<Any?>
+                    (questionSet.id, questionSet.latestVersion, createdAt, null, Json.encodeToString(questionSet))
+            )
+            db.executeAndGetChangedRowsCount(
+                """
+                    INSERT INTO question_set_versions (
+                        id,
+                        version,
+                        created_at,
+                        json) VALUES (
+                        ?, ?, ?, ?);
+                """.trimIndent(),
+                listOf<Any?>
+                    (
+                    questionSetVersion.id,
+                    questionSetVersion.version,
+                    createdAt,
+                    Json.encodeToString(questionSetVersion)
+                )
             )
             db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
+            return Pair(questionSet, questionSetVersion)
         }
-        return questionSet
     }
 
     override fun updateQuestionSet(
         id: String,
         updateFunc: (questionSetBuilder: QuestionSetBuilder) -> Unit
-    ): QuestionSet {
+    ): Pair<QuestionSet, QuestionSetVersion> {
         dbSupplier().use { db ->
             val createdAt = SqliteTimestampUtils.toValue(Clock.System.now())
-            val updatedQuestionSet: QuestionSet = QuestionSetBuilder(selectById(id, db)!!)
+            val (questionSet, questionSetVersion) = selectByIdAndVersionOrElseLatest(db, id, null)
+            val (updatedQuestionSet, updatedQuestionSetVersion) = QuestionSetBuilder(questionSet, questionSetVersion)
                 .apply(updateFunc)
-                .build()
+                .buildAndIncrement()
             db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
             db.executeAndGetChangedRowsCount(
                 """
-                    INSERT INTO questions_set (
+                    UPDATE question_sets SET latest_version=?, json=?
+                    WHERE id=?;
+                """.trimIndent(),
+                listOf<Any?>(
+                    updatedQuestionSet.latestVersion,
+                    Json.encodeToString(updatedQuestionSet),
+                    updatedQuestionSet.id,
+                )
+            )
+            db.executeAndGetChangedRowsCount(
+                """
+                    INSERT INTO question_set_versions (
                         id,
                         version,
                         created_at,
-                        archived_at,
                         json) VALUES (
-                        ?, ?, ?, ?, ?);
+                        ?, ?, ?, ?);
                 """.trimIndent(),
-                listOf<Any?>(
-                    updatedQuestionSet.id,
-                    updatedQuestionSet.version,
+                listOf<Any?>
+                    (
+                    updatedQuestionSetVersion.id,
+                    updatedQuestionSetVersion.version,
                     createdAt,
-                    null,
-                    Json.encodeToString(updatedQuestionSet)
+                    Json.encodeToString(updatedQuestionSetVersion)
                 )
             )
             db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
-            return updatedQuestionSet
+            return Pair(updatedQuestionSet, updatedQuestionSetVersion)
         }
     }
 
@@ -73,11 +102,11 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
         return dbSupplier().use { db ->
             val archivedAt = SqliteTimestampUtils.toValue(Clock.System.now())
             db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
-            val questionSet = selectById(id, db)!!
+            val questionSet = selectByIdAndVersionOrElseLatest(db, id, null).first
             db.executeAndGetChangedRowsCount(
                 """
-                    UPDATE questions_set SET archived_at=?
-                    WHERE questions_set.id=?;
+                    UPDATE question_sets SET archived_at=?
+                    WHERE question_sets.id=?;
                 """.trimIndent(),
                 listOf(archivedAt, id)
             )
@@ -87,16 +116,24 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
     }
 
     override fun getQuestionSet(id: String): QuestionSet {
-        val questionSet: QuestionSet = dbSupplier().use { db ->
-            selectById(id, db)!!
+        dbSupplier().use { db ->
+            return selectByIdAndVersionOrElseLatest(db, id, null).first
         }
-        return questionSet
     }
 
-    override fun getQuestionSet(): List<QuestionSet> {
+    override fun getQuestionSetWithVersionOrElseLatest(
+        id: String,
+        version: Int?
+    ): Pair<QuestionSet, QuestionSetVersion> {
+        return dbSupplier().use { db ->
+            selectByIdAndVersionOrElseLatest(db, id, version)
+        }
+    }
+
+    override fun getQuestionSetList(): List<QuestionSet> {
         return dbSupplier().use { db ->
             db.executeAndGetResultSet(
-                "SELECT t.* FROM questions_set AS t"
+                "SELECT t.* FROM question_sets AS t"
             ).map { record ->
                 val deserialized: QuestionSet = Json.decodeFromString(record["json"].toString())
                 deserialized
@@ -104,15 +141,35 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
         }
     }
 
-    private fun selectById(id: String, db: SqliteDatabase): QuestionSet? {
-        val result: QuestionSet? = db.executeAndGetResultSet(
-            "SELECT t.* FROM questions_set AS t WHERE t.id=? ORDER BY t.version DESC LIMIT 1;",
+    @Throws(IllegalArgumentException::class)
+    private fun selectByIdAndVersionOrElseLatest(
+        db: SqliteDatabase,
+        id: String,
+        version: Int?
+    ): Pair<QuestionSet, QuestionSetVersion> {
+        val questionSet: QuestionSet? = db.executeAndGetResultSet(
+            "SELECT t.* FROM question_sets AS t WHERE t.id=?;",
             listOf(id)
         )
             .map { record ->
                 val deserialized: QuestionSet = Json.decodeFromString(record["json"].toString())
-                return deserialized
+                deserialized
             }.firstNotNullOfOrNull { it }
-        return result
+        if (questionSet == null) {
+            throw IllegalArgumentException("Cannot find question set by id:$id")
+        }
+        val expectedVersion = version ?: questionSet.latestVersion
+        val questionSetVersion: QuestionSetVersion? = db.executeAndGetResultSet(
+            "SELECT t.* FROM question_set_versions AS t WHERE t.id=? AND t.version=?;",
+            listOf(id, expectedVersion)
+        )
+            .map { record ->
+                val deserialized: QuestionSetVersion = Json.decodeFromString(record["json"].toString())
+                deserialized
+            }.firstNotNullOfOrNull { it }
+        if (questionSetVersion == null) {
+            throw IllegalArgumentException("Cannot find question set version by id:$id and version: $expectedVersion")
+        }
+        return Pair(questionSet, questionSetVersion)
     }
 }

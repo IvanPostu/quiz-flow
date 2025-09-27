@@ -13,6 +13,7 @@ import io.ktor.server.request.contentType
 import io.ktor.server.request.receiveChannel
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readRemaining
@@ -30,12 +31,40 @@ class QuestionsRoutes(koinApp: KoinApplication) : ApiRoute {
         .create(QuestionsResolverType.QUESTION_WRAPPED_IN_MARKDOWN_CODE_SECTION)
 
     override fun setup(parent: Route) {
+        parent.get("${ROUTE_PATH}/{question_id}", webResponse {
+            val questionSetId = call.parameters["question_set_id"]
+                ?: throw IllegalArgumentException("question_set_id pathParam is empty")
+            val questionId =
+                call.parameters["question_id"] ?: throw IllegalArgumentException("question_id pathParam is empty")
+            JsonWebResponse.create(get(questionSetId, questionId))
+        })
+        parent.get(ROUTE_PATH, webResponse {
+            val questionSetId = call.parameters["question_set_id"]
+                ?: throw IllegalArgumentException("question_set_id pathParam is empty")
+            JsonWebResponse.create(list(questionSetId))
+        })
         parent.post(ROUTE_PATH, webResponse {
             val questionSetId = call.parameters["question_set_id"]
                 ?: throw IllegalArgumentException("question_set_id pathParam is empty")
             val response = upload(this, questionSetId)
             JsonWebResponse.create(response)
         })
+    }
+
+    private fun list(questionSetId: String): List<QuestionResponse> {
+        return questionSetService.getQuestionSetWithVersionOrElseLatest(questionSetId, null)
+            .second
+            .questions.map {
+                QuestionResponseMapper.mapToResponse(it)
+            }
+    }
+
+    private fun get(questionSetId: String, questionId: String): QuestionResponse {
+        val question = questionSetService.getQuestionSetWithVersionOrElseLatest(questionSetId, null)
+            .second
+            .questions
+            .find { it.id == questionId }
+        return QuestionResponseMapper.mapToResponse(question!!)
     }
 
     private suspend fun upload(context: RoutingContext, questionSetId: String): List<QuestionResponse> {
@@ -55,9 +84,9 @@ class QuestionsRoutes(koinApp: KoinApplication) : ApiRoute {
 
         return questionSetService.updateQuestionSet(questionSetId) {
             it.setQuestions(questions)
-        }.questions.map {
+        }.second.questions.map {
             QuestionResponseMapper.mapToResponse(it)
-        }.toList()
+        }
     }
 
 }

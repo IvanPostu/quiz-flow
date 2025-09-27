@@ -4,9 +4,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class QuestionSet(
+data class QuestionSetVersion(
     @SerialName("id") val id: String,
-    @SerialName("name") val name: String,
-    @SerialName("description") val description: String,
-    @SerialName("latest_version") val latestVersion: Int
+    @SerialName("version") val version: Int,
+    @SerialName("questions") val questions: List<Question> = emptyList(),
 )

@@ -43,14 +43,22 @@ curl -i http://localhost:8080/api/health-check
 # questions set endpoints
 curl -i -X POST http://localhost:8080/api/question-sets -H "Content-Type: application/json" -d '{"name":"test","description":"aa111"}'
 
-curl -X PUT http://localhost:8080/api/question-sets/82ec3ee0-0199-1000-73e0-000062fe28a3 -H "Content-Type: application/json" -d '{"name":"test1","description":"1aa111"}' 
+curl -X PUT http://localhost:8080/api/question-sets/8af9e5e4-0199-1000-1f6d-0000dbb9b41e -H "Content-Type: application/json" -d '{"name":"test1","description":"1aa111"}' 
 
 curl -i -X GET http://localhost:8080/api/question-sets -H "Content-Type: application/json"
 
-curl -X GET http://localhost:8080/api/question-sets/82ec3ee0-0199-1000-73e0-000062fe28a3 -H "Content-Type: application/json"
+curl -X GET http://localhost:8080/api/question-sets/8af9e5e4-0199-1000-1f6d-0000dbb9b41e -H "Content-Type: application/json"
 
-curl -X DELETE http://localhost:8080/api/question-sets/82ec3ee0-0199-1000-73e0-000062fe28a3 -H "Content-Type: application/json"
+curl -X DELETE http://localhost:8080/api/question-sets/8af9e5e4-0199-1000-1f6d-0000dbb9b41e -H "Content-Type: application/json"
 
+# question-sets/{question_set_id}/questions endpoints
+curl -X POST http://localhost:8080/api/question-sets/8af9e5e4-0199-1000-1f6d-0000dbb9b41e/questions \
+    -H "Content-Type: multipart/form-data" \
+    -F "testid=1" \
+    -F "filecomment=This is an text file" \
+    -F "file=@/$PROJECT_ROOT/../docubase-documents/Java/OCP21/OCP21.MD"
+
+curl -i -X GET http://localhost:8080/api/question-sets/8af9e5e4-0199-1000-1f6d-0000dbb9b41e/questions/8afb9805-0199-1000-fbe4-00009ce065d8
 
 
 # users
@@ -65,7 +73,7 @@ curl \
     -F "file=@/$PROJECT_ROOT/../docubase-documents/Java/OCP21/OCP21.MD"
     
 
-curl -X POST http://localhost:8080/api/question-sets/82ec3ee0-0199-1000-73e0-000062fe28a3/questions \
+curl -X POST http://localhost:8080/api/question-sets/8af9e5e4-0199-1000-1f6d-0000dbb9b41e/questions \
     -H "Content-Type: multipart/form-data" \
     -F "testid=1" \
     -F "filecomment=This is an text file" \
