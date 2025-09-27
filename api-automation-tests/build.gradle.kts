@@ -19,9 +19,9 @@ configurations {
 
 // This project is not part of the CI and shouldn't be run on build
 // It should be run explicitly from the command line: `java -jar ....jar`
-tasks.named<Test>("test") {
-    enabled = false
-}
+//tasks.named<Test>("test") {
+//    enabled = false
+//}
 
 
 dependencies {
@@ -29,6 +29,12 @@ dependencies {
 
     testImplementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    testImplementation(libs.ktor.serialization.kotlinx.json)
+    testImplementation(libs.ktor.client.core)
+    testImplementation(libs.ktor.client.cio)
+    testImplementation(libs.ktor.client.content.negotiation)
+
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
 }
