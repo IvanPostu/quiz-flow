@@ -17,12 +17,22 @@ configurations {
     }
 }
 
-// This project is not part of the CI and shouldn't be run on build
-// It should be run explicitly from the command line: `java -jar ....jar`
-//tasks.named<Test>("test") {
-//    enabled = false
-//}
+// This project is not part of the CI and shouldn't be run on build.
+// It should be run explicitly from the command line: `java -jar ....jar`,
+// the custom config below is a hack that enables test task only if --tests flag is present.
+tasks.test {
+    onlyIf {
+        val hasTestsArg = gradle.startParameter.taskRequests.any { request ->
+            request.args.any { it.startsWith("--tests") }
+        }
 
+        if (!hasTestsArg) {
+            println("Skipping tests: No --tests argument provided.")
+        }
+
+        hasTestsArg
+    }
+}
 
 dependencies {
     implementation("org.junit.platform:junit-platform-launcher:1.13.4")
