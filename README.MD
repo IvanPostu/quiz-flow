@@ -1,22 +1,14 @@
 # Quiz Flow
 
-A web app that allows users to generate personalized quizzes by randomly selecting questions from a predefined set.
-
-## Description
-
-- 📝 **Create Custom Quizzes:** Easily build personalized quizzes
-
-- 🔄 **Randomized Questions:** Generate unique quizzes with random question selection
-
-- 🌐 **Easy to Use:** Simple, intuitive platform for all users
+A standalone web application that allows users to upload sets of questions and create and take quizzes using them.
 
 ## Setup environment
 
 ### Prerequisites
 
 - Intellij
-- Openjdk 21 (Temurin OpenJDK-21)
 - Nix shell
+  - Openjdk 21 (Temurin OpenJDK-21)
 
 ### Setup
 
@@ -68,7 +60,9 @@ $PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0.1.kexe
 # Run user acceptance tests:
 ./gradlew :quiz-flow-server-acceptance-test:testMain
 ./gradlew :quiz-flow-server-acceptance-test:testMain --tests "com.iv127.quizflow.server.acceptance.test.SumTest"
-./gradlew :quiz-flow-server-acceptance-test:testMain --tests "com.iv127.quizflow.server.acceptance.test.SumTest.testSum"
+./gradlew :quiz-flow-server-acceptance-test:testMain \
+  --tests "com.iv127.quizflow.server.acceptance.test.SumTest.testSum" \
+  --tests "com.iv127.quizflow.server.acceptance.test.SumTest.testMul" 
 ```
 
 ### Frontend development
@@ -81,7 +75,9 @@ npm run start --prefix $PROJECT_ROOT/quiz-flow-client/browser
 ### Release
 
 ```sh
-./gradlew clean :quiz-flow-client-browser:runNpmBuild build -PbuildType=RELEASE -Pkotlin.native.cacheKind=none
+./gradlew clean :quiz-flow-client-browser:runNpmBuild build \
+  -PbuildType=RELEASE \
+  -Pkotlin.native.cacheKind=none
 ```
 
 ### Run
