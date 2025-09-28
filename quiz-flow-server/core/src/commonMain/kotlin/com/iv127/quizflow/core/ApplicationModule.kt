@@ -85,7 +85,7 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
     )
     val processUtils = platformServices.getProcessUtils()
     val fileIo = platformServices.getFileIO()
-    val pathToPublicDirectory = processUtils.getPathToExecutableDirectory() + "public"
+    val pathToPublicDirectory = processUtils.getPathToExecutableDirectory() + fileIo.getPathSeparator() + "public"
     val staticFilesProviderPlugin = StaticFilesProvider(fileIo, "/public", pathToPublicDirectory)
     val requestTracePlugin = createRouteScopedPlugin("RequestTracePlugin", { }) {
         onCall { call ->

@@ -15,6 +15,7 @@ dependencyResolutionManagement {
     }
 }
 
+includeModule("quiz-flow-server")
 includeModule("entrypoint", "quiz-flow-server")
 includeModule("core", "quiz-flow-server")
 includeModule("rest", "quiz-flow-server")

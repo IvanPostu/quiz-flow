@@ -36,7 +36,7 @@ class StaticFilesProvider(
             val fileBytes = fileIo.readAll(fileFullPath.toString())
             context.call.respondBytes(fileBytes)
         } catch (e: Exception) {
-            logger.error("Can't read file: $fileFullPath", e)
+            logger.warn("Can't read file: $fileFullPath due to: ${e.message}")
             context.call.respond(status = HttpStatusCode.NotFound, "Resource not found!")
         }
     }
