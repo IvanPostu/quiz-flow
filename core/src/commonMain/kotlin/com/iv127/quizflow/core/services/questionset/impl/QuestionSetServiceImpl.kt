@@ -4,7 +4,7 @@ import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.model.question.QuestionSetBuilder
 import com.iv127.quizflow.core.model.question.QuestionSetVersion
 import com.iv127.quizflow.core.rest.api.SortOrder
-import com.iv127.quizflow.core.services.QuestionSetService
+import com.iv127.quizflow.core.services.questionset.QuestionSetService
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.SqliteTimestampUtils
 import kotlin.time.Clock

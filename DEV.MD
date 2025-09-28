@@ -1,5 +1,12 @@
 # Development related stuff
 
+## TODO
+
+- Move all backend related modules to `quiz-flow-server`
+  - Frontend `quiz-flow-client`
+  - Backend tests `quiz-flow-server-test`
+- Java impl should use the exactly same dynamic libraries that the native target uses
+
 ```sh
 git submodule add -b tags/version-3.50.4 git@github.com:sqlite/sqlite.git external/sqlite
 git submodule add -b future git@github.com:rg3/libbcrypt.git external/libbcrypt

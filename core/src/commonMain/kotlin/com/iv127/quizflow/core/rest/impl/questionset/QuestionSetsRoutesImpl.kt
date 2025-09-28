@@ -10,7 +10,7 @@ import com.iv127.quizflow.core.rest.api.questionset.QuestionSetsRoutes
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetsRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse
-import com.iv127.quizflow.core.services.QuestionSetService
+import com.iv127.quizflow.core.services.questionset.QuestionSetService
 import io.ktor.server.request.receive
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete

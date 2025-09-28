@@ -11,7 +11,7 @@ import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse
-import com.iv127.quizflow.core.services.QuestionSetService
+import com.iv127.quizflow.core.services.questionset.QuestionSetService
 import io.ktor.server.request.contentType
 import io.ktor.server.request.receiveChannel
 import io.ktor.server.routing.Route
