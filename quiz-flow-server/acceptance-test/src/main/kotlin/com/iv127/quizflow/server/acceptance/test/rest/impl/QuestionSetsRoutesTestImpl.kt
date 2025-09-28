@@ -1,6 +1,6 @@
-package com.iv127.quizflow.api.automation.tests.rest.impl
+package com.iv127.quizflow.server.acceptance.test.rest.impl
 
-import com.iv127.quizflow.api.automation.tests.GlobalConfig
+import com.iv127.quizflow.server.acceptance.test.GlobalConfig
 import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetResponse

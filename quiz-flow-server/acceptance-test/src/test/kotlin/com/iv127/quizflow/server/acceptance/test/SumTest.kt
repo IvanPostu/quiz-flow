@@ -1,4 +1,4 @@
-package com.iv127.quizflow.api.automation.tests
+package com.iv127.quizflow.server.acceptance.test
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

@@ -26,8 +26,6 @@ nix-shell --run bash
 git submodule init
 git submodule update
 
-npm install --prefix ./webapp-ui
-
 gcc -fPIC -shared -o native/simple/libsimple.so native/simple/simple.c
 
 # build sqlite amalgamation, See reference 13
@@ -67,21 +65,23 @@ $PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0.1.kexe
 # clean and build
 ./gradlew clean build -PbuildType=DEBUG -Pkotlin.native.cacheKind=none
 
-# Example of running automation test
-./gradlew :api-automation-tests:testMain --tests "com.iv127.quizflow.api.automation.tests.SumTest"
+# Run user acceptance tests:
+./gradlew :quiz-flow-server-acceptance-test:testMain
+./gradlew :quiz-flow-server-acceptance-test:testMain --tests "com.iv127.quizflow.server.acceptance.test.SumTest"
+./gradlew :quiz-flow-server-acceptance-test:testMain --tests "com.iv127.quizflow.server.acceptance.test.SumTest.testSum"
 ```
 
 ### Frontend development
 
 ```sh
-npm install --prefix ./webapp-ui
-npm run start --prefix ./webapp-ui
+npm install --prefix $PROJECT_ROOT/quiz-flow-client/browser
+npm run start --prefix $PROJECT_ROOT/quiz-flow-client/browser
 ```
 
 ### Release
 
 ```sh
-./gradlew clean :webapp-ui:runNpmBuild build -PbuildType=RELEASE -Pkotlin.native.cacheKind=none
+./gradlew clean :quiz-flow-client-browser:runNpmBuild build -PbuildType=RELEASE -Pkotlin.native.cacheKind=none
 ```
 
 ### Run

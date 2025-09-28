@@ -3,7 +3,7 @@ plugins {
     kotlin("jvm")
 }
 
-group = "com.iv127.quizflow.api.automation.tests"
+group = "com.iv127.quizflow.server.acceptance.test"
 version = "1.0-SNAPSHOT"
 
 sourceSets {

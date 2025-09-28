@@ -1,4 +1,4 @@
-package com.iv127.quizflow.api.automation.tests
+package com.iv127.quizflow.server.acceptance.test
 
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime

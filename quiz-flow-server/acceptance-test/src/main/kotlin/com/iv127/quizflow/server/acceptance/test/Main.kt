@@ -1,4 +1,4 @@
-package com.iv127.quizflow.api.automation.tests
+package com.iv127.quizflow.server.acceptance.test
 
 import org.junit.platform.engine.discovery.DiscoverySelectors.selectPackage
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder

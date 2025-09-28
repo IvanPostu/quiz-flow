@@ -1,6 +1,6 @@
-package com.iv127.quizflow.api.automation.tests.route
+package com.iv127.quizflow.server.acceptance.test.route
 
-import com.iv127.quizflow.api.automation.tests.rest.impl.QuestionSetsRoutesTestImpl
+import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionSetsRoutesTestImpl
 import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetUpdateRequest
