@@ -58,7 +58,7 @@ tasks.register<Test>("testMain") {
 
 dependencies {
     implementation("org.junit.platform:junit-platform-launcher:1.13.4")
-    implementation(projects.rest)
+    implementation(projects.quizFlowServerRest)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.test)
     implementation(libs.ktor.serialization.kotlinx.json)

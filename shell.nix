@@ -31,7 +31,7 @@ pkgs.mkShell {
         export JAVA_HOME=${pkgs.temurin-bin-21}
         export PATH=${pkgs.temurin-bin-21}/bin:$PATH
 
-        export DEBUG_APPLICATION_ROOT_FOLDER="$PROJECT_ROOT/webapp/build/packaged"
+        export DEBUG_APPLICATION_ROOT_FOLDER="$PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged"
 
         chmod -R +x ${PROJECT_ROOT}/scripts
         export PATH=${PROJECT_ROOT}/scripts:$PATH

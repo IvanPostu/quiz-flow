@@ -78,7 +78,7 @@ kotlin {
                 freeCompilerArgs.add("-Xexpect-actual-classes")
             }
             dependencies {
-                implementation(projects.rest)
+                implementation(projects.quizFlowServerRest)
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.ktor.server.content.negotiation)

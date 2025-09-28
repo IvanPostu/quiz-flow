@@ -15,17 +15,20 @@ dependencyResolutionManagement {
     }
 }
 
-includeModule("webapp")
+includeModule("entrypoint", "quiz-flow-server")
+includeModule("core", "quiz-flow-server")
+includeModule("rest", "quiz-flow-server")
+
 includeModule("webapp-ui")
-includeModule("core")
-includeModule("rest")
 includeModule("api-automation-tests")
 
-fun path(vararg parts: String): String =
-    parts.joinToString(File.separator)
-
-fun includeModule(moduleName: String, vararg pathParts: String) {
-    val normalizedPath = if (pathParts.isEmpty()) path(moduleName) else path(*pathParts)
+private fun includeModule(moduleName: String, vararg pathParts: String) {
+    val mergedParts = buildList {
+        addAll(pathParts)
+        add(moduleName)
+    }
     include(moduleName)
-    project(":$moduleName").projectDir = file(normalizedPath)
+    val projectInstance = project(":$moduleName")
+    projectInstance.projectDir = file(mergedParts.joinToString(File.separator))
+    projectInstance.name = mergedParts.joinToString("-")
 }

@@ -7,7 +7,7 @@ kotlin {
     val hostOs = System.getProperty("os.name")
     val arch = System.getProperty("os.arch")
     val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
+    when {
         hostOs == "Mac OS X" && arch == "x86_64" -> macosX64()
         hostOs == "Mac OS X" && arch == "aarch64" -> macosArm64()
         hostOs == "Linux" -> linuxX64()

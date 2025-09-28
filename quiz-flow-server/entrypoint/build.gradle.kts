@@ -51,7 +51,7 @@ kotlin {
                 include("**/*")
                 into("resources")
             }
-            from(project(":core").file("src/commonMain/resources")) {
+            from(project(":quiz-flow-server-core").file("src/commonMain/resources")) {
                 include("**/*")
                 exclude("public") // exclude public folder
                 into("resources")
@@ -112,7 +112,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(projects.core)
+                implementation(projects.quizFlowServerCore)
             }
         }
         val jvmMain by getting {

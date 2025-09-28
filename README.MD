@@ -56,16 +56,16 @@ cd $PROJECT_ROOT/external/libbcrypt \
 
 ```sh
 ./gradlew build -PbuildType=DEBUG
-# IntelliJ idea: create debug profile for JAR - quiz-flow/webapp/build/packaged/quiz-flow-0.0.1.jar
+# IntelliJ idea: create debug profile for JAR - $PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0.1.jar
 
 # Run executable
-$PROJECT_ROOT/webapp/build/packaged/quiz-flow-0.0.1.kexe
+$PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0.1.kexe
 
 # Since DEBUG_APPLICATION_ROOT_FOLDER env variable was specified in shell.nix
 # the app can be run directly using Intellij.
 
 # clean and build
-./gradlew clean webapp:package build -PbuildType=DEBUG -Pkotlin.native.cacheKind=none
+./gradlew clean build -PbuildType=DEBUG -Pkotlin.native.cacheKind=none
 
 # Example of running automation test
 ./gradlew :api-automation-tests:testMain --tests "com.iv127.quizflow.api.automation.tests.SumTest"
@@ -88,12 +88,12 @@ npm run start --prefix ./webapp-ui
 
 ```sh
 # Run native executable 
-./webapp/build/packaged/quiz-flow-0.0.1.kexe
+$PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0.1.kexe
 # Or
 LD_LIBRARY_PATH=".:$LD_LIBRARY_PATH" ./quiz-flow-0.0.1.kexe
 
 # Run jvm bundle
-java -jar ./webapp/build/packaged/quiz-flow-0.0.1.jar
+java -jar $PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0.1.jar
 ```
 
 ## References
