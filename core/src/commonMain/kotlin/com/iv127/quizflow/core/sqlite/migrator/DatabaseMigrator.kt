@@ -83,8 +83,9 @@ class DatabaseMigrator(
                     version,
                     filename,
                     migration_content,
-                    applied_at) VALUES ($version, '$migrationFilename', '$migrationContent', '$appliedAt');
-            """.trimIndent()
+                    applied_at) VALUES (?, ?, ?, ?);
+            """.trimIndent(),
+            listOf<Any?>(version, migrationFilename, migrationContent, appliedAt)
         )
     }
 

@@ -149,7 +149,10 @@ class LinuxSqliteDatabaseTest {
                 } catch (e: IllegalStateException) {
                     val timeTaken = Clock.System.now().toEpochMilliseconds() - now
                     assertTrue(timeTaken in 1000..1100, "Expected $timeTaken to be between 1000 and 1100")
-                    assertEquals(e.message, "sqlite3_exec failed with code: 5 - database is locked")
+                    assertEquals(
+                        "sqlite3_exec failed with code: 5, message:database is locked, statement: INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com');",
+                        e.message
+                    )
                 }
             }
             LinuxSqliteDatabase(pathToFile).use { sqlite2 ->

@@ -140,7 +140,9 @@ class KSqlite(dbPath: String) : AutoCloseable {
                 }
 
                 if (rc != 0) {
-                    throw IllegalStateException("sqlite3_exec failed with code: $rc - ${error.value!!.toKString()}")
+                    throw IllegalStateException(
+                        "sqlite3_exec failed with code: $rc, message:${error.value?.toKString()}, statement: $command"
+                    )
                 }
                 return sqlite3_changes(db)
             } finally {
