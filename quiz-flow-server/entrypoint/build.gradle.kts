@@ -56,7 +56,7 @@ kotlin {
                 exclude("public") // exclude public folder
                 into("resources")
             }
-            from(project(":webapp-ui").file("dist")) {
+            from(project(":quiz-flow-client-browser").file("dist")) {
                 include("**/*")
             }
 

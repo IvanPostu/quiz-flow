@@ -20,7 +20,9 @@ includeModule("entrypoint", "quiz-flow-server")
 includeModule("core", "quiz-flow-server")
 includeModule("rest", "quiz-flow-server")
 
-includeModule("webapp-ui")
+includeModule("quiz-flow-client")
+includeModule("browser", "quiz-flow-client")
+
 includeModule("api-automation-tests")
 
 private fun includeModule(moduleName: String, vararg pathParts: String) {

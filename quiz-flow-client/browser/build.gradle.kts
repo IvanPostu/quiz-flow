@@ -1,5 +1,5 @@
 tasks.register("runNpmBuild") {
-    val currentProjectAbsolutePath: String = project(":webapp-ui").file(".").absolutePath
+    val currentProjectAbsolutePath: String = project(":quiz-flow-client-browser").file(".").absolutePath
     val commands: List<List<String>> = listOf(
         listOf("npm", "--prefix=$currentProjectAbsolutePath", "install"),
         listOf("npm", "--prefix=$currentProjectAbsolutePath", "run", "build"),
