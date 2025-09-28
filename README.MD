@@ -59,7 +59,8 @@ $PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0.1.kexe
 
 # Run user acceptance tests:
 ./gradlew :quiz-flow-server-acceptance-test:testMain
-./gradlew :quiz-flow-server-acceptance-test:testMain --tests "com.iv127.quizflow.server.acceptance.test.SumTest"
+./gradlew :quiz-flow-server-acceptance-test:testMain \
+  --tests "com.iv127.quizflow.server.acceptance.test.SumTest"
 ./gradlew :quiz-flow-server-acceptance-test:testMain \
   --tests "com.iv127.quizflow.server.acceptance.test.SumTest.testSum" \
   --tests "com.iv127.quizflow.server.acceptance.test.SumTest.testMul" 
