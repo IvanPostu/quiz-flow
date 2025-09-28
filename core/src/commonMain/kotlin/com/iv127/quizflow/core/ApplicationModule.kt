@@ -8,7 +8,7 @@ import com.iv127.quizflow.core.rest.impl.question.QuestionsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.questionset.QuestionSetsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.user.UsersRoutesImpl
 import com.iv127.quizflow.core.services.QuestionSetService
-import com.iv127.quizflow.core.services.impl.QuestionSetServiceImpl
+import com.iv127.quizflow.core.services.questionset.impl.QuestionSetServiceImpl
 import com.iv127.quizflow.core.services.user.UserService
 import com.iv127.quizflow.core.services.user.impl.UserServiceImpl
 import com.iv127.quizflow.core.sqlite.SqliteDatabase

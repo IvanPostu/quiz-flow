@@ -1,4 +1,4 @@
-package com.iv127.quizflow.core.services.impl
+package com.iv127.quizflow.core.services.questionset.impl
 
 import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.model.question.QuestionSetBuilder

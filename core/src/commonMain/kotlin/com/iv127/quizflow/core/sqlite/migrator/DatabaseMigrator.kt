@@ -13,7 +13,7 @@ import kotlin.time.ExperimentalTime
 class DatabaseMigrator(
     private val platformPath: PlatformPath,
     private val resource: Resource,
-    val migrationName: String = "app"
+    private val migrationName: String = "app"
 ) {
 
     companion object {
