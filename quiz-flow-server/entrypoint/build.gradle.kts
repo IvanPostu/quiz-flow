@@ -32,7 +32,7 @@ kotlin {
 
         manifest {
             attributes(
-                "Main-Class" to "com.iv127.quizflow.webapp.MainKt"
+                "Main-Class" to "com.iv127.quizflow.entrypoint.MainKt"
             )
         }
 
@@ -104,7 +104,7 @@ kotlin {
     nativeTarget.apply {
         binaries {
             executable(listOf(buildType)) {
-                entryPoint = "com.iv127.quizflow.webapp.main"
+                entryPoint = "com.iv127.quizflow.entrypoint.main"
                 baseName = targetBaseName
             }
         }

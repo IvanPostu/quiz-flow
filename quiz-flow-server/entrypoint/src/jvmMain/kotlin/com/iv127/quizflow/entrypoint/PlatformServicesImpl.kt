@@ -1,11 +1,11 @@
-package com.iv127.quizflow.webapp
+package com.iv127.quizflow.entrypoint
 
 import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.platform.file.FileIO
 import com.iv127.quizflow.core.platform.file.PlatformPath
 import com.iv127.quizflow.core.platform.proc.PlatformProcess
 import com.iv127.quizflow.core.resource.Resource
-import com.iv127.quizflow.core.sqlite.LinuxSqliteDatabase
+import com.iv127.quizflow.core.sqlite.JvmSqliteDatabase
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.migrator.DatabaseMigrator
 
@@ -31,7 +31,7 @@ internal class PlatformServicesImpl : PlatformServices {
     }
 
     override fun getSqliteDatabase(path: String, migrator: DatabaseMigrator?): SqliteDatabase {
-        val db = LinuxSqliteDatabase(path)
+        val db = JvmSqliteDatabase(path)
         return migrator?.migrate(db) ?: db
     }
 

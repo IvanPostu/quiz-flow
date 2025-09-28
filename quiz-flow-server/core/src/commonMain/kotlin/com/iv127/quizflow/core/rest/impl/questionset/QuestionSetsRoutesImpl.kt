@@ -33,7 +33,7 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
             val limit: Int = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
             val offset: Int = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
             val sortOrder: SortOrder = SortOrder.valueOf(call.request.queryParameters["sortOrder"] ?: "ASC")
-            JsonWebResponse.create(list(limit, offset, sortOrder))
+            JsonWebResponse.create(list(offset, limit, sortOrder))
         })
         parent.post(ROUTE_PATH, webResponse {
             val request = call.receive<QuestionSetCreateRequest>()

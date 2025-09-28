@@ -13,7 +13,7 @@ class SumTest {
 
     @Test
     fun testSum() {
-        Assertions.assertEquals(5, 2 + 6)
+        Assertions.assertEquals(5, 2 + 3)
     }
 
 }

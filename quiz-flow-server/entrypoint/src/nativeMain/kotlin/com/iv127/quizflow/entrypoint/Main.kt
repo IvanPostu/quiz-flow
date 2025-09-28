@@ -1,10 +1,6 @@
-package com.iv127.quizflow.webapp
+package com.iv127.quizflow.entrypoint
 
 import com.iv127.quizflow.core.Application
-import com.iv127.quizflow.core.platform.file.FileIO
-import com.iv127.quizflow.core.platform.proc.PlatformProcess
-import com.iv127.quizflow.core.resource.Resource
-import com.iv127.quizflow.core.utils.IOUtils
 import kotlin.concurrent.AtomicReference
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.staticCFunction
@@ -16,12 +12,6 @@ private val appRef: AtomicReference<Application.Companion.QuizFlowApplication?> 
 
 @OptIn(ExperimentalForeignApi::class)
 fun main(args: Array<String>) {
-    println(PlatformProcess().getPathToExecutableDirectory())
-
-    val resourceUtils = Resource(FileIO(), PlatformProcess())
-    println(IOUtils.byteArrayToString(resourceUtils.readResource("a.txt")))
-    println(IOUtils.byteArrayToString(resourceUtils.readResource("abc.json")))
-
     val serverApp = Application.startQuizFlowApplication(args, PlatformServicesImpl())
     appRef.getAndSet(serverApp)
 

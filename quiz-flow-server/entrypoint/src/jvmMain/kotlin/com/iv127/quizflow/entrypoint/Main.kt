@@ -1,4 +1,4 @@
-package com.iv127.quizflow.webapp
+package com.iv127.quizflow.entrypoint
 
 import com.iv127.quizflow.core.Application
 import com.iv127.quizflow.core.platform.file.FileIO
