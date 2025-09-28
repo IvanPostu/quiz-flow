@@ -20,16 +20,18 @@ class DatabaseMigrator(
         const val MIGRATION_TABLE_NAME = "migration_history"
         private const val MIGRATION_RESOURCE_FOLDER = "migrations"
         private val LOG = KtorSimpleLogger(getClassFullName(DatabaseMigrator::class))
+
+        // TODO room for improvement, it shouldn't be global
+        private var MIGRATION_APPLIED = false
     }
 
-    private var migrationWasVerified = false
-
     fun migrate(db: SqliteDatabase): SqliteDatabase {
+        val databasePath = db.getDatabasePath()
         if (!checkMigrationHistoryTableExists(db)) {
             createMigrationHistoryTable(db)
         }
 
-        if (!migrationWasVerified) {
+        if (!MIGRATION_APPLIED) {
             val sortedFilenames = getSortedMigrationFilenamesFromResource()
             val migrationRecords = selectMigrationRecords(db)
 
@@ -64,9 +66,9 @@ class DatabaseMigrator(
                 insertMigrationRecord(db, migrationContent, migrationFilename, version)
                 LOG.info("Migration: $migrationFilename has been successfully applied")
             }
-            migrationWasVerified = true
+            MIGRATION_APPLIED = true
+            LOG.info("Migration was successfully applied to the database: $databasePath")
         }
-
         return db
     }
 

@@ -10,7 +10,7 @@ import java.sql.Timestamp
 import java.sql.Types
 
 
-class JvmSqliteDatabase(dbPath: String) : SqliteDatabase {
+class JvmSqliteDatabase(private val dbPath: String) : SqliteDatabase {
 
     private val jdbcConnection: java.sql.Connection = DriverManager.getConnection("jdbc:sqlite:$dbPath")
 
@@ -44,6 +44,10 @@ class JvmSqliteDatabase(dbPath: String) : SqliteDatabase {
 
     override fun close() {
         jdbcConnection.close()
+    }
+
+    override fun getDatabasePath(): String {
+        return dbPath
     }
 
     private fun executeWithRetriesAndGetResultSet(statement: String, args: List<Any?>): List<Map<String, String>> {

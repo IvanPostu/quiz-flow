@@ -1,6 +1,6 @@
 package com.iv127.quizflow.core.sqlite
 
-class LinuxSqliteDatabase(dbPath: String) : SqliteDatabase {
+class LinuxSqliteDatabase(private val dbPath: String) : SqliteDatabase {
 
     private val kSqlite: KSqlite = KSqlite(dbPath)
 
@@ -42,6 +42,10 @@ class LinuxSqliteDatabase(dbPath: String) : SqliteDatabase {
 
     override fun executeAndGetChangedRowsCount(statement: String, args: List<Any?>): Int {
         return kSqlite.executeStatement(statement, args)
+    }
+
+    override fun getDatabasePath(): String {
+        return dbPath
     }
 
     override fun close() {

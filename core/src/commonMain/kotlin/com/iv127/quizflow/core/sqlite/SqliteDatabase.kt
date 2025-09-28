@@ -10,4 +10,6 @@ interface SqliteDatabase : AutoCloseable {
 
     fun executeAndGetChangedRowsCount(statement: String, args: List<Any?>): Int
 
+    fun getDatabasePath(): String
+
 }

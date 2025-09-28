@@ -14,17 +14,17 @@ class UUIDv4 {
             val timeHighAndVersion = ((timestamp shr 48) and 0x0FFFL or 0x1000L).toInt() // Set version (1)
 
             val node = Random.nextLong(0, 0xFFFFFFFFFFFFL)
-            val separatorCharacter = if (format == Format.DASHED) '-' else ' '
+            val separator = if (format == Format.DASHED) "-" else ""
 
             return buildString {
                 append(toHexStringPadded(timeLow, 8))       // 8 characters
-                append(separatorCharacter)
+                append(separator)
                 append(toHexStringPadded(timeMid, 4))       // 4 characters
-                append(separatorCharacter)
+                append(separator)
                 append(toHexStringPadded(timeHighAndVersion, 4)) // 4 characters (version is included here)
-                append(separatorCharacter)
+                append(separator)
                 append(toHexStringPadded(Random.nextInt(0, 0xFFFF), 4)) // 4 random characters
-                append(separatorCharacter)
+                append(separator)
                 append(toHexStringPadded(node.toInt(), 12))         // 12 random characters for node
             }
         }

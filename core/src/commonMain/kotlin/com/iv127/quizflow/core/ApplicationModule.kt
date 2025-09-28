@@ -9,6 +9,8 @@ import com.iv127.quizflow.core.rest.impl.questionset.QuestionSetsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.user.UsersRoutesImpl
 import com.iv127.quizflow.core.services.QuestionSetService
 import com.iv127.quizflow.core.services.impl.QuestionSetServiceImpl
+import com.iv127.quizflow.core.services.user.UserService
+import com.iv127.quizflow.core.services.user.impl.UserServiceImpl
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.migrator.DatabaseMigrator
 import com.iv127.quizflow.core.utils.getClassFullName
@@ -55,7 +57,12 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         factory { (clazz: KClass<*>) -> KtorSimpleLogger(getClassFullName(clazz)) }
         factory(named("appDb")) { getAppDatabase(platformServices) }
         single<QuestionSetService> {
-            QuestionSetServiceImpl() {
+            QuestionSetServiceImpl {
+                get<SqliteDatabase>(named("appDb"))
+            }
+        }
+        single<UserService> {
+            UserServiceImpl {
                 get<SqliteDatabase>(named("appDb"))
             }
         }
@@ -68,6 +75,7 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         ParametersHolder(mutableListOf(ApplicationModule::class))
     })
     checkAndLogIfDebugApplicationRootFolderEnvVariableWasSet(platformServices, log)
+    checkIfDatabaseIsAccessible(koinApp)
 
     val routeInstances: List<ApiRoute> = listOf(
         HealthCheckRoutesImpl(koinApp),
@@ -152,6 +160,13 @@ private fun checkAndLogIfDebugApplicationRootFolderEnvVariableWasSet(platformSer
                 debugApplicationRootFolder
             } is returned by getPathToExecutableDirectory(), make sure it is used for development only"
         )
+    }
+}
+
+private fun checkIfDatabaseIsAccessible(koinApp: KoinApplication) {
+    val db = koinApp.koin.get<SqliteDatabase>(named("appDb"))
+    if (db.executeAndGetResultSet("SELECT 1 as test;")[0]["test"]!!.toInt() != 1) {
+        throw IllegalStateException("appDb accessibility check failed")
     }
 }
 
