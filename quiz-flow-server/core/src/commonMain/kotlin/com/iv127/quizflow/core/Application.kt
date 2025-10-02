@@ -8,7 +8,6 @@ import io.ktor.util.logging.KtorSimpleLogger
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
-// TODO add support for graceful shutdown with integration test
 class Application {
     companion object {
         @OptIn(ExperimentalTime::class)

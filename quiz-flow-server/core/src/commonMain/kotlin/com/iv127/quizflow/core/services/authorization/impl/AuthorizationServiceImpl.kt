@@ -1,0 +1,204 @@
+package com.iv127.quizflow.core.services.authorization.impl
+
+import com.iv127.quizflow.core.model.User
+import com.iv127.quizflow.core.model.authorization.Authorization
+import com.iv127.quizflow.core.model.authorization.AuthorizationBuilder
+import com.iv127.quizflow.core.model.authorization.AuthorizationNotFoundException
+import com.iv127.quizflow.core.model.authorization.AuthorizationScope
+import com.iv127.quizflow.core.services.authorization.AuthorizationService
+import com.iv127.quizflow.core.sqlite.SqliteDatabase
+import com.iv127.quizflow.core.sqlite.SqliteTimestampUtils
+import kotlin.time.Duration.Companion.days
+import kotlin.time.ExperimentalTime
+
+@OptIn(ExperimentalTime::class)
+class AuthorizationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : AuthorizationService {
+    companion object {
+        val TOKEN_TIME_TO_LIVE = 2.days
+        val DEFAULT_SCOPES = listOf(AuthorizationScope.REGULAR_USER)
+        val DEFAULT_SUPER_ADMIN_SCOPES =
+            listOf(AuthorizationScope.REGULAR_USER, AuthorizationScope.ADMIN, AuthorizationScope.SUPER_ADMIN)
+    }
+
+    override fun create(user: User, originAuthorization: Authorization?): Authorization {
+        val isSuperAdmin = user.username == "admin"
+        val createdAuthorization = AuthorizationBuilder().apply {
+            setExpirationDate { createdDate ->
+                createdDate.plus(TOKEN_TIME_TO_LIVE)
+            }
+            setAuthorizationScopes(if (isSuperAdmin) DEFAULT_SUPER_ADMIN_SCOPES else DEFAULT_SCOPES)
+            setUserId(user.id)
+        }.build()
+        dbSupplier().use { db ->
+            val scopeIds = selectScopeIds(db, createdAuthorization.authorizationScopes)
+
+            db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
+            db.executeAndGetChangedRowsCount(
+                """
+                    INSERT INTO authorizations (
+                        id,
+                        access_token,
+                        created_at,
+                        expires_at,
+                        user_id,
+                        impersonate_origin_authorization_id) VALUES (
+                        ?, ?, ?, ?, ?, ?);
+                """.trimIndent(),
+                listOf<Any?>
+                    (
+                    createdAuthorization.id,
+                    createdAuthorization.accessToken,
+                    SqliteTimestampUtils.toValue(createdAuthorization.createdDate),
+                    SqliteTimestampUtils.toValue(createdAuthorization.expirationDate),
+                    createdAuthorization.userId,
+                    createdAuthorization.impersonateOriginAuthorization?.id
+                )
+            )
+            val lastId = db.executeAndGetResultSet("SELECT last_insert_rowid() AS lastId;")[0]["lastId"]
+                ?.toInt()
+            for (scopeId in scopeIds) {
+                db.executeAndGetChangedRowsCount(
+                    """
+                    INSERT INTO authorization_authorization_scope (
+                        authorization_primary_key,
+                        authorization_scope_primary_key) VALUES ( ?, ? );
+                """.trimIndent(),
+                    listOf<Any?>(lastId, scopeId)
+                )
+            }
+            db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
+            return createdAuthorization
+        }
+    }
+
+    override fun updateById(
+        authorization: Authorization,
+        authorizationId: String,
+        updateFunc: (authorizationBuilder: AuthorizationBuilder) -> Unit
+    ): Authorization {
+        val authorizationToUpdate = selectAuthorizationByColumn("id", authorizationId, false)
+        val updatedAuthorization = AuthorizationBuilder(authorization).apply {
+            updateFunc(this)
+        }.build()
+
+        dbSupplier().use { db ->
+            val oldScopeIds = selectScopeIds(db, authorizationToUpdate.authorizationScopes)
+            val newScopeIds = selectScopeIds(db, updatedAuthorization.authorizationScopes)
+
+            db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
+            db.executeAndGetChangedRowsCount(
+                """
+                    UPDATE authorizations SET 
+                        access_token=?, created_at=?, expires_at=?, user_id=?, 
+                        impersonate_origin_authorization_id=? WHERE id=?;
+                """.trimIndent(),
+                listOf<Any?>
+                    (
+                    updatedAuthorization.accessToken,
+                    SqliteTimestampUtils.toValue(updatedAuthorization.createdDate),
+                    SqliteTimestampUtils.toValue(updatedAuthorization.expirationDate),
+                    updatedAuthorization.userId,
+                    updatedAuthorization.impersonateOriginAuthorization?.id
+                )
+            )
+            val lastId = db.executeAndGetResultSet("SELECT last_insert_rowid() AS lastId;")[0]["lastId"]
+                ?.toInt()
+            for (scopeId in oldScopeIds) {
+                db.executeAndGetChangedRowsCount(
+                    """
+                    DELETE FROM authorization_authorization_scope WHERE
+                        authorization_primary_key=? AND authorization_scope_primary_key=?;
+                """.trimIndent(),
+                    listOf<Any?>(lastId, scopeId)
+                )
+            }
+            for (scopeId in newScopeIds) {
+                db.executeAndGetChangedRowsCount(
+                    """
+                    INSERT INTO authorization_authorization_scope (
+                        authorization_primary_key,
+                        authorization_scope_primary_key) VALUES ( ?, ? );
+                """.trimIndent(),
+                    listOf<Any?>(lastId, scopeId)
+                )
+            }
+            db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
+        }
+        return updatedAuthorization
+    }
+
+    private fun selectAuthorizationByColumn(
+        column: String,
+        columnValue: String,
+        isOrigin: Boolean = false
+    ): Authorization {
+        dbSupplier().use { db ->
+            val result = db.executeAndGetResultSet(
+                """
+                SELECT 
+                    a.primary_key,
+                    a.id,
+                    a.access_token,
+                    a.created_at,
+                    a.expires_at,
+                    a.user_id,
+                    a.impersonate_origin_authorization_id
+                FROM authorizations AS a
+                WHERE a.$column=?
+            """.trimIndent(),
+                listOf(columnValue)
+            )
+            if (result.isEmpty()) {
+                throw AuthorizationNotFoundException(
+                    "Authorization by column $column with value $columnValue was not found"
+                )
+            }
+            val originId = result[0]["impersonate_origin_authorization_id"].toString()
+            val impersonateOriginAuthorization: Authorization? = if (isOrigin) null else
+                selectAuthorizationByColumn("id", originId, true)
+
+            return Authorization(
+                result[0]["id"].toString(),
+                result[0]["access_token"].toString(),
+                SqliteTimestampUtils.fromValue(result[0]["created_at"].toString()),
+                SqliteTimestampUtils.fromValue(result[0]["expires_at"].toString()),
+                result[0]["user_id"].toString(),
+                impersonateOriginAuthorization,
+                selectAuthorizationScopes(db, result[0]["id"].toString())
+            )
+        }
+    }
+
+    private fun selectAuthorizationScopes(db: SqliteDatabase, authorizationId: String): List<AuthorizationScope> {
+        val result = db.executeAndGetResultSet(
+            """
+                SELECT a.scope
+                FROM authorization_scopes AS a
+                WHERE a.primary_key IN (
+                    SELECT authorization_scope_primary_key 
+                    FROM authorization_authorization_scope
+                    WHERE authorization_primary_key=?
+                );
+            """.trimIndent(),
+            listOf(authorizationId)
+        )
+        return result.map {
+            AuthorizationScope.valueOf(it["scope"].toString())
+        }
+    }
+
+    private fun selectScopeIds(db: SqliteDatabase, scopes: List<AuthorizationScope>): List<Int> {
+        val result = db.executeAndGetResultSet(
+            """
+                SELECT a.primary_key
+                FROM authorization_scopes AS a
+                WHERE a.scope IN (${scopes.map { "?" }.joinToString(separator = ",")});
+            """.trimIndent(),
+            scopes.map { it.name }
+        )
+        return result.map {
+            it["primary_key"].toString().toInt()
+        }
+    }
+
+}

@@ -89,6 +89,11 @@ curl -X POST http://localhost:8080/api/question-sets/8bde044c-0199-1000-c76c-000
     -F "testid=1" \
     -F "filecomment=This is an text file" \
     -F "file=@/$PROJECT_ROOT/../docubase-documents/Java/OCP21/OCP21.MD"
+
+curl -i -X POST http://localhost:8080/api/authorizations \
+    -H "Content-Type: application/json" \
+    -d '{"username":"admin","password":"admin"}'
+
 ```
 
 ## Run the app

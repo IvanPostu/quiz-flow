@@ -3,10 +3,13 @@ package com.iv127.quizflow.core
 import com.iv127.quizflow.core.application.ApplicationState
 import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.rest.ApiRoute
+import com.iv127.quizflow.core.rest.impl.authorization.AuthorizationRoutesImpl
 import com.iv127.quizflow.core.rest.impl.healthcheck.HealthCheckRoutesImpl
 import com.iv127.quizflow.core.rest.impl.question.QuestionsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.questionset.QuestionSetsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.user.UsersRoutesImpl
+import com.iv127.quizflow.core.services.authorization.AuthorizationService
+import com.iv127.quizflow.core.services.authorization.impl.AuthorizationServiceImpl
 import com.iv127.quizflow.core.services.questionset.QuestionSetService
 import com.iv127.quizflow.core.services.questionset.impl.QuestionSetServiceImpl
 import com.iv127.quizflow.core.services.user.UserService
@@ -66,6 +69,11 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
                 get<SqliteDatabase>(named("appDb"))
             }
         }
+        single<AuthorizationService> {
+            AuthorizationServiceImpl {
+                get<SqliteDatabase>(named("appDb"))
+            }
+        }
     }
     val koinApp: KoinApplication = startKoin {
         modules(appModule)
@@ -82,6 +90,7 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         QuestionSetsRoutesImpl(koinApp),
         UsersRoutesImpl(koinApp),
         QuestionsRoutesImpl(koinApp),
+        AuthorizationRoutesImpl(koinApp),
     )
     val processUtils = platformServices.getProcessUtils()
     val fileIo = platformServices.getFileIO()

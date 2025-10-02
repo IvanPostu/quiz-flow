@@ -15,7 +15,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import org.koin.core.KoinApplication
 
-class UsersRoutesImpl(val koinApp: KoinApplication) : UsersRoutes, ApiRoute {
+class UsersRoutesImpl(koinApp: KoinApplication) : UsersRoutes, ApiRoute {
 
     private val userService: UserService by koinApp.koin.inject()
 
