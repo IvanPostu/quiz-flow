@@ -4,7 +4,7 @@ VALUES
 ('902fb9f1-0199-1000-edfb-0000ad471c87', 
 '2025-09-28 11:57:50', 
 NULL, 
-'admin', 
-'admin', 
-'{"id":"902fb9f1-0199-1000-edfb-0000ad471c87","username":"admin","password_hash":"admin","created_date":"2025-09-28T11:57:50.961619687Z","archived_date":null}'
+'super_admin',
+'super_admin',
+'{"id":"902fb9f1-0199-1000-edfb-0000ad471c87","username":"super_admin","password_hash":"super_admin","created_date":"2025-09-28T11:57:50.961619687Z","archived_date":null}'
 );

@@ -1,5 +1,6 @@
 package com.iv127.quizflow.core.model.authorization
 
+import com.iv127.quizflow.core.rest.api.authorization.ApiAuthorization
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -12,7 +13,12 @@ data class Authorization(
     val expirationDate: Instant,
     val userId: String,
     val impersonateOriginAuthorization: Authorization?,
-    val authorizationScopes: List<AuthorizationScope>
-) {
+    val authorizationScopes: Set<AuthorizationScope>
+) : ApiAuthorization {
+
     fun isExpired(): Boolean = Clock.System.now().toEpochMilliseconds() > expirationDate.toEpochMilliseconds()
+
+    override fun getToken(): String {
+        return accessToken
+    }
 }

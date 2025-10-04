@@ -10,7 +10,7 @@ import com.iv127.quizflow.core.rest.api.question.QuestionResponse
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.server.JsonWebResponse
-import com.iv127.quizflow.core.server.webResponse
+import com.iv127.quizflow.core.server.routingContextWebResponse
 import com.iv127.quizflow.core.services.questionset.QuestionSetService
 import io.ktor.server.request.contentType
 import io.ktor.server.request.receiveChannel
@@ -30,19 +30,19 @@ class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes, ApiRoute 
         .create(QuestionsResolverType.QUESTION_WRAPPED_IN_MARKDOWN_CODE_SECTION)
 
     override fun setup(parent: Route) {
-        parent.get("${ROUTE_PATH}/{question_id}", webResponse {
+        parent.get("${ROUTE_PATH}/{question_id}", routingContextWebResponse {
             val questionSetId = call.parameters["question_set_id"]
                 ?: throw IllegalArgumentException("question_set_id pathParam is empty")
             val questionId =
                 call.parameters["question_id"] ?: throw IllegalArgumentException("question_id pathParam is empty")
             JsonWebResponse.create(get(questionSetId, questionId))
         })
-        parent.get(ROUTE_PATH, webResponse {
+        parent.get(ROUTE_PATH, routingContextWebResponse {
             val questionSetId = call.parameters["question_set_id"]
                 ?: throw IllegalArgumentException("question_set_id pathParam is empty")
             JsonWebResponse.create(list(questionSetId))
         })
-        parent.post(ROUTE_PATH, webResponse {
+        parent.post(ROUTE_PATH, routingContextWebResponse {
             val questionSetId = call.parameters["question_set_id"]
                 ?: throw IllegalArgumentException("question_set_id pathParam is empty")
 

@@ -13,7 +13,7 @@ class AuthorizationBuilder {
     var expirationDate: Instant
     var userId: String = ""
     var impersonateOriginAuthorization: Authorization? = null
-    var authorizationScopes: List<AuthorizationScope>
+    var authorizationScopes: Set<AuthorizationScope>
 
     constructor() {
         id = UUIDv4.generate()
@@ -23,7 +23,7 @@ class AuthorizationBuilder {
         expirationDate = createdDate
         userId = ""
         impersonateOriginAuthorization = null
-        authorizationScopes = listOf(AuthorizationScope.REGULAR_USER)
+        authorizationScopes = setOf(AuthorizationScope.REGULAR_USER)
     }
 
     constructor(authorization: Authorization) {
@@ -45,8 +45,8 @@ class AuthorizationBuilder {
         this.impersonateOriginAuthorization = impersonateOriginAuthorization
     }
 
-    fun setAuthorizationScopes(authorizationScopes: List<AuthorizationScope>) = apply {
-        this.authorizationScopes = authorizationScopes.toList()
+    fun setAuthorizationScopes(authorizationScopes: Set<AuthorizationScope>) = apply {
+        this.authorizationScopes = authorizationScopes.toSet()
     }
 
     fun build(): Authorization {

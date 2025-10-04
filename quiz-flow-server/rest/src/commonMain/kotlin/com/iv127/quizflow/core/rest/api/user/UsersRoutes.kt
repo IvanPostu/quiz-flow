@@ -1,5 +1,7 @@
 package com.iv127.quizflow.core.rest.api.user
 
+import com.iv127.quizflow.core.rest.api.authorization.ApiAuthorization
+
 interface UsersRoutes {
     companion object {
         const val ROUTE_PATH: String = "/users"
@@ -7,5 +9,6 @@ interface UsersRoutes {
 
     fun list(): List<UserResponse>
 
-    fun create(request: UserCreateRequest): UserResponse
+    fun create(authorization: ApiAuthorization, request: UserCreateRequest): UserResponse
 }
+

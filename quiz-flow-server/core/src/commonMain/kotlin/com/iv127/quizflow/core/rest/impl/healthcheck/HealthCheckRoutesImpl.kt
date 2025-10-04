@@ -8,7 +8,7 @@ import com.iv127.quizflow.core.rest.api.healthcheck.HealthCheckResponse
 import com.iv127.quizflow.core.rest.api.healthcheck.HealthCheckRoutes
 import com.iv127.quizflow.core.rest.api.healthcheck.HealthCheckRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.server.JsonWebResponse
-import com.iv127.quizflow.core.server.webResponse
+import com.iv127.quizflow.core.server.routingContextWebResponse
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import org.koin.core.KoinApplication
@@ -20,7 +20,7 @@ class HealthCheckRoutesImpl(koinApp: KoinApplication) : HealthCheckRoutes, ApiRo
     override fun setup(parent: Route) {
         parent.get(
             ROUTE_PATH,
-            webResponse {
+            routingContextWebResponse {
                 JsonWebResponse.create(get())
             }
         )

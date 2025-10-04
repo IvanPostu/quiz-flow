@@ -2,50 +2,54 @@ package com.iv127.quizflow.server.acceptance.test.route
 
 import com.iv127.quizflow.core.rest.api.authorization.AuthorizationScopeResponse
 import com.iv127.quizflow.core.rest.api.authorization.UsernamePasswordAuthorizationRequest
+import com.iv127.quizflow.server.acceptance.test.rest.RestErrorException
 import com.iv127.quizflow.server.acceptance.test.rest.impl.AuthorizationRoutesTestImpl
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.DEFAULT
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.serialization.kotlinx.json.json
 import kotlin.time.Duration.Companion.days
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 
+@OptIn(ExperimentalTime::class)
 class AuthorizationRoutesTest {
 
-    private lateinit var httpClient: HttpClient
-
-    @BeforeEach
-    fun setup() {
-        httpClient = HttpClient(CIO) {
-            install(ContentNegotiation) {
-                json()
-            }
-            install(Logging) {
-                logger = Logger.DEFAULT
-                level = LogLevel.ALL
-            }
+    @CsvSource(
+        value = arrayOf(
+            "'admin1', 'admin1'",
+            "'admin', 'admin1'",
+            "'admin1', 'admin'",
+            "'admin', ''",
+            "'', 'admin'",
+            "'', ''",
+        ), quoteCharacter = '\''
+    )
+    @ParameterizedTest
+    fun testAuthorizeWithInvalidUsernameOrPassword(username: String, password: String) = runTest {
+        val authorizationRoutes = AuthorizationRoutesTestImpl()
+        val e = assertThrows<RestErrorException> {
+            authorizationRoutes.authorize(UsernamePasswordAuthorizationRequest("admin1", "admin"))
         }
+        assertThat(e.httpStatusCode).isEqualTo(401)
+        assertThat(e.restErrorResponse).satisfies({
+            assertThat(it.uniqueId).isNotBlank()
+            assertThat(it.errorCode).isEqualTo("authentication_error")
+            assertThat(it.message).isEqualTo("Authentication failed")
+            assertThat(it.data).isEqualTo(
+                mapOf(
+                    "reason" to "Username of password is invalid"
+                )
+            )
+        })
     }
 
-    @AfterEach
-    fun tearDown() {
-        httpClient.close()
-    }
-
-    @OptIn(ExperimentalTime::class)
     @Test
-    fun testAuthorizeAsAdmin() = runTest {
-        val authorizationRoutes = AuthorizationRoutesTestImpl(httpClient)
-        val adminAuthorization = authorizationRoutes.authorize(UsernamePasswordAuthorizationRequest("admin", "admin"))
+    fun testAuthorizeAsSuperAdmin() = runTest {
+        val authorizationRoutes = AuthorizationRoutesTestImpl()
+        val adminAuthorization = authorizationRoutes
+            .authorize(UsernamePasswordAuthorizationRequest("super_admin", "super_admin"))
 
         assertThat(adminAuthorization).satisfies({
             assertThat(it.id).isNotBlank()

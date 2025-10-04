@@ -1,48 +1,18 @@
 package com.iv127.quizflow.server.acceptance.test.route
 
-import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionSetsRoutesTestImpl
 import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetUpdateRequest
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.DEFAULT
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.serialization.kotlinx.json.json
+import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionSetsRoutesTestImpl
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class QuestionSetsRouteTest {
 
-    private lateinit var httpClient: HttpClient
-
-    @BeforeEach
-    fun setup() {
-        httpClient = HttpClient(CIO) {
-            install(ContentNegotiation) {
-                json()
-            }
-            install(Logging) {
-                logger = Logger.DEFAULT
-                level = LogLevel.ALL
-            }
-        }
-    }
-
-    @AfterEach
-    fun tearDown() {
-        httpClient.close()
-    }
-
     @Test
     fun testCreateUpdateGetGetListAndDelete() = runTest {
-        val questionSetsRoutes = QuestionSetsRoutesTestImpl(httpClient)
+        val questionSetsRoutes = QuestionSetsRoutesTestImpl()
         val createRequest = QuestionSetCreateRequest("Example of questionnaire", "Example of description")
         val created = questionSetsRoutes.create(createRequest)
 

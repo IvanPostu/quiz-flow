@@ -8,9 +8,12 @@ import com.iv127.quizflow.core.rest.api.authorization.AuthorizationRoutes
 import com.iv127.quizflow.core.rest.api.authorization.AuthorizationRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.rest.api.authorization.AuthorizationScopeResponse
 import com.iv127.quizflow.core.rest.api.authorization.UsernamePasswordAuthorizationRequest
+import com.iv127.quizflow.core.security.AuthenticationException
 import com.iv127.quizflow.core.server.JsonWebResponse
-import com.iv127.quizflow.core.server.webResponse
+import com.iv127.quizflow.core.server.routingContextWebResponse
 import com.iv127.quizflow.core.services.authorization.AuthorizationService
+import com.iv127.quizflow.core.services.user.UserInvalidPasswordException
+import com.iv127.quizflow.core.services.user.UserNotFoundException
 import com.iv127.quizflow.core.services.user.UserService
 import io.ktor.server.request.receive
 import io.ktor.server.routing.Route
@@ -25,7 +28,7 @@ class AuthorizationRoutesImpl(koinApp: KoinApplication) : AuthorizationRoutes, A
     private val userService: UserService by koinApp.koin.inject()
 
     override fun setup(parent: Route) {
-        parent.post(ROUTE_PATH, webResponse {
+        parent.post(ROUTE_PATH, routingContextWebResponse {
             val request = call.receive<UsernamePasswordAuthorizationRequest>()
             JsonWebResponse.create(authorize(request))
         })
@@ -34,12 +37,24 @@ class AuthorizationRoutesImpl(koinApp: KoinApplication) : AuthorizationRoutes, A
     override suspend fun authorize(
         usernamePasswordAuthorizationRequest: UsernamePasswordAuthorizationRequest
     ): AuthorizationResponse {
+        try {
+            return internalAuthorize(usernamePasswordAuthorizationRequest)
+        } catch (e: Exception) {
+            if ((e is UserNotFoundException) || (e is UserInvalidPasswordException)) {
+                throw AuthenticationException("Username of password is invalid")
+            }
+            throw IllegalStateException(e)
+        }
+    }
+
+    private fun internalAuthorize(
+        usernamePasswordAuthorizationRequest: UsernamePasswordAuthorizationRequest
+    ): AuthorizationResponse {
         val user: User = userService.getByUsernameAndPassword(
             usernamePasswordAuthorizationRequest.username,
             usernamePasswordAuthorizationRequest.password
         )
         val authorization = authorizationService.create(user, null)
-
         return mapToResponse(authorization)
     }
 

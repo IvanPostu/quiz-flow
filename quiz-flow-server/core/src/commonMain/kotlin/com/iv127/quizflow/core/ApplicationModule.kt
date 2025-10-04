@@ -1,6 +1,8 @@
 package com.iv127.quizflow.core
 
 import com.iv127.quizflow.core.application.ApplicationState
+import com.iv127.quizflow.core.ktor.AuthorizationPlugin
+import com.iv127.quizflow.core.ktor.CustomStatusPagesConfig
 import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.impl.authorization.AuthorizationRoutesImpl
@@ -118,23 +120,8 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         intercept(ApplicationCallPipeline.Call) {
             staticFilesProviderPlugin.intercept(this)
         }
-
-        // TODO: enable only for development
-        install(StatusPages) {
-            exception<Throwable> { call, exception ->
-                log.error("Unhandled exception: ", exception)
-                val stackTrace = exception.stackTraceToString()
-
-                call.respond(
-                    """
-                        |Error: ${exception.message}
-                        |Stack Trace:
-                        |$stackTrace
-                    """.trimMargin(),
-                    typeInfo = null
-                )
-            }
-        }
+        install(AuthorizationPlugin(koinApp))
+        install(StatusPages, CustomStatusPagesConfig.configure())
 
         routing {
             route("/api") {

@@ -70,8 +70,9 @@ curl -i -X GET http://localhost:8080/api/question-sets/8bde044c-0199-1000-c76c-0
 
 # users
 curl -X POST http://localhost:8080/api/users \
+    -H "Authorization: Bearer af2ea80001991000d0ab00005a8a1466af2ea80001991000dbb30000cfeebf7a" \
     -H "Content-Type: application/json" \
-    -d '{"username":"admin","password":"admin"}'
+    -d '{"username":"test","password":"test"}'
 
 curl -X POST http://localhost:8080/api/users \
     -H "Content-Type: application/json" \
@@ -90,9 +91,10 @@ curl -X POST http://localhost:8080/api/question-sets/8bde044c-0199-1000-c76c-000
     -F "filecomment=This is an text file" \
     -F "file=@/$PROJECT_ROOT/../docubase-documents/Java/OCP21/OCP21.MD"
 
+# authorize as super admin
 curl -i -X POST http://localhost:8080/api/authorizations \
     -H "Content-Type: application/json" \
-    -d '{"username":"admin","password":"admin"}'
+    -d '{"username":"admin1","password":"admin"}'
 
 ```
 

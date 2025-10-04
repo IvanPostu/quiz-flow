@@ -2,12 +2,14 @@ package com.iv127.quizflow.core.rest.impl.user
 
 import com.iv127.quizflow.core.model.User
 import com.iv127.quizflow.core.rest.ApiRoute
+import com.iv127.quizflow.core.rest.api.authorization.ApiAuthorization
 import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
 import com.iv127.quizflow.core.rest.api.user.UserResponse
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes.Companion.ROUTE_PATH
+import com.iv127.quizflow.core.security.AuthenticationProvider
 import com.iv127.quizflow.core.server.JsonWebResponse
-import com.iv127.quizflow.core.server.webResponse
+import com.iv127.quizflow.core.server.routingContextWebResponse
 import com.iv127.quizflow.core.services.user.UserService
 import io.ktor.server.request.receive
 import io.ktor.server.routing.Route
@@ -20,12 +22,13 @@ class UsersRoutesImpl(koinApp: KoinApplication) : UsersRoutes, ApiRoute {
     private val userService: UserService by koinApp.koin.inject()
 
     override fun setup(parent: Route) {
-        parent.get(ROUTE_PATH, webResponse {
+        parent.get(ROUTE_PATH, routingContextWebResponse {
             JsonWebResponse.create(list())
         })
-        parent.post(ROUTE_PATH, webResponse {
+        parent.post(ROUTE_PATH, routingContextWebResponse {
             val request = call.receive<UserCreateRequest>()
-            JsonWebResponse.create(create(request))
+            val authorization = AuthenticationProvider.provide(call)
+            JsonWebResponse.create(create(authorization, request))
         })
     }
 
@@ -34,7 +37,7 @@ class UsersRoutesImpl(koinApp: KoinApplication) : UsersRoutes, ApiRoute {
             .map { mapToUserResponse(it) }
     }
 
-    override fun create(request: UserCreateRequest): UserResponse {
+    override fun create(authorization: ApiAuthorization, request: UserCreateRequest): UserResponse {
         if (request.username.isBlank()) {
             throw IllegalArgumentException("username field shouldn't be blank")
         }

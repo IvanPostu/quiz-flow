@@ -9,7 +9,7 @@ import com.iv127.quizflow.core.rest.api.questionset.QuestionSetUpdateRequest
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetsRoutes
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetsRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.server.JsonWebResponse
-import com.iv127.quizflow.core.server.webResponse
+import com.iv127.quizflow.core.server.routingContextWebResponse
 import com.iv127.quizflow.core.services.questionset.QuestionSetService
 import io.ktor.server.request.receive
 import io.ktor.server.routing.Route
@@ -25,25 +25,25 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
     private val questionSetService: QuestionSetService by koinApp.koin.inject()
 
     override fun setup(parent: Route) {
-        parent.get("$ROUTE_PATH/{id}", webResponse {
+        parent.get("$ROUTE_PATH/{id}", routingContextWebResponse {
             val id = call.parameters["id"] ?: throw IllegalArgumentException("id pathParam is empty")
             JsonWebResponse.create(get(id))
         })
-        parent.get(ROUTE_PATH, webResponse {
+        parent.get(ROUTE_PATH, routingContextWebResponse {
             val limit: Int = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
             val offset: Int = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
             val sortOrder: SortOrder = SortOrder.valueOf(call.request.queryParameters["sortOrder"] ?: "ASC")
             JsonWebResponse.create(list(offset, limit, sortOrder))
         })
-        parent.post(ROUTE_PATH, webResponse {
+        parent.post(ROUTE_PATH, routingContextWebResponse {
             val request = call.receive<QuestionSetCreateRequest>()
             JsonWebResponse.create(create(request))
         })
-        parent.delete("$ROUTE_PATH/{id}", webResponse {
+        parent.delete("$ROUTE_PATH/{id}", routingContextWebResponse {
             val id = call.parameters["id"] ?: throw IllegalArgumentException("id pathParam is empty")
             JsonWebResponse.create(archive(id))
         })
-        parent.put("$ROUTE_PATH/{id}", webResponse {
+        parent.put("$ROUTE_PATH/{id}", routingContextWebResponse {
             val id = call.parameters["id"] ?: throw IllegalArgumentException("id pathParam is empty")
             val request = call.receive<QuestionSetUpdateRequest>()
             JsonWebResponse.create(update(id, request))

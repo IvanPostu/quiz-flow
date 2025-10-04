@@ -8,25 +8,24 @@ import com.iv127.quizflow.core.model.authorization.AuthorizationScope
 import com.iv127.quizflow.core.services.authorization.AuthorizationService
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.SqliteTimestampUtils
+import com.iv127.quizflow.core.utils.getClassFullName
+import io.ktor.util.logging.KtorSimpleLogger
 import kotlin.time.Duration.Companion.days
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
 class AuthorizationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : AuthorizationService {
     companion object {
+        private val LOG = KtorSimpleLogger(getClassFullName(AuthorizationServiceImpl::class))
         val TOKEN_TIME_TO_LIVE = 2.days
-        val DEFAULT_SCOPES = listOf(AuthorizationScope.REGULAR_USER)
-        val DEFAULT_SUPER_ADMIN_SCOPES =
-            listOf(AuthorizationScope.REGULAR_USER, AuthorizationScope.ADMIN, AuthorizationScope.SUPER_ADMIN)
     }
 
     override fun create(user: User, originAuthorization: Authorization?): Authorization {
-        val isSuperAdmin = user.username == "admin"
         val createdAuthorization = AuthorizationBuilder().apply {
             setExpirationDate { createdDate ->
                 createdDate.plus(TOKEN_TIME_TO_LIVE)
             }
-            setAuthorizationScopes(if (isSuperAdmin) DEFAULT_SUPER_ADMIN_SCOPES else DEFAULT_SCOPES)
+            setAuthorizationScopes(getAuthorizationScopes(user))
             setUserId(user.id)
         }.build()
         dbSupplier().use { db ->
@@ -127,6 +126,31 @@ class AuthorizationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : A
         return updatedAuthorization
     }
 
+    override fun getByAccessToken(accessToken: String): Authorization? {
+        try {
+            val authorization = selectAuthorizationByColumn("access_token", accessToken, false)
+            return authorization
+        } catch (e: Exception) {
+            LOG.warn("Can't get authorization by access_token due to: ${e.message}")
+            return null
+        }
+    }
+
+    private fun getAuthorizationScopes(user: User): Set<AuthorizationScope> {
+        val isSuperAdmin = user.username == "super_admin"
+        val isAdmin = user.username.startsWith("admin")
+        val authorizationScopes: MutableSet<AuthorizationScope> = mutableSetOf()
+        if (isSuperAdmin) {
+            authorizationScopes.add(AuthorizationScope.SUPER_ADMIN)
+            authorizationScopes.add(AuthorizationScope.ADMIN)
+        }
+        if (isAdmin) {
+            authorizationScopes.add(AuthorizationScope.ADMIN)
+        }
+        authorizationScopes.add(AuthorizationScope.REGULAR_USER)
+        return authorizationScopes.toSet()
+    }
+
     private fun selectAuthorizationByColumn(
         column: String,
         columnValue: String,
@@ -153,8 +177,8 @@ class AuthorizationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : A
                     "Authorization by column $column with value $columnValue was not found"
                 )
             }
-            val originId = result[0]["impersonate_origin_authorization_id"].toString()
-            val impersonateOriginAuthorization: Authorization? = if (isOrigin) null else
+            val originId = result[0]["impersonate_origin_authorization_id"]
+            val impersonateOriginAuthorization: Authorization? = if (isOrigin || originId == null) null else
                 selectAuthorizationByColumn("id", originId, true)
 
             return Authorization(
@@ -169,7 +193,7 @@ class AuthorizationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : A
         }
     }
 
-    private fun selectAuthorizationScopes(db: SqliteDatabase, authorizationId: String): List<AuthorizationScope> {
+    private fun selectAuthorizationScopes(db: SqliteDatabase, authorizationId: String): Set<AuthorizationScope> {
         val result = db.executeAndGetResultSet(
             """
                 SELECT a.scope
@@ -184,10 +208,10 @@ class AuthorizationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : A
         )
         return result.map {
             AuthorizationScope.valueOf(it["scope"].toString())
-        }
+        }.toSet()
     }
 
-    private fun selectScopeIds(db: SqliteDatabase, scopes: List<AuthorizationScope>): List<Int> {
+    private fun selectScopeIds(db: SqliteDatabase, scopes: Set<AuthorizationScope>): Set<Int> {
         val result = db.executeAndGetResultSet(
             """
                 SELECT a.primary_key
@@ -198,7 +222,7 @@ class AuthorizationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : A
         )
         return result.map {
             it["primary_key"].toString().toInt()
-        }
+        }.toSet()
     }
 
 }

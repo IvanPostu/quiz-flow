@@ -1,5 +1,6 @@
 package com.iv127.quizflow.server.acceptance.test
 
+import kotlin.system.exitProcess
 import org.junit.platform.engine.discovery.DiscoverySelectors.selectPackage
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder
 import org.junit.platform.launcher.core.LauncherFactory
@@ -29,9 +30,9 @@ class Main {
             }
 
             if (summary.failures.isEmpty()) {
-                System.exit(0)
+                exitProcess(0)
             } else {
-                System.exit(1)
+                exitProcess(1)
             }
         }
     }
