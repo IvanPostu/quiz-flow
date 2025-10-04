@@ -17,6 +17,7 @@ interface AuthorizationService {
         updateFunc: (authorizationBuilder: AuthorizationBuilder) -> Unit
     ): Authorization
 
-    fun getByAccessToken(accessToken: String): Authorization?
+    @Throws(AuthorizationNotFoundException::class)
+    fun getByAccessToken(accessToken: String): Authorization
 
 }

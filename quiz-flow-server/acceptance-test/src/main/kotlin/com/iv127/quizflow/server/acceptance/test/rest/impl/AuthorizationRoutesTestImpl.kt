@@ -16,7 +16,7 @@ class AuthorizationRoutesTestImpl(
 ) : AuthorizationRoutes {
     override suspend fun authorize(usernamePasswordAuthorizationRequest: UsernamePasswordAuthorizationRequest): AuthorizationResponse {
         val response: HttpResponse = config.performRequest { client ->
-            client.post("${config.baseUrl}/api/${AuthorizationRoutes.ROUTE_PATH}") {
+            client.post("${config.baseUrl}/api${AuthorizationRoutes.ROUTE_PATH}") {
                 contentType(ContentType.Application.Json)
                 setBody(usernamePasswordAuthorizationRequest)
             }

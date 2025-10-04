@@ -7,8 +7,8 @@ interface UsersRoutes {
         const val ROUTE_PATH: String = "/users"
     }
 
-    fun list(): List<UserResponse>
+    suspend fun list(authorization: ApiAuthorization): List<UserResponse>
 
-    fun create(authorization: ApiAuthorization, request: UserCreateRequest): UserResponse
+    suspend fun create(authorization: ApiAuthorization, request: UserCreateRequest): UserResponse
 }
 

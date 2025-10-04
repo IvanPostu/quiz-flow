@@ -1,7 +1,9 @@
 package com.iv127.quizflow.core.rest.api.authorization
 
-object AnonymousAuthorization : ApiAuthorization {
+data class AnonymousAuthorization(val message: String) : ApiAuthorization {
+
     override fun getToken(): String {
         return ""
     }
+
 }

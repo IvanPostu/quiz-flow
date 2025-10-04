@@ -22,7 +22,7 @@ class QuestionSetsRoutesTestImpl(
 
     override suspend fun get(id: String): QuestionSetResponse {
         val response: HttpResponse = config.performRequest { client ->
-            client.get("${config.baseUrl}/api/question-sets/$id") {
+            client.get("${config.baseUrl}/api${QuestionSetsRoutes.ROUTE_PATH}/$id") {
                 contentType(ContentType.Application.Json)
             }
         }
@@ -33,7 +33,7 @@ class QuestionSetsRoutesTestImpl(
         val response: HttpResponse = config.performRequest { client ->
             client.get(
                 """
-                    ${config.baseUrl}/api/question-sets?limit=$limit&offset=$offset&sortOrder=${sortOrder.name}
+                    ${config.baseUrl}/api${QuestionSetsRoutes.ROUTE_PATH}?limit=$limit&offset=$offset&sortOrder=${sortOrder.name}
                 """.trimIndent()
             ) {
                 contentType(ContentType.Application.Json)
@@ -45,7 +45,7 @@ class QuestionSetsRoutesTestImpl(
 
     override suspend fun create(request: QuestionSetCreateRequest): QuestionSetResponse {
         val response: HttpResponse = config.performRequest { client ->
-            client.post("${config.baseUrl}/api/question-sets") {
+            client.post("${config.baseUrl}/api${QuestionSetsRoutes.ROUTE_PATH}") {
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }
@@ -55,7 +55,7 @@ class QuestionSetsRoutesTestImpl(
 
     override suspend fun update(id: String, request: QuestionSetUpdateRequest): QuestionSetResponse {
         val response: HttpResponse = config.performRequest { client ->
-            client.put("${config.baseUrl}/api/question-sets/$id") {
+            client.put("${config.baseUrl}/api${QuestionSetsRoutes.ROUTE_PATH}/$id") {
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }
@@ -65,7 +65,7 @@ class QuestionSetsRoutesTestImpl(
 
     override suspend fun archive(id: String): QuestionSetResponse {
         val response: HttpResponse = config.performRequest { client ->
-            client.delete("${config.baseUrl}/api/question-sets/$id") {
+            client.delete("${config.baseUrl}/api${QuestionSetsRoutes.ROUTE_PATH}/$id") {
                 contentType(ContentType.Application.Json)
             }
         }

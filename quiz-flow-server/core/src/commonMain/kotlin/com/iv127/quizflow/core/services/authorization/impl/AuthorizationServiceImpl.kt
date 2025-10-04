@@ -126,14 +126,8 @@ class AuthorizationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : A
         return updatedAuthorization
     }
 
-    override fun getByAccessToken(accessToken: String): Authorization? {
-        try {
-            val authorization = selectAuthorizationByColumn("access_token", accessToken, false)
-            return authorization
-        } catch (e: Exception) {
-            LOG.warn("Can't get authorization by access_token due to: ${e.message}")
-            return null
-        }
+    override fun getByAccessToken(accessToken: String): Authorization {
+        return selectAuthorizationByColumn("access_token", accessToken, false)
     }
 
     private fun getAuthorizationScopes(user: User): Set<AuthorizationScope> {

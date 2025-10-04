@@ -7,6 +7,7 @@ interface UserService {
     @Throws(UserNotFoundException::class, UserInvalidPasswordException::class)
     fun getByUsernameAndPassword(username: String, password: String): User
 
+    @Throws(UsernameAlreadyTakenException::class)
     fun create(username: String, password: String): User
 
     fun getAll(): List<User>

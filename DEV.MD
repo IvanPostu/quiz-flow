@@ -2,9 +2,7 @@
 
 ## TODO
 
-- Move all backend related modules to `quiz-flow-server`
-  - Frontend `quiz-flow-client`
-  - Backend tests `quiz-flow-server-test`
+- KSP (Kotlin Symbolic Processing) - annotations that allows generating classes before compile task
 - Java impl should use the exactly same dynamic libraries that the native target uses
 
 ```sh

@@ -14,6 +14,17 @@ class RestErrorFactory {
             mapOf("reason" to (reason ?: ""))
         )
 
+        fun createClientError(
+            errorCode: String,
+            message: String,
+            data: Map<String, String> = mapOf()
+        ): RestErrorResponse = RestErrorResponse(
+            generateId(),
+            errorCode,
+            message,
+            data
+        )
+
         fun createServerError(): RestErrorResponse = RestErrorResponse(
             generateId(),
             "server_error",

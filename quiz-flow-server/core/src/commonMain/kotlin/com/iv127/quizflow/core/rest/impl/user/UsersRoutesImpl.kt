@@ -7,10 +7,12 @@ import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
 import com.iv127.quizflow.core.rest.api.user.UserResponse
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes.Companion.ROUTE_PATH
+import com.iv127.quizflow.core.rest.impl.ApiClientErrorException
 import com.iv127.quizflow.core.security.AuthenticationProvider
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.routingContextWebResponse
 import com.iv127.quizflow.core.services.user.UserService
+import com.iv127.quizflow.core.services.user.UsernameAlreadyTakenException
 import io.ktor.server.request.receive
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -23,7 +25,8 @@ class UsersRoutesImpl(koinApp: KoinApplication) : UsersRoutes, ApiRoute {
 
     override fun setup(parent: Route) {
         parent.get(ROUTE_PATH, routingContextWebResponse {
-            JsonWebResponse.create(list())
+            val authorization = AuthenticationProvider.provide(call)
+            JsonWebResponse.create(list(authorization))
         })
         parent.post(ROUTE_PATH, routingContextWebResponse {
             val request = call.receive<UserCreateRequest>()
@@ -32,19 +35,34 @@ class UsersRoutesImpl(koinApp: KoinApplication) : UsersRoutes, ApiRoute {
         })
     }
 
-    override fun list(): List<UserResponse> {
+    override suspend fun list(authorization: ApiAuthorization): List<UserResponse> {
         return userService.getAll()
             .map { mapToUserResponse(it) }
     }
 
-    override fun create(authorization: ApiAuthorization, request: UserCreateRequest): UserResponse {
+    override suspend fun create(authorization: ApiAuthorization, request: UserCreateRequest): UserResponse {
         if (request.username.isBlank()) {
-            throw IllegalArgumentException("username field shouldn't be blank")
+            throw ApiClientErrorException(
+                "invalid_username",
+                "Username is invalid"
+            )
         }
         if (request.password.isBlank()) {
-            throw IllegalArgumentException("password field shouldn't be blank")
+            throw ApiClientErrorException(
+                "invalid_password",
+                "Password is invalid"
+            )
         }
-        val user = userService.create(request.username, request.password)
+        val user: User
+
+        try {
+            user = userService.create(request.username, request.password)
+        } catch (e: UsernameAlreadyTakenException) {
+            throw ApiClientErrorException(
+                "username_was_already_taken",
+                "An user with such username already exists"
+            )
+        }
         return mapToUserResponse(user)
     }
 

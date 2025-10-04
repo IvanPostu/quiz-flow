@@ -5,6 +5,7 @@ import com.iv127.quizflow.core.model.User
 import com.iv127.quizflow.core.services.user.UserInvalidPasswordException
 import com.iv127.quizflow.core.services.user.UserNotFoundException
 import com.iv127.quizflow.core.services.user.UserService
+import com.iv127.quizflow.core.services.user.UsernameAlreadyTakenException
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.SqliteTimestampUtils
 import kotlin.time.Clock
@@ -25,14 +26,15 @@ class UserServiceImpl(private val dbSupplier: () -> SqliteDatabase) : UserServic
     }
 
     override fun create(username: String, password: String): User {
-        dbSupplier().use { db ->
-            val createdAt = Clock.System.now()
-            val createdAtSql = SqliteTimestampUtils.toValue(createdAt)
-            val id = UUIDv4.generate()
-            val user = User(id, username, password, createdAt, null)
-            db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
-            db.executeAndGetChangedRowsCount(
-                """
+        val userPersistFun: () -> User = {
+            dbSupplier().use { db ->
+                val createdAt = Clock.System.now()
+                val createdAtSql = SqliteTimestampUtils.toValue(createdAt)
+                val id = UUIDv4.generate()
+                val user = User(id, username, password, createdAt, null)
+                db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
+                db.executeAndGetChangedRowsCount(
+                    """
                     INSERT INTO users (
                         id,
                         created_at,
@@ -49,10 +51,19 @@ class UserServiceImpl(private val dbSupplier: () -> SqliteDatabase) : UserServic
                             ?
                         );
                 """.trimIndent(),
-                listOf(id, createdAtSql, null, username, password, Json.encodeToString(user))
-            )
-            db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
-            return user
+                    listOf(id, createdAtSql, null, username, password, Json.encodeToString(user))
+                )
+                db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
+                user
+            }
+        }
+        try {
+            return userPersistFun()
+        } catch (e: IllegalStateException) {
+            if (e.message?.contains("UNIQUE constraint failed: users.username") == true) {
+                throw UsernameAlreadyTakenException()
+            }
+            throw e
         }
     }
 

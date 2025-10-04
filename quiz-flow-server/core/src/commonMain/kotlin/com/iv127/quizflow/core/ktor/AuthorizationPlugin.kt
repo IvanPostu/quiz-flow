@@ -1,6 +1,7 @@
 package com.iv127.quizflow.core.ktor
 
 import com.iv127.quizflow.core.model.authorization.Authorization
+import com.iv127.quizflow.core.model.authorization.AuthorizationNotFoundException
 import com.iv127.quizflow.core.rest.api.authorization.AnonymousAuthorization
 import com.iv127.quizflow.core.rest.api.authorization.ApiAuthorization
 import com.iv127.quizflow.core.services.authorization.AuthorizationService
@@ -23,15 +24,17 @@ class AuthorizationPlugin(koinApp: KoinApplication) : BaseApplicationPlugin<Appl
             val bearerToken = authHeader?.removePrefix("Bearer ")?.trim()
 
             if (bearerToken.isNullOrBlank()) {
-                call.attributes.put(AUTHORIZATION_KEY, AnonymousAuthorization)
+                call.attributes.put(AUTHORIZATION_KEY, AnonymousAuthorization("Access token is missing"))
                 return@intercept
             }
-            val authorization: Authorization? = authorizationService.getByAccessToken(bearerToken)
-            if (authorization == null) {
-                call.attributes.put(AUTHORIZATION_KEY, AnonymousAuthorization)
+
+            try {
+                val authorization: Authorization = authorizationService.getByAccessToken(bearerToken)
+                call.attributes.put(AUTHORIZATION_KEY, authorization)
+            } catch (e: AuthorizationNotFoundException) {
+                call.attributes.put(AUTHORIZATION_KEY, AnonymousAuthorization("Access token is invalid"))
                 return@intercept
             }
-            call.attributes.put(AUTHORIZATION_KEY, authorization)
         }
     }
 

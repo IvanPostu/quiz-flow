@@ -1,6 +1,7 @@
 package com.iv127.quizflow.core.ktor
 
 import com.iv127.quizflow.core.rest.RestErrorFactory
+import com.iv127.quizflow.core.rest.impl.ApiClientErrorException
 import com.iv127.quizflow.core.security.AuthenticationException
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse
@@ -22,6 +23,21 @@ object CustomStatusPagesConfig {
                         JsonWebResponse.create(
                             body = clientError,
                             status = HttpStatusCode.Unauthorized
+                        )
+                    }
+                    return@exception
+                }
+                if (exception is ApiClientErrorException) {
+                    val clientError = RestErrorFactory.createClientError(
+                        exception.errorCode,
+                        exception.msg,
+                        exception.data
+                    )
+                    LOG.warn("Client error was caught, uniqueId:${clientError.uniqueId}", exception)
+                    webResponse(call) {
+                        JsonWebResponse.create(
+                            body = clientError,
+                            status = HttpStatusCode.BadRequest
                         )
                     }
                     return@exception
