@@ -21,6 +21,8 @@ git submodule update --remote external/sqlite
 git submodule deinit -f external/sqlite
 git rm --cached external/sqlite
 rm -rf ./.git/modules/external/
+
+./gradlew wrapper --gradle-version latest
 ```
 
 ## Upload file
