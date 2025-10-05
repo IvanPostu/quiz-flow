@@ -2,6 +2,9 @@
 
 ## TODO
 
+- Acceptance tests - rename GlobalConfig to GlobalContext
+- Add static analyzer detekt
+- Add formatter klint
 - Add version explicit definition on build
 - KSP (Kotlin Symbolic Processing) - annotations that allows generating classes before compile task
 - Java impl should use the exactly same dynamic libraries that the native target uses

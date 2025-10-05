@@ -57,7 +57,7 @@ class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes, ApiRoute 
         })
     }
 
-    override fun list(questionSetId: String): List<QuestionResponse> {
+    override suspend fun list(questionSetId: String): List<QuestionResponse> {
         return questionSetService.getQuestionSetWithVersionOrElseLatest(questionSetId, null)
             .second
             .questions.map {
@@ -65,7 +65,7 @@ class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes, ApiRoute 
             }
     }
 
-    override fun get(questionSetId: String, questionId: String): QuestionResponse {
+    override suspend fun get(questionSetId: String, questionId: String): QuestionResponse {
         val question = questionSetService.getQuestionSetWithVersionOrElseLatest(questionSetId, null)
             .second
             .questions

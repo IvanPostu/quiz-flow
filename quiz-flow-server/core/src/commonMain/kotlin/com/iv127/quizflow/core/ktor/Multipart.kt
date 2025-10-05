@@ -57,7 +57,7 @@ class Multipart {
             return if (filename != null) {
                 val contentTypeHeader = contentType?.substringAfter("Content-Type: ")?.trim()
                 val contentTypeObj = contentTypeHeader?.let { ContentType.parse(it) }
-                MultipartData.FilePart(name ?: "", filename, contentTypeObj, body)
+                MultipartData.FilePart(name ?: "", filename, body, contentTypeObj)
             } else {
                 MultipartData.FormField(name ?: "", body.decodeToString())
             }

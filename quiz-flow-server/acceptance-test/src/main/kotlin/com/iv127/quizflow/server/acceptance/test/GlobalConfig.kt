@@ -12,6 +12,8 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.statement.HttpResponse
 import io.ktor.serialization.kotlinx.json.json
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 
 data class GlobalConfig(val baseUrl: String = "http://localhost:8080") {
     companion object {
@@ -34,7 +36,25 @@ data class GlobalConfig(val baseUrl: String = "http://localhost:8080") {
         return response
     }
 
+    fun readResourceAsByteArray(fileName: String): ByteArray {
+        val classLoader = this::class.java.classLoader
+        val inputStream: InputStream? = classLoader.getResourceAsStream(fileName)
+
+        if (inputStream != null) {
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            inputStream.use { stream ->
+                stream.copyTo(byteArrayOutputStream)
+            }
+            return byteArrayOutputStream.toByteArray()
+        } else {
+            throw IllegalArgumentException("File not found in resources: $fileName")
+        }
+    }
+
     private suspend fun remapExceptionIfPossibleAndThrow(response: HttpResponse) {
+        if (isSuccessStatusCode(response.status.value)) {
+            return
+        }
         val restErrorResponse: RestErrorResponse
         try {
             restErrorResponse = response.body<RestErrorResponse>()
@@ -47,4 +67,10 @@ data class GlobalConfig(val baseUrl: String = "http://localhost:8080") {
             response = response
         )
     }
+
+
+    private fun isSuccessStatusCode(statusCode: Int): Boolean {
+        return statusCode in 200..299
+    }
+
 }
