@@ -1,7 +1,7 @@
 package com.iv127.quizflow.server.acceptance.test.rest.impl
 
 import com.iv127.quizflow.core.rest.api.MultipartData
-import com.iv127.quizflow.core.rest.api.question.QuestionResponse
+import com.iv127.quizflow.core.rest.api.question.QuestionSetVersionResponse
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes
 import com.iv127.quizflow.server.acceptance.test.GlobalConfig
 import io.ktor.client.call.body
@@ -19,7 +19,18 @@ import io.ktor.http.contentType
 class QuestionsRoutesTestImpl(
     private val config: GlobalConfig = GlobalConfig.INSTANCE
 ) : QuestionsRoutes {
-    override suspend fun list(questionSetId: String): List<QuestionResponse> {
+    override suspend fun getQuestionSetVersion(questionSetId: String, version: Int): QuestionSetVersionResponse {
+        val response: HttpResponse = config.performRequest { client ->
+            val urlBasePart = "${QuestionsRoutes.ROUTE_PATH}/versions/$version"
+                .replace(QuestionsRoutes.QUESTION_SET_ID_PLACEHOLDER, questionSetId)
+            client.get("${config.baseUrl}/api$urlBasePart") {
+                contentType(ContentType.Application.Json)
+            }
+        }
+        return response.body<QuestionSetVersionResponse>()
+    }
+
+    override suspend fun getQuestionSetVersion(questionSetId: String): QuestionSetVersionResponse {
         val response: HttpResponse = config.performRequest { client ->
             val urlBasePart = QuestionsRoutes.ROUTE_PATH
                 .replace(QuestionsRoutes.QUESTION_SET_ID_PLACEHOLDER, questionSetId)
@@ -27,21 +38,13 @@ class QuestionsRoutesTestImpl(
                 contentType(ContentType.Application.Json)
             }
         }
-        return response.body<List<QuestionResponse>>()
+        return response.body<QuestionSetVersionResponse>()
     }
 
-    override suspend fun get(questionSetId: String, questionId: String): QuestionResponse {
-        val response: HttpResponse = config.performRequest { client ->
-            val urlBasePart = QuestionsRoutes.ROUTE_PATH
-                .replace(QuestionsRoutes.QUESTION_SET_ID_PLACEHOLDER, questionSetId)
-            client.get("${config.baseUrl}/api${"$urlBasePart/$questionId"}") {
-                contentType(ContentType.Application.Json)
-            }
-        }
-        return response.body<QuestionResponse>()
-    }
-
-    override suspend fun upload(multipartDataList: List<MultipartData>, questionSetId: String): List<QuestionResponse> {
+    override suspend fun upload(
+        multipartDataList: List<MultipartData>,
+        questionSetId: String
+    ): QuestionSetVersionResponse {
         val response: HttpResponse = config.performRequest { client ->
             val urlBasePart = QuestionsRoutes.ROUTE_PATH
                 .replace(QuestionsRoutes.QUESTION_SET_ID_PLACEHOLDER, questionSetId)
@@ -71,6 +74,6 @@ class QuestionsRoutesTestImpl(
                 )
             }
         }
-        return response.body<List<QuestionResponse>>()
+        return response.body<QuestionSetVersionResponse>()
     }
 }

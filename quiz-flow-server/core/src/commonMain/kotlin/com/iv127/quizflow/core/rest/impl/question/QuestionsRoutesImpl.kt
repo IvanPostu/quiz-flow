@@ -1,14 +1,18 @@
 package com.iv127.quizflow.core.rest.impl.question
 
 import com.iv127.quizflow.core.ktor.Multipart
+import com.iv127.quizflow.core.model.question.InvalidQuestionSetVersionException
+import com.iv127.quizflow.core.model.question.QuestionSetNotFoundException
+import com.iv127.quizflow.core.model.question.QuestionSetVersion
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolver
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolverFactory
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolverType
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.MultipartData
-import com.iv127.quizflow.core.rest.api.question.QuestionResponse
+import com.iv127.quizflow.core.rest.api.question.QuestionSetVersionResponse
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes.Companion.ROUTE_PATH
+import com.iv127.quizflow.core.rest.impl.ApiClientErrorException
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.routingContextWebResponse
 import com.iv127.quizflow.core.services.questionset.QuestionSetService
@@ -30,17 +34,17 @@ class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes, ApiRoute 
         .create(QuestionsResolverType.QUESTION_WRAPPED_IN_MARKDOWN_CODE_SECTION)
 
     override fun setup(parent: Route) {
-        parent.get("${ROUTE_PATH}/{question_id}", routingContextWebResponse {
+        parent.get("${ROUTE_PATH}/versions/{version}", routingContextWebResponse {
             val questionSetId = call.parameters["question_set_id"]
                 ?: throw IllegalArgumentException("question_set_id pathParam is empty")
-            val questionId =
-                call.parameters["question_id"] ?: throw IllegalArgumentException("question_id pathParam is empty")
-            JsonWebResponse.create(get(questionSetId, questionId))
+            val version = call.parameters["version"]
+                ?: throw IllegalArgumentException("version pathParam is empty")
+            JsonWebResponse.create(getQuestionSetVersion(questionSetId, version.toInt()))
         })
         parent.get(ROUTE_PATH, routingContextWebResponse {
             val questionSetId = call.parameters["question_set_id"]
                 ?: throw IllegalArgumentException("question_set_id pathParam is empty")
-            JsonWebResponse.create(list(questionSetId))
+            JsonWebResponse.create(getQuestionSetVersion(questionSetId))
         })
         parent.post(ROUTE_PATH, routingContextWebResponse {
             val questionSetId = call.parameters["question_set_id"]
@@ -57,23 +61,47 @@ class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes, ApiRoute 
         })
     }
 
-    override suspend fun list(questionSetId: String): List<QuestionResponse> {
-        return questionSetService.getQuestionSetWithVersionOrElseLatest(questionSetId, null)
-            .second
-            .questions.map {
-                QuestionResponseMapper.mapToResponse(it)
-            }
+    override suspend fun getQuestionSetVersion(questionSetId: String, version: Int): QuestionSetVersionResponse {
+        try {
+            val questionSetVersion = questionSetService.getQuestionSetWithVersionOrElseLatest(questionSetId, version)
+                .second
+            return mapQuestionSetVersionResponse(questionSetVersion)
+        } catch (e: QuestionSetNotFoundException) {
+            throw ApiClientErrorException(
+                "question_set_not_found",
+                "Question set not found",
+                mapOf("questionSetId" to questionSetId)
+            )
+        } catch (e: InvalidQuestionSetVersionException) {
+            throw ApiClientErrorException(
+                "invalid_question_set_version",
+                "Invalid question set version",
+                mapOf(
+                    "questionSetId" to questionSetId,
+                    "version" to version.toString()
+                )
+            )
+        }
     }
 
-    override suspend fun get(questionSetId: String, questionId: String): QuestionResponse {
-        val question = questionSetService.getQuestionSetWithVersionOrElseLatest(questionSetId, null)
-            .second
-            .questions
-            .find { it.id == questionId }
-        return QuestionResponseMapper.mapToResponse(question!!)
+    override suspend fun getQuestionSetVersion(questionSetId: String): QuestionSetVersionResponse {
+        try {
+            val questionSetVersion = questionSetService.getQuestionSetWithVersionOrElseLatest(questionSetId, null)
+                .second
+            return mapQuestionSetVersionResponse(questionSetVersion)
+        } catch (e: QuestionSetNotFoundException) {
+            throw ApiClientErrorException(
+                "question_set_not_found",
+                "Question set not found",
+                mapOf("questionSetId" to questionSetId)
+            )
+        }
     }
 
-    override suspend fun upload(multipartDataList: List<MultipartData>, questionSetId: String): List<QuestionResponse> {
+    override suspend fun upload(
+        multipartDataList: List<MultipartData>,
+        questionSetId: String
+    ): QuestionSetVersionResponse {
         val filePart = multipartDataList.first {
             it is MultipartData.FilePart && it.name == "file"
         } as MultipartData.FilePart
@@ -82,11 +110,17 @@ class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes, ApiRoute 
             .asResult()
             .getOrThrow()
 
-        return questionSetService.updateQuestionSet(questionSetId) {
+        val questionSetVersion: QuestionSetVersion = questionSetService.updateQuestionSet(questionSetId) {
             it.setQuestions(questions)
-        }.second.questions.map {
-            QuestionResponseMapper.mapToResponse(it)
-        }
+        }.second
+        return mapQuestionSetVersionResponse(questionSetVersion)
     }
+
+    private fun mapQuestionSetVersionResponse(questionSetVersion: QuestionSetVersion): QuestionSetVersionResponse =
+        QuestionSetVersionResponse(
+            questionSetVersion.id,
+            questionSetVersion.version,
+            questionSetVersion.questions.map { QuestionResponseMapper.mapToResponse(it) }
+        )
 
 }

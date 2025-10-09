@@ -51,7 +51,7 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
     }
 
     override suspend fun get(id: String): QuestionSetResponse {
-        return mapQuestionSetResponse(questionSetService.getQuestionSet(id))
+        return mapQuestionSetResponse(questionSetService.getQuestionSetWithVersionOrElseLatest(id, null).first)
     }
 
     override suspend fun list(offset: Int, limit: Int, sortOrder: SortOrder): List<QuestionSetResponse> {

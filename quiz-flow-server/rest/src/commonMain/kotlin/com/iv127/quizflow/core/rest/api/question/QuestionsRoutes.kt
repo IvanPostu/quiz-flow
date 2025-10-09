@@ -8,10 +8,10 @@ interface QuestionsRoutes {
         const val ROUTE_PATH: String = "/question-sets/$QUESTION_SET_ID_PLACEHOLDER/questions"
     }
 
-    suspend fun list(questionSetId: String): List<QuestionResponse>
+    suspend fun getQuestionSetVersion(questionSetId: String, version: Int): QuestionSetVersionResponse
 
-    suspend fun get(questionSetId: String, questionId: String): QuestionResponse
+    suspend fun getQuestionSetVersion(questionSetId: String): QuestionSetVersionResponse
 
-    suspend fun upload(multipartDataList: List<MultipartData>, questionSetId: String): List<QuestionResponse>
+    suspend fun upload(multipartDataList: List<MultipartData>, questionSetId: String): QuestionSetVersionResponse
 
 }

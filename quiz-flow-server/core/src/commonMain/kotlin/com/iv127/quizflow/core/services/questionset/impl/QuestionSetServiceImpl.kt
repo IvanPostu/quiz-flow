@@ -1,7 +1,9 @@
 package com.iv127.quizflow.core.services.questionset.impl
 
+import com.iv127.quizflow.core.model.question.InvalidQuestionSetVersionException
 import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.model.question.QuestionSetBuilder
+import com.iv127.quizflow.core.model.question.QuestionSetNotFoundException
 import com.iv127.quizflow.core.model.question.QuestionSetVersion
 import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.services.questionset.QuestionSetService
@@ -122,12 +124,6 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
         }
     }
 
-    override fun getQuestionSet(id: String): QuestionSet {
-        dbSupplier().use { db ->
-            return selectByIdAndVersionOrElseLatest(db, id, null).first
-        }
-    }
-
     override fun getQuestionSetWithVersionOrElseLatest(
         id: String,
         version: Int?
@@ -181,7 +177,7 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
         }
     }
 
-    @Throws(IllegalArgumentException::class)
+    @Throws(QuestionSetNotFoundException::class, InvalidQuestionSetVersionException::class)
     private fun selectByIdAndVersionOrElseLatest(
         db: SqliteDatabase,
         id: String,
@@ -196,7 +192,7 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
                 deserialized
             }.firstNotNullOfOrNull { it }
         if (questionSet == null) {
-            throw IllegalArgumentException("Cannot find question set by id:$id")
+            throw QuestionSetNotFoundException(id)
         }
         val expectedVersion = version ?: questionSet.latestVersion
         val questionSetVersion: QuestionSetVersion? = db.executeAndGetResultSet(
@@ -208,7 +204,7 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
                 deserialized
             }.firstNotNullOfOrNull { it }
         if (questionSetVersion == null) {
-            throw IllegalArgumentException("Cannot find question set version by id:$id and version: $expectedVersion")
+            throw InvalidQuestionSetVersionException(id, expectedVersion)
         }
         return Pair(questionSet, questionSetVersion)
     }

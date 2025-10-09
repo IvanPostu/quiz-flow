@@ -16,8 +16,6 @@ interface QuestionSetService {
 
     fun archive(id: String): QuestionSet
 
-    fun getQuestionSet(id: String): QuestionSet
-
     fun getQuestionSetWithVersionOrElseLatest(id: String, version: Int?): Pair<QuestionSet, QuestionSetVersion>
 
     fun getQuestionSetList(limit: Int, offset: Int, sortOrder: SortOrder): List<QuestionSet>

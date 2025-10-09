@@ -6,11 +6,13 @@ import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetsRoutes
 import com.iv127.quizflow.server.acceptance.test.GlobalConfig
+import com.iv127.quizflow.server.acceptance.test.rest.RestErrorException
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionSetsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionsRoutesTestImpl
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class QuestionSetsTest {
 
@@ -19,22 +21,226 @@ class QuestionSetsTest {
     private val questionsRoutes: QuestionsRoutes = QuestionsRoutesTestImpl()
 
     @Test
-    fun testCreateQuestionSetUploadQuestionsIntoIt() = runTest {
+    fun testGetQuestionSetVersionByInvalidId() = runTest {
+        val createRequest = QuestionSetCreateRequest("Example of questionnaire", "Example of description")
+        val created = questionSetsRoutes.create(createRequest)
+        val invalidId = created.id + "aaa"
+
+        questionsRoutes.getQuestionSetVersion(created.id)
+        val callbacks = listOf<suspend () -> Unit>(
+            { questionsRoutes.getQuestionSetVersion(invalidId) },
+            { questionsRoutes.getQuestionSetVersion(invalidId, 1) },
+            { questionsRoutes.getQuestionSetVersion(invalidId, -1) },
+        )
+
+        for (callback in callbacks) {
+            val e = assertThrows<RestErrorException> {
+                callback()
+            }
+            assertThat(e.httpStatusCode).isEqualTo(400)
+            assertThat(e.restErrorResponse).satisfies({
+                assertThat(it.uniqueId).isNotBlank()
+                assertThat(it.errorCode).isEqualTo("question_set_not_found")
+                assertThat(it.message).isEqualTo("Question set not found")
+                assertThat(it.data).isEqualTo(
+                    mapOf(
+                        "questionSetId" to invalidId,
+                    )
+                )
+            })
+        }
+    }
+
+    @Test
+    fun testQuestionSetInvalidVersions() = runTest {
+        val createRequest = QuestionSetCreateRequest("Example of questionnaire", "Example of description")
+        val created = questionSetsRoutes.create(createRequest)
+
+        questionsRoutes.getQuestionSetVersion(created.id)
+        val e = assertThrows<RestErrorException> {
+            questionsRoutes.getQuestionSetVersion(created.id, -1)
+        }
+        assertThat(e.httpStatusCode).isEqualTo(400)
+        assertThat(e.restErrorResponse).satisfies({
+            assertThat(it.uniqueId).isNotBlank()
+            assertThat(it.errorCode).isEqualTo("invalid_question_set_version")
+            assertThat(it.message).isEqualTo("Invalid question set version")
+            assertThat(it.data).isEqualTo(
+                mapOf(
+                    "questionSetId" to created.id,
+                    "version" to "-1",
+                )
+            )
+        })
+    }
+
+    @Test
+    fun testQuestionSetVersions() = runTest {
+        val createRequest = QuestionSetCreateRequest("Example of questionnaire", "Example of description")
+        val created = questionSetsRoutes.create(createRequest)
+
+        assertThat(
+            listOf(
+                questionsRoutes.getQuestionSetVersion(created.id),
+                questionsRoutes.getQuestionSetVersion(created.id, 1)
+            )
+        )
+            .allSatisfy({
+                assertThat(it.id).isEqualTo(created.id)
+                assertThat(it.version).isEqualTo(1)
+                assertThat(it.questions).isEmpty()
+            })
+
+        var questionsContent = """
+            ```
+            1. Question1?
+
+            A. 1 test 1
+            B. 2 test 1
+
+            A. The right answer
+            The right answers
+            ```
+            ```
+            1. Question2?
+
+            A. 1 test 2
+            B. 2 test 2
+
+            B. The right answer
+            The right answers
+            ```
+        """.trimIndent().encodeToByteArray()
+        var questionSetVersion = questionsRoutes.upload(
+            listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
+            created.id
+        )
+        assertThat(
+            listOf(
+                questionSetVersion,
+                questionsRoutes.getQuestionSetVersion(created.id),
+                questionsRoutes.getQuestionSetVersion(created.id, 2),
+            )
+        ).allSatisfy({
+            assertThat(it.id).isEqualTo(created.id)
+            assertThat(it.version).isEqualTo(2)
+            assertThat(it.questions)
+                .hasSize(2)
+                .anySatisfy({ question ->
+                    assertQuestion(
+                        question,
+                        "1. Question1?",
+                        listOf(
+                            "A. 1 test 1",
+                            "B. 2 test 1"
+                        ),
+                        listOf(0),
+                        """
+                       A. The right answer
+                       The right answers
+                    """.trimIndent()
+                    )
+                })
+                .anySatisfy({ question ->
+                    assertQuestion(
+                        question,
+                        "1. Question2?",
+                        listOf(
+                            "A. 1 test 2",
+                            "B. 2 test 2"
+                        ),
+                        listOf(1),
+                        """
+                       B. The right answer
+                       The right answers
+                    """.trimIndent()
+                    )
+                })
+        })
+
+
+
+        questionsContent = """
+            ```
+            1. UpdatedQuestion1?
+
+            A. 1 updated test 1
+            B. 2 updated test 1
+
+            A. Updated the right answer
+            Updated the right answers
+            ```
+            ```
+            1. UpdatedQuestion2?
+
+            A. 1 updated test 2
+            B. 2 updated test 2
+
+            B. Updated the right answer
+            Updated the right answers
+            ```
+        """.trimIndent().encodeToByteArray()
+        questionSetVersion = questionsRoutes.upload(
+            listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
+            created.id
+        )
+        assertThat(
+            listOf(
+                questionSetVersion,
+                questionsRoutes.getQuestionSetVersion(created.id),
+                questionsRoutes.getQuestionSetVersion(created.id, 3),
+            )
+        ).allSatisfy({
+            assertThat(it.id).isEqualTo(created.id)
+            assertThat(it.version).isEqualTo(3)
+            assertThat(it.questions)
+                .hasSize(2)
+                .anySatisfy({ question ->
+                    assertQuestion(
+                        question,
+                        "1. UpdatedQuestion1?",
+                        listOf(
+                            "A. 1 updated test 1",
+                            "B. 2 updated test 1"
+                        ),
+                        listOf(0),
+                        """
+                       A. Updated the right answer
+                       Updated the right answers
+                    """.trimIndent()
+                    )
+                })
+                .anySatisfy({ question ->
+                    assertQuestion(
+                        question,
+                        "1. UpdatedQuestion2?",
+                        listOf(
+                            "A. 1 updated test 2",
+                            "B. 2 updated test 2"
+                        ),
+                        listOf(1),
+                        """
+                       B. Updated the right answer
+                       Updated the right answers
+                    """.trimIndent()
+                    )
+                })
+        })
+    }
+
+    @Test
+    fun testCreateQuestionSetAndUploadQuestionsIntoIt() = runTest {
         val createRequest = QuestionSetCreateRequest("Example of questionnaire", "Example of description")
         val created = questionSetsRoutes.create(createRequest)
 
         val questionsContent = config.readResourceAsByteArray("question_sets/validQuestions1.MD")
         val uploadedQuestions = questionsRoutes.upload(
-            listOf(MultipartData.FilePart("file", "questions.MD", questionsContent)),
+            listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             created.id
-        )
+        ).questions
         assertValidQuestions1(uploadedQuestions)
 
-        assertThat(questionsRoutes.get(created.id, uploadedQuestions[0].id))
-            .isEqualTo(uploadedQuestions[0])
-        assertThat(questionsRoutes.get(created.id, uploadedQuestions[1].id))
-            .isEqualTo(uploadedQuestions[1])
-        assertThat(questionsRoutes.list(created.id))
+        assertThat(questionsRoutes.getQuestionSetVersion(created.id).questions)
             .hasSize(2)
             .anySatisfy({
                 assertThat(it).isEqualTo(uploadedQuestions[0])

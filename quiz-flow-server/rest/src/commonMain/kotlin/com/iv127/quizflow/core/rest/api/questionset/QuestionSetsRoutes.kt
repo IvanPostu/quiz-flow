@@ -10,7 +10,7 @@ interface QuestionSetsRoutes {
 
     suspend fun get(id: String): QuestionSetResponse
 
-    suspend fun list(offset: Int,  limit: Int, sortOrder: SortOrder): List<QuestionSetResponse>
+    suspend fun list(offset: Int, limit: Int, sortOrder: SortOrder): List<QuestionSetResponse>
 
     suspend fun create(request: QuestionSetCreateRequest): QuestionSetResponse
 

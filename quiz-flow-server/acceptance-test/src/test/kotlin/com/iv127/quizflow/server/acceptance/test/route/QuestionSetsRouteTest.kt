@@ -9,10 +9,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class QuestionSetsRouteTest {
+    private val questionSetsRoutes = QuestionSetsRoutesTestImpl()
 
     @Test
     fun testCreateUpdateGetGetListAndDelete() = runTest {
-        val questionSetsRoutes = QuestionSetsRoutesTestImpl()
         val createRequest = QuestionSetCreateRequest("Example of questionnaire", "Example of description")
         val created = questionSetsRoutes.create(createRequest)
 

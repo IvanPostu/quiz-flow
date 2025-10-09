@@ -37,7 +37,7 @@ class CoroutineDemoTest {
     }
 
     @Test
-    fun testFetchDelayed() = runTest {
+    fun `test fetch delayed`() = runTest {
         val beforeMillis = Clock.System.now().toEpochMilliseconds()
         val data = fetchDelayed("test1")
         val timeTaken = Clock.System.now().toEpochMilliseconds() - beforeMillis
