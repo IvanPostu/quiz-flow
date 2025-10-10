@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class QuizAnswer(
-    @SerialName("question_id") val id: String,
-    @SerialName("answer_indexes") val answerIndexes: List<Int>,
+    @SerialName("question_id") val questionId: String,
+    @SerialName("chosen_answer_indexes") val chosenAnswerIndexes: List<Int>,
 )

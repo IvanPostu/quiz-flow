@@ -12,7 +12,7 @@ import com.iv127.quizflow.core.rest.api.MultipartData
 import com.iv127.quizflow.core.rest.api.question.QuestionSetVersionResponse
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes.Companion.ROUTE_PATH
-import com.iv127.quizflow.core.rest.impl.ApiClientErrorException
+import com.iv127.quizflow.core.rest.impl.exception.ApiClientErrorExceptionTranslator
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.routingContextWebResponse
 import com.iv127.quizflow.core.services.questionset.QuestionSetService
@@ -66,20 +66,11 @@ class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes, ApiRoute 
             val questionSetVersion = questionSetService.getQuestionSetWithVersionOrElseLatest(questionSetId, version)
                 .second
             return mapQuestionSetVersionResponse(questionSetVersion)
-        } catch (e: QuestionSetNotFoundException) {
-            throw ApiClientErrorException(
-                "question_set_not_found",
-                "Question set not found",
-                mapOf("questionSetId" to questionSetId)
-            )
-        } catch (e: InvalidQuestionSetVersionException) {
-            throw ApiClientErrorException(
-                "invalid_question_set_version",
-                "Invalid question set version",
-                mapOf(
-                    "questionSetId" to questionSetId,
-                    "version" to version.toString()
-                )
+        } catch (e: Exception) {
+            throw ApiClientErrorExceptionTranslator.translateAndThrowOrElseFail(
+                e,
+                QuestionSetNotFoundException::class,
+                InvalidQuestionSetVersionException::class
             )
         }
     }
@@ -90,11 +81,8 @@ class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes, ApiRoute 
                 .second
             return mapQuestionSetVersionResponse(questionSetVersion)
         } catch (e: QuestionSetNotFoundException) {
-            throw ApiClientErrorException(
-                "question_set_not_found",
-                "Question set not found",
-                mapOf("questionSetId" to questionSetId)
-            )
+            throw ApiClientErrorExceptionTranslator
+                .translateAndThrowOrElseFail(e, QuestionSetNotFoundException::class)
         }
     }
 

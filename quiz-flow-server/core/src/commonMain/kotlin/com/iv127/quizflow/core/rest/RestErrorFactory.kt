@@ -17,7 +17,7 @@ class RestErrorFactory {
         fun createClientError(
             errorCode: String,
             message: String,
-            data: Map<String, String> = mapOf()
+            data: Map<String, String?> = mapOf()
         ): RestErrorResponse = RestErrorResponse(
             generateId(),
             errorCode,

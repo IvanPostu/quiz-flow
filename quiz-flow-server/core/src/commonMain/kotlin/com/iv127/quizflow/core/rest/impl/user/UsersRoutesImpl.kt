@@ -7,7 +7,8 @@ import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
 import com.iv127.quizflow.core.rest.api.user.UserResponse
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes.Companion.ROUTE_PATH
-import com.iv127.quizflow.core.rest.impl.ApiClientErrorException
+import com.iv127.quizflow.core.rest.impl.exception.ApiClientErrorExceptionTranslator
+import com.iv127.quizflow.core.rest.impl.exception.InvalidFieldValueException
 import com.iv127.quizflow.core.security.AuthenticationProvider
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.routingContextWebResponse
@@ -41,29 +42,31 @@ class UsersRoutesImpl(koinApp: KoinApplication) : UsersRoutes, ApiRoute {
     }
 
     override suspend fun create(authorization: ApiAuthorization, request: UserCreateRequest): UserResponse {
-        if (request.username.isBlank()) {
-            throw ApiClientErrorException(
-                "invalid_username",
-                "Username is invalid"
-            )
-        }
-        if (request.password.isBlank()) {
-            throw ApiClientErrorException(
-                "invalid_password",
-                "Password is invalid"
-            )
-        }
-        val user: User
-
         try {
-            user = userService.create(request.username, request.password)
-        } catch (e: UsernameAlreadyTakenException) {
-            throw ApiClientErrorException(
-                "username_was_already_taken",
-                "An user with such username already exists"
-            )
+            if (request.username.isBlank()) {
+                throw InvalidFieldValueException(
+                    "username",
+                    request.username,
+                    "Empty value is not allowed"
+                )
+            }
+            if (request.password.isBlank()) {
+                throw InvalidFieldValueException(
+                    "password",
+                    "***",
+                    "Empty value is not allowed"
+                )
+            }
+            val user = userService.create(request.username, request.password)
+            return mapToUserResponse(user)
+        } catch (e: Exception) {
+            throw ApiClientErrorExceptionTranslator
+                .translateAndThrowOrElseFail(
+                    e,
+                    UsernameAlreadyTakenException::class,
+                    InvalidFieldValueException::class
+                )
         }
-        return mapToUserResponse(user)
     }
 
     private fun mapToUserResponse(user: User) = UserResponse(user.id, user.username)

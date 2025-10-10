@@ -1,16 +1,22 @@
 package com.iv127.quizflow.core.rest.impl.quiz
 
 import com.iv127.quizflow.core.model.authorization.Authorization
+import com.iv127.quizflow.core.model.question.InvalidQuestionSetVersionException
 import com.iv127.quizflow.core.model.question.Question
+import com.iv127.quizflow.core.model.question.QuestionSetNotFoundException
+import com.iv127.quizflow.core.model.question.QuestionSetVersion
 import com.iv127.quizflow.core.model.quizz.Quiz
+import com.iv127.quizflow.core.model.quizz.QuizAnswer
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.authorization.ApiAuthorization
+import com.iv127.quizflow.core.rest.api.quiz.QuizAnswerResponse
 import com.iv127.quizflow.core.rest.api.quiz.QuizCreateRequest
 import com.iv127.quizflow.core.rest.api.quiz.QuizQuestionResponse
 import com.iv127.quizflow.core.rest.api.quiz.QuizResponse
 import com.iv127.quizflow.core.rest.api.quiz.QuizUpdateRequest
 import com.iv127.quizflow.core.rest.api.quiz.QuizzesRoutes
 import com.iv127.quizflow.core.rest.api.quiz.QuizzesRoutes.Companion.ROUTE_PATH
+import com.iv127.quizflow.core.rest.impl.exception.ApiClientErrorExceptionTranslator
 import com.iv127.quizflow.core.security.AuthenticationProvider
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.routingContextWebResponse
@@ -62,6 +68,22 @@ class QuizzesRoutesImpl(koinApp: KoinApplication) : QuizzesRoutes, ApiRoute {
         TODO("Not yet implemented")
     }
 
+    private fun getQuestionSetVersion(questionSetId: String, questionSetVersion: Int?): QuestionSetVersion {
+        try {
+            val (_, questionSetVersion) = questionSetService.getQuestionSetWithVersionOrElseLatest(
+                questionSetId,
+                questionSetVersion
+            )
+            return questionSetVersion
+        } catch (e: Exception) {
+            throw ApiClientErrorExceptionTranslator.translateAndThrowOrElseFail(
+                e,
+                QuestionSetNotFoundException::class,
+                InvalidQuestionSetVersionException::class
+            )
+        }
+    }
+
     private fun mapToQuizResponse(quiz: Quiz, questionsById: Map<String, Question>): QuizResponse {
         val isFinalized = quiz.finalizedDate != Instant.DISTANT_PAST
         return QuizResponse(
@@ -71,12 +93,17 @@ class QuizzesRoutesImpl(koinApp: KoinApplication) : QuizzesRoutes, ApiRoute {
             quiz.createdDate,
             if (isFinalized) quiz.finalizedDate else null,
             isFinalized,
-            quiz.quizQuestionIds.map { mapQuestionToResponse(questionsById[it]!!) }
+            quiz.quizQuestionIds.map { mapQuestionToResponse(questionsById[it]!!) },
+            quiz.quizAnswers.map { mapAnswerToResponse(it) }
         )
     }
 
     private fun mapQuestionToResponse(question: Question): QuizQuestionResponse {
         return QuizQuestionResponse(question.id, question.question, question.answerOptions)
+    }
+
+    private fun mapAnswerToResponse(quizAnswer: QuizAnswer): QuizAnswerResponse {
+        return QuizAnswerResponse(quizAnswer.questionId, quizAnswer.chosenAnswerIndexes)
     }
 
 }

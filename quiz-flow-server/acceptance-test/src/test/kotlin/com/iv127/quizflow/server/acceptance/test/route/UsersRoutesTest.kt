@@ -113,9 +113,15 @@ class UsersRoutesTest {
         assertThat(e.httpStatusCode).isEqualTo(400)
         assertThat(e.restErrorResponse).satisfies({
             assertThat(it.uniqueId).isNotBlank()
-            assertThat(it.errorCode).isEqualTo("invalid_username")
-            assertThat(it.message).isEqualTo("Username is invalid")
-            assertThat(it.data).isEqualTo(mapOf<String, String>())
+            assertThat(it.errorCode).isEqualTo("invalid_field_value")
+            assertThat(it.message).isEqualTo("Field value is invalid")
+            assertThat(it.data).isEqualTo(
+                mapOf<String, String?>(
+                    "fieldName" to "username",
+                    "fieldValue" to "",
+                    "message" to "Empty value is not allowed",
+                )
+            )
         })
     }
 
@@ -132,9 +138,15 @@ class UsersRoutesTest {
         assertThat(e.httpStatusCode).isEqualTo(400)
         assertThat(e.restErrorResponse).satisfies({
             assertThat(it.uniqueId).isNotBlank()
-            assertThat(it.errorCode).isEqualTo("invalid_password")
-            assertThat(it.message).isEqualTo("Password is invalid")
-            assertThat(it.data).isEqualTo(mapOf<String, String>())
+            assertThat(it.errorCode).isEqualTo("invalid_field_value")
+            assertThat(it.message).isEqualTo("Field value is invalid")
+            assertThat(it.data).isEqualTo(
+                mapOf<String, String?>(
+                    "fieldName" to "password",
+                    "fieldValue" to "***",
+                    "message" to "Empty value is not allowed",
+                )
+            )
         })
     }
 

@@ -1,7 +1,7 @@
 package com.iv127.quizflow.core.ktor
 
 import com.iv127.quizflow.core.rest.RestErrorFactory
-import com.iv127.quizflow.core.rest.impl.ApiClientErrorException
+import com.iv127.quizflow.core.rest.impl.exception.ApiClientErrorException
 import com.iv127.quizflow.core.security.AuthenticationException
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.webResponse

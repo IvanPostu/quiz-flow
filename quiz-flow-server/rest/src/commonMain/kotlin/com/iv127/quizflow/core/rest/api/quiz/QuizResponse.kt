@@ -16,5 +16,6 @@ data class QuizResponse(
     @SerialName("finalized_date") @Serializable(with = InstantSerializer::class) val finalizedDate: Instant?,
     @SerialName("is_finalized") val isFinalized: Boolean,
     @SerialName("questions") val questions: List<QuizQuestionResponse>,
+    @SerialName("answers") val answers: List<QuizAnswerResponse>,
 )
  
