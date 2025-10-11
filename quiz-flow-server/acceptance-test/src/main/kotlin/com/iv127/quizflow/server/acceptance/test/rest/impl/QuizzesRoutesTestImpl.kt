@@ -8,6 +8,7 @@ import com.iv127.quizflow.core.rest.api.quiz.QuizzesRoutes
 import com.iv127.quizflow.server.acceptance.test.GlobalConfig
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -18,6 +19,17 @@ import io.ktor.http.contentType
 class QuizzesRoutesTestImpl(
     private val config: GlobalConfig = GlobalConfig.INSTANCE
 ) : QuizzesRoutes {
+
+    override suspend fun get(authorization: ApiAuthorization, quizId: String): QuizResponse {
+        val response: HttpResponse = config.performRequest { client ->
+            client.get("${config.baseUrl}/api${QuizzesRoutes.ROUTE_PATH}/${quizId}") {
+                contentType(ContentType.Application.Json)
+                bearerAuth(authorization.getToken())
+            }
+        }
+        return response.body<QuizResponse>()
+    }
+
     override suspend fun create(authorization: ApiAuthorization, request: QuizCreateRequest): QuizResponse {
         val response: HttpResponse = config.performRequest { client ->
             client.post("${config.baseUrl}/api${QuizzesRoutes.ROUTE_PATH}") {
@@ -29,9 +41,13 @@ class QuizzesRoutesTestImpl(
         return response.body<QuizResponse>()
     }
 
-    override suspend fun update(authorization: ApiAuthorization, request: QuizUpdateRequest): QuizResponse {
+    override suspend fun update(
+        authorization: ApiAuthorization,
+        quizId: String,
+        request: QuizUpdateRequest
+    ): QuizResponse {
         val response: HttpResponse = config.performRequest { client ->
-            client.put("${config.baseUrl}/api${QuizzesRoutes.ROUTE_PATH}") {
+            client.put("${config.baseUrl}/api${QuizzesRoutes.ROUTE_PATH}/${quizId}") {
                 contentType(ContentType.Application.Json)
                 bearerAuth(authorization.getToken())
                 setBody(request)
@@ -39,4 +55,5 @@ class QuizzesRoutesTestImpl(
         }
         return response.body<QuizResponse>()
     }
+
 }

@@ -15,10 +15,10 @@ class QuizBuilder {
     val questionSetId: String
     val questionSetVersion: Int
     val createdDate: Instant
-    val quizQuestionsById: MutableMap<String, Question> = LinkedHashMap()
-    val quizAnswers: MutableList<QuizAnswer> = mutableListOf()
+    val quizQuestionsById: Map<String, Question>
 
-    var finalizedDate: Instant = Instant.DISTANT_PAST
+    private val quizAnswers: MutableList<QuizAnswer> = mutableListOf()
+    private var finalizedDate: Instant
 
     constructor(userId: String, questionSetVersion: QuestionSetVersion, questions: List<Question>) {
         this.id = UUIDv4.generate()
@@ -26,20 +26,29 @@ class QuizBuilder {
         this.questionSetId = questionSetVersion.id
         this.questionSetVersion = questionSetVersion.version
         this.createdDate = Clock.System.now()
-        questions.forEach {
-            quizQuestionsById[it.id] = it
-        }
+        this.finalizedDate = Instant.DISTANT_PAST
+        this.quizQuestionsById = questions.associateBy { item -> item.id }
     }
 
     constructor(quiz: Quiz, questionSetVersion: QuestionSetVersion) {
-        val questionsById: Map<String, Question> = questionSetVersion.questions.associateBy { item -> item.id }
+        val questionsById = questionSetVersion.questions.associateBy { item -> item.id }
         this.id = quiz.id
         this.userId = quiz.userId
         this.questionSetId = quiz.questionSetId
         this.questionSetVersion = quiz.questionSetVersion
         this.createdDate = quiz.createdDate
         this.finalizedDate = quiz.finalizedDate
-        quiz.quizQuestionIds.forEach { quizQuestionsById[it] = questionsById[it]!! }
+        this.quizQuestionsById = quiz.quizQuestionIds.associateWith { questionsById[it]!! }
+    }
+
+    fun withAnswers(answers: List<QuizAnswer>) {
+        checkValidAnswers(answers)
+        quizAnswers.clear()
+        quizAnswers.addAll(answers)
+    }
+
+    fun withFinalized() {
+        this.finalizedDate = Clock.System.now()
     }
 
     fun build(): Quiz {
@@ -53,6 +62,21 @@ class QuizBuilder {
             quizQuestionIds = quizQuestionsById.keys.toList(),
             quizAnswers = quizAnswers.toList()
         )
+    }
+
+    private fun checkValidAnswers(answers: List<QuizAnswer>) {
+        for (answer in answers) {
+            val question = quizQuestionsById[answer.questionId]
+                ?: throw InvalidQuizAnswerException("Answer with id: ${answer.questionId} is not found")
+
+            val existingAnswerIndices = question.answerOptions.indices.toSet()
+            val unknownAnswerIndices = answer.chosenAnswerIndexes.filterNot { it in existingAnswerIndices }
+            if (unknownAnswerIndices.isNotEmpty()) {
+                throw InvalidQuizAnswerException(
+                    $unknownAnswerIndices
+                )
+            }
+        }
     }
 }
 

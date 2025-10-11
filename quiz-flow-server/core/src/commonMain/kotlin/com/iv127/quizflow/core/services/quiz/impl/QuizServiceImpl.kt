@@ -3,8 +3,10 @@ package com.iv127.quizflow.core.services.quiz.impl
 import com.iv127.quizflow.core.model.authorization.Authorization
 import com.iv127.quizflow.core.model.question.Question
 import com.iv127.quizflow.core.model.question.QuestionSetVersion
+import com.iv127.quizflow.core.model.quizz.FinalizedQuizUpdateException
 import com.iv127.quizflow.core.model.quizz.Quiz
 import com.iv127.quizflow.core.model.quizz.QuizBuilder
+import com.iv127.quizflow.core.model.quizz.QuizNotFoundException
 import com.iv127.quizflow.core.services.quiz.QuizService
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.SqliteTimestampUtils
@@ -13,6 +15,12 @@ import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalTime::class)
 class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizService {
+
+    override fun getQuiz(authorization: Authorization, quizId: String): Quiz {
+        return dbSupplier().use { db ->
+            selectQuizById(db, quizId, authorization.userId)
+        }
+    }
 
     override fun createQuiz(
         authorization: Authorization,
@@ -58,10 +66,13 @@ class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizServic
         questionSetVersion: QuestionSetVersion,
         updateFunc: (quizBuilder: QuizBuilder) -> Unit
     ): Quiz {
-
         return dbSupplier().use { db ->
             val selectedQuiz = selectQuizById(db, quizId, authorization.userId)
-                ?: throw IllegalStateException("Can't find quiz with id $quizId")
+
+            if (selectedQuiz.isFinalized()) {
+                throw FinalizedQuizUpdateException(quizId)
+            }
+
             val quizBuilder = QuizBuilder(selectedQuiz, questionSetVersion)
             updateFunc(quizBuilder)
             val quiz = quizBuilder.build()
@@ -86,7 +97,7 @@ class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizServic
         }
     }
 
-    private fun selectQuizById(db: SqliteDatabase, id: String, userId: String): Quiz? {
+    private fun selectQuizById(db: SqliteDatabase, id: String, userId: String): Quiz {
         val quiz: Quiz? = db.executeAndGetResultSet(
             "SELECT t.* FROM quizzes AS t WHERE t.id=? AND t.user_id=?;",
             listOf(id, userId)
@@ -95,7 +106,7 @@ class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizServic
                 val deserialized: Quiz = Json.decodeFromString(record["json"].toString())
                 deserialized
             }.firstNotNullOfOrNull { it }
-        return quiz
+        return quiz ?: throw QuizNotFoundException(id)
     }
 
     private fun checkQuestionsArePartOfQuestionSet(

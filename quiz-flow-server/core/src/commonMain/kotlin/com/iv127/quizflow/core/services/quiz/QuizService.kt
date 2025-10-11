@@ -8,6 +8,11 @@ import com.iv127.quizflow.core.model.quizz.QuizBuilder
 
 interface QuizService {
 
+    fun getQuiz(
+        authorization: Authorization,
+        quizId: String,
+    ): Quiz
+
     fun createQuiz(
         authorization: Authorization,
         questionSetVersion: QuestionSetVersion,

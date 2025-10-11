@@ -2,6 +2,9 @@ package com.iv127.quizflow.core.rest.impl.exception
 
 import com.iv127.quizflow.core.model.question.InvalidQuestionSetVersionException
 import com.iv127.quizflow.core.model.question.QuestionSetNotFoundException
+import com.iv127.quizflow.core.model.quizz.FinalizedQuizUpdateException
+import com.iv127.quizflow.core.model.quizz.InvalidQuizAnswerException
+import com.iv127.quizflow.core.model.quizz.QuizNotFoundException
 import com.iv127.quizflow.core.services.user.UsernameAlreadyTakenException
 import kotlin.reflect.KClass
 
@@ -49,10 +52,43 @@ object ApiClientErrorExceptionTranslator {
                 e
             )
         }
+        mapper.register(FinalizedQuizUpdateException::class) { e ->
+            ApiClientErrorException(
+                "finalized_question_update",
+                "Finalized question update is not allowed",
+                mapOf(
+                    "quizId" to e.quizId,
+                ),
+                e
+            )
+        }
+        mapper.register(InvalidQuizAnswerException::class) { e ->
+            ApiClientErrorException(
+                "invalid_quiz_answer",
+                "Quiz answer is invalid",
+                mapOf(
+                    "message" to e.message,
+                ),
+                e
+            )
+        }
+        mapper.register(QuizNotFoundException::class) { e ->
+            ApiClientErrorException(
+                "quiz_not_found",
+                "Quiz not found",
+                mapOf(
+                    "quizId" to e.quizId,
+                ),
+                e
+            )
+        }
     }
 
     @Throws(ApiClientErrorException::class, RuntimeException::class)
     fun translateAndThrowOrElseFail(e: Exception, vararg typesToHandle: KClass<*>): ApiClientErrorException {
+        if (e is ApiClientErrorException) {
+            throw e
+        }
         throw mapper.mapException(e, typesToHandle.toSet())
     }
 }
