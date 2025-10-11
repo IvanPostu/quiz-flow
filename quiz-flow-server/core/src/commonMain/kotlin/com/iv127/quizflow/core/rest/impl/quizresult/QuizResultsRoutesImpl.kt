@@ -1,8 +1,8 @@
 package com.iv127.quizflow.core.rest.api.quizresult
 
 import com.iv127.quizflow.core.model.authorization.Authorization
-import com.iv127.quizflow.core.model.question.QuestionSetNotFoundException
 import com.iv127.quizflow.core.model.quizz.Quiz
+import com.iv127.quizflow.core.model.quizz.QuizNotFoundException
 import com.iv127.quizflow.core.model.quizz.QuizQuestion
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.SortOrder
@@ -113,7 +113,7 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
                 throw FinalizedQuizNotFoundException(quizId, "quiz is not finalized")
             }
             return quiz
-        } catch (e: QuestionSetNotFoundException) {
+        } catch (e: QuizNotFoundException) {
             throw FinalizedQuizNotFoundException(quizId, "invalid quizId")
         }
     }
