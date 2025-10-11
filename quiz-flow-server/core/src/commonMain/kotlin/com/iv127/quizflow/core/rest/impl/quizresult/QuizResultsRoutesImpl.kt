@@ -1,6 +1,7 @@
 package com.iv127.quizflow.core.rest.api.quizresult
 
 import com.iv127.quizflow.core.model.authorization.Authorization
+import com.iv127.quizflow.core.model.question.QuestionSetNotFoundException
 import com.iv127.quizflow.core.model.quizz.Quiz
 import com.iv127.quizflow.core.model.quizz.QuizQuestion
 import com.iv127.quizflow.core.rest.ApiRoute
@@ -8,10 +9,11 @@ import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.rest.api.authorization.ApiAuthorization
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.rest.api.toSortOrderEnumOrNull
+import com.iv127.quizflow.core.rest.impl.exception.ApiClientErrorExceptionTranslator
+import com.iv127.quizflow.core.rest.impl.quizresult.FinalizedQuizNotFoundException
 import com.iv127.quizflow.core.security.AuthenticationProvider
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.routingContextWebResponse
-import com.iv127.quizflow.core.services.questionset.QuestionSetService
 import com.iv127.quizflow.core.services.quiz.QuizService
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -21,7 +23,6 @@ import org.koin.core.KoinApplication
 @OptIn(ExperimentalTime::class)
 class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRoute {
 
-    private val questionSetService: QuestionSetService by koinApp.koin.inject()
     private val quizService: QuizService by koinApp.koin.inject()
 
     override fun setup(parent: Route) {
@@ -40,8 +41,15 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
     }
 
     override suspend fun get(authorization: ApiAuthorization, quizId: String): QuizResultResponse {
-        val quiz = quizService.getQuiz(authorization as Authorization, quizId)
-        return mapToQuizResultResponse(quiz)
+        try {
+            val quiz = getFinalizedQuiz(authorization as Authorization, quizId)
+            return mapToQuizResultResponse(quiz)
+        } catch (e: FinalizedQuizNotFoundException) {
+            throw ApiClientErrorExceptionTranslator.translateAndThrowOrElseFail(
+                e,
+                FinalizedQuizNotFoundException::class,
+            )
+        }
     }
 
     override suspend fun list(
@@ -54,7 +62,14 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
         val explicitLimit = limit ?: 10
         val explicitSortOrder = sortOrder ?: SortOrder.DESC
 
-        TODO("Not yet implemented")
+        val finalizedQuizzes = quizService.getQuizList(
+            authorization as Authorization,
+            explicitOffset,
+            explicitLimit,
+            explicitSortOrder,
+            true
+        )
+        return finalizedQuizzes.map { mapToQuizResultResponse(it) }
     }
 
     private fun mapToQuizResultResponse(quiz: Quiz): QuizResultResponse {
@@ -77,7 +92,7 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
             quiz.questionSetId,
             quiz.questionSetVersion,
             quiz.createdDate,
-            quiz.finalizedDate,
+            quiz.finalizedDate!!,
             questionsById.size,
             answersCount,
             correctAnswersCount,
@@ -90,5 +105,18 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
             }
         )
     }
+
+    private fun getFinalizedQuiz(authorization: Authorization, quizId: String): Quiz {
+        try {
+            val quiz = quizService.getQuiz(authorization, quizId)
+            if (!quiz.isFinalized()) {
+                throw FinalizedQuizNotFoundException(quizId, "quiz is not finalized")
+            }
+            return quiz
+        } catch (e: QuestionSetNotFoundException) {
+            throw FinalizedQuizNotFoundException(quizId, "invalid quizId")
+        }
+    }
+
 }
 

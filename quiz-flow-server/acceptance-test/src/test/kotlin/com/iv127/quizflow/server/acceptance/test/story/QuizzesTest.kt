@@ -70,6 +70,70 @@ class QuizzesTest {
             ```
         """.trimIndent().encodeToByteArray()
 
+    @Test
+    fun testQuizResultCanBeProvidedOnlyForFinalizedQuizzes() = runTest {
+        val (user, password) = createUser()
+        val auth = authorizationRoutes.authorize(UsernamePasswordAuthorizationRequest(user.username, password))
+        val questionSet =
+            questionSetsRoutes.create(QuestionSetCreateRequest("Example of questionnaire", "Example of description"))
+
+        val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+            listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
+            questionSet.id
+        )
+        assertThat(questionsSetVersion.questions).hasSize(3)
+
+        val quizzes = arrayOf(true, false, true)
+            .map { finalized ->
+                val createdQuiz = quizzesRoutes.create(
+                    ApiAuthorizationTestImpl(auth),
+                    QuizCreateRequest(
+                        questionSet.id, questionsSetVersion.version,
+                        listOf(
+                            questionsSetVersion.questions[0].id,
+                            questionsSetVersion.questions[1].id,
+                            questionsSetVersion.questions[2].id,
+                        )
+                    )
+                )
+
+                quizzesRoutes.update(
+                    ApiAuthorizationTestImpl(auth), createdQuiz.id, QuizUpdateRequest(
+                        finalized,
+                        listOf(
+                            QuizAnswerRequest(questionsSetVersion.questions[0].id, listOf(1)),
+                            QuizAnswerRequest(questionsSetVersion.questions[1].id, listOf(1)),
+                        )
+                    )
+                )
+            }
+
+        val quizResults = quizResultsRoutes.list(ApiAuthorizationTestImpl(auth), null, null, null)
+
+        assertThat(quizResults)
+            .hasSize(2)
+            .anySatisfy({ assertThat(it.quizId).isEqualTo(quizzes[0].id) })
+            .anySatisfy({ assertThat(it.quizId).isEqualTo(quizzes[2].id) })
+
+        val e = assertThrows<RestErrorException> {
+            quizResultsRoutes.get(ApiAuthorizationTestImpl(auth), quizzes[1].id)
+        }
+        assertThat(e.httpStatusCode).isEqualTo(400)
+        assertThat(e.restErrorResponse.errorCode).isEqualTo("finalized_quiz_not_found")
+        assertThat(e.restErrorResponse.message).isEqualTo("Finalized quiz was not found")
+        assertThat(e.restErrorResponse.data).isEqualTo(
+            mapOf(
+                "quizId" to quizzes[1].id,
+                "reason" to "quiz is not finalized",
+            )
+        )
+        assertThat(quizResultsRoutes.get(ApiAuthorizationTestImpl(auth), quizResults[0].quizId))
+            .usingRecursiveComparison()
+            .isEqualTo(quizResults[0])
+        assertThat(quizResultsRoutes.get(ApiAuthorizationTestImpl(auth), quizResults[1].quizId))
+            .usingRecursiveComparison()
+            .isEqualTo(quizResults[1])
+    }
 
     @Test
     fun `test take a quiz and get result`() = runTest {
@@ -107,16 +171,21 @@ class QuizzesTest {
         )
 
         val evaluationResult = quizResultsRoutes.get(ApiAuthorizationTestImpl(auth), finalizedQuiz.id)
-        assertThat(evaluationResult).satisfies({ result ->
-            assertThat(result.quizId).isEqualTo(finalizedQuiz.id)
-            assertThat(result.questionSetId).isEqualTo(finalizedQuiz.questionSetId)
-            assertThat(result.questionSetVersion).isEqualTo(finalizedQuiz.questionSetVersion)
-            assertThat(result.quizCreatedDate).isEqualTo(finalizedQuiz.createdDate)
-            assertThat(result.quizFinalizedDate).isEqualTo(finalizedQuiz.finalizedDate)
-            assertThat(result.questionsCount).isEqualTo(3)
-            assertThat(result.answersCount).isEqualTo(2)
-            assertThat(result.correctAnswersCount).isEqualTo(1)
-        })
+        val evaluationResults = quizResultsRoutes.list(ApiAuthorizationTestImpl(auth), null, null, null)
+
+        assertThat(evaluationResults).hasSize(1)
+
+        assertThat(listOf(evaluationResult, evaluationResults[0]))
+            .allSatisfy({ result ->
+                assertThat(result.quizId).isEqualTo(finalizedQuiz.id)
+                assertThat(result.questionSetId).isEqualTo(finalizedQuiz.questionSetId)
+                assertThat(result.questionSetVersion).isEqualTo(finalizedQuiz.questionSetVersion)
+                assertThat(result.quizCreatedDate).isEqualTo(finalizedQuiz.createdDate)
+                assertThat(result.quizFinalizedDate).isEqualTo(finalizedQuiz.finalizedDate)
+                assertThat(result.questionsCount).isEqualTo(3)
+                assertThat(result.answersCount).isEqualTo(2)
+                assertThat(result.correctAnswersCount).isEqualTo(1)
+            })
     }
 
     @Test

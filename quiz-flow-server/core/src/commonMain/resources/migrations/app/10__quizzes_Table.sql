@@ -13,4 +13,4 @@ CREATE TABLE quizzes (
 
 CREATE UNIQUE INDEX uidx_quizzes_id ON quizzes(id);
 CREATE INDEX idx_quizzes_question_set_id_question_set_version ON quizzes(question_set_id, question_set_version);
-CREATE INDEX idx_quizzes_user_id ON quizzes(user_id);
+CREATE INDEX idx_quizzes_user_id_finalized_at ON quizzes(user_id, finalized_at);

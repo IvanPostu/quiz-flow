@@ -5,8 +5,17 @@ import com.iv127.quizflow.core.model.question.Question
 import com.iv127.quizflow.core.model.question.QuestionSetVersion
 import com.iv127.quizflow.core.model.quizz.Quiz
 import com.iv127.quizflow.core.model.quizz.QuizBuilder
+import com.iv127.quizflow.core.rest.api.SortOrder
 
 interface QuizService {
+
+    fun getQuizList(
+        authorization: Authorization,
+        offset: Int,
+        limit: Int,
+        sortOrder: SortOrder,
+        finalizedOnly: Boolean = false
+    ): List<Quiz>
 
     fun getQuiz(
         authorization: Authorization,

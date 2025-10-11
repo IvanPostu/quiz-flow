@@ -18,7 +18,7 @@ class QuizBuilder {
     val quizQuestionsById: Map<String, Question>
 
     private val quizAnswers: MutableList<QuizAnswer> = mutableListOf()
-    private var finalizedDate: Instant
+    private var finalizedDate: Instant? = null
 
     constructor(userId: String, questionSetVersion: QuestionSetVersion, questions: List<Question>) {
         this.id = UUIDv4.generate()
@@ -26,7 +26,6 @@ class QuizBuilder {
         this.questionSetId = questionSetVersion.id
         this.questionSetVersion = questionSetVersion.version
         this.createdDate = Clock.System.now()
-        this.finalizedDate = Instant.DISTANT_PAST
         this.quizQuestionsById = questions.associateBy { item -> item.id }
     }
 

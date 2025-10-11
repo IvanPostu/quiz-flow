@@ -14,11 +14,11 @@ data class Quiz(
     @SerialName("question_set_id") val questionSetId: String,
     @SerialName("question_set_version") val questionSetVersion: Int,
     @SerialName("created_date") @Serializable(with = InstantSerializer::class) val createdDate: Instant,
-    @SerialName("finalized_date") @Serializable(with = InstantSerializer::class) val finalizedDate: Instant,
+    @SerialName("finalized_date") @Serializable(with = InstantSerializer::class) val finalizedDate: Instant?,
     @SerialName("quiz_questions") val quizQuestions: List<QuizQuestion>,
     @SerialName("quiz_answers") val quizAnswers: List<QuizAnswer>,
 ) {
 
-    fun isFinalized(): Boolean = Instant.DISTANT_PAST != finalizedDate
+    fun isFinalized(): Boolean = null != finalizedDate
 
 }

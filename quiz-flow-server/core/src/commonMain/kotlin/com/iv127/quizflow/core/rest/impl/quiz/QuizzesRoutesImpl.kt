@@ -31,7 +31,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 import org.koin.core.KoinApplication
 
 @OptIn(ExperimentalTime::class)
@@ -137,13 +136,13 @@ class QuizzesRoutesImpl(koinApp: KoinApplication) : QuizzesRoutes, ApiRoute {
     }
 
     private fun mapToQuizResponse(quiz: Quiz, questionsById: Map<String, Question>): QuizResponse {
-        val isFinalized = quiz.finalizedDate != Instant.DISTANT_PAST
+        val isFinalized = quiz.finalizedDate != null
         return QuizResponse(
             quiz.id,
             quiz.questionSetId,
             quiz.questionSetVersion,
             quiz.createdDate,
-            if (isFinalized) quiz.finalizedDate else null,
+            quiz.finalizedDate,
             isFinalized,
             quiz.quizQuestions.map { mapQuestionToResponse(questionsById[it.questionId]!!) },
             quiz.quizAnswers.map { mapAnswerToResponse(it) }

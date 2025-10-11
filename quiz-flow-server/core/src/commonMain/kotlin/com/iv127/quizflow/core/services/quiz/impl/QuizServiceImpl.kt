@@ -7,6 +7,7 @@ import com.iv127.quizflow.core.model.quizz.FinalizedQuizUpdateException
 import com.iv127.quizflow.core.model.quizz.Quiz
 import com.iv127.quizflow.core.model.quizz.QuizBuilder
 import com.iv127.quizflow.core.model.quizz.QuizNotFoundException
+import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.services.quiz.QuizService
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.SqliteTimestampUtils
@@ -15,6 +16,62 @@ import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalTime::class)
 class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizService {
+
+    override fun getQuizList(
+        authorization: Authorization,
+        offset: Int,
+        limit: Int,
+        sortOrder: SortOrder,
+        finalizedOnly: Boolean
+    ): List<Quiz> {
+        val userId = authorization.userId
+        val isAscSortOrder = SortOrder.ASC == sortOrder
+        val finalizedOnlyOrTrue = if (finalizedOnly) " finalized_at IS NOT NULL " else " 1=1 "
+
+        return dbSupplier().use { db ->
+            val offsetPrimaryKey: Int
+            if (isAscSortOrder) {
+                offsetPrimaryKey = db.executeAndGetResultSet(
+                    """
+                    SELECT IFNULL(MAX(t1.primary_key), ?) AS offset_value FROM (
+                        SELECT t.primary_key 
+                        FROM quizzes AS t
+                        WHERE t.user_id=? AND $finalizedOnlyOrTrue
+                        ORDER BY t.primary_key ASC LIMIT ?
+                    ) t1;
+                    """.trimIndent(),
+                    listOf(0, userId, offset)
+                ).first()["offset_value"]!!.toInt()
+            } else {
+                offsetPrimaryKey = db.executeAndGetResultSet(
+                    """
+                    SELECT IFNULL(MIN(t1.primary_key), ?) AS offset_value FROM (
+                        SELECT t.primary_key 
+                        FROM quizzes AS t
+                        WHERE t.user_id=? AND $finalizedOnlyOrTrue
+                        ORDER BY t.primary_key DESC LIMIT ?
+                    ) t1;
+                    """.trimIndent(),
+                    listOf(Int.MAX_VALUE, userId, offset)
+                ).first()["offset_value"]!!.toInt()
+            }
+
+            db.executeAndGetResultSet(
+                """
+                    SELECT t.* FROM quizzes AS t 
+                    WHERE t.primary_key ${if (isAscSortOrder) ">" else "<"} ? 
+                        AND t.user_id=? 
+                        AND $finalizedOnlyOrTrue
+                    ORDER BY t.primary_key ${if (isAscSortOrder) "ASC" else "DESC"}
+                    LIMIT ?;
+                """.trimIndent(),
+                listOf(offsetPrimaryKey, userId, limit)
+            ).map { record ->
+                val deserialized: Quiz = Json.decodeFromString(record["json"].toString())
+                deserialized
+            }
+        }
+    }
 
     override fun getQuiz(authorization: Authorization, quizId: String): Quiz {
         return dbSupplier().use { db ->
@@ -51,7 +108,7 @@ class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizServic
                     quiz.questionSetId,
                     quiz.questionSetVersion,
                     SqliteTimestampUtils.toValue(quiz.createdDate),
-                    SqliteTimestampUtils.toValue(quiz.finalizedDate),
+                    if (quiz.finalizedDate != null) SqliteTimestampUtils.toValue(quiz.finalizedDate) else null,
                     Json.encodeToString(quiz)
                 )
             )
@@ -87,7 +144,7 @@ class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizServic
                 """.trimIndent(),
                 listOf<Any?>
                     (
-                    SqliteTimestampUtils.toValue(quiz.finalizedDate),
+                    if (quiz.finalizedDate != null) SqliteTimestampUtils.toValue(quiz.finalizedDate) else null,
                     Json.encodeToString(quiz),
                     quiz.id
                 )
