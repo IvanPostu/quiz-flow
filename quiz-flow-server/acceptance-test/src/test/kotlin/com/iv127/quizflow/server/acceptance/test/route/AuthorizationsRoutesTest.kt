@@ -3,7 +3,7 @@ package com.iv127.quizflow.server.acceptance.test.route
 import com.iv127.quizflow.core.rest.api.authorization.AuthorizationScopeResponse
 import com.iv127.quizflow.core.rest.api.authorization.UsernamePasswordAuthorizationRequest
 import com.iv127.quizflow.server.acceptance.test.rest.RestErrorException
-import com.iv127.quizflow.server.acceptance.test.rest.impl.AuthorizationRoutesTestImpl
+import com.iv127.quizflow.server.acceptance.test.rest.impl.AuthorizationsRoutesTestImpl
 import kotlin.time.Duration.Companion.days
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.test.runTest
@@ -14,7 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 
 @OptIn(ExperimentalTime::class)
-class AuthorizationRoutesTest {
+class AuthorizationsRoutesTest {
 
     @CsvSource(
         value = arrayOf(
@@ -28,7 +28,7 @@ class AuthorizationRoutesTest {
     )
     @ParameterizedTest
     fun testAuthorizeWithInvalidUsernameOrPassword(username: String, password: String) = runTest {
-        val authorizationRoutes = AuthorizationRoutesTestImpl()
+        val authorizationRoutes = AuthorizationsRoutesTestImpl()
         val e = assertThrows<RestErrorException> {
             authorizationRoutes.authorize(UsernamePasswordAuthorizationRequest("admin1", "admin"))
         }
@@ -47,7 +47,7 @@ class AuthorizationRoutesTest {
 
     @Test
     fun testAuthorizeAsSuperAdmin() = runTest {
-        val authorizationRoutes = AuthorizationRoutesTestImpl()
+        val authorizationRoutes = AuthorizationsRoutesTestImpl()
         val adminAuthorization = authorizationRoutes
             .authorize(UsernamePasswordAuthorizationRequest("super_admin", "super_admin"))
 

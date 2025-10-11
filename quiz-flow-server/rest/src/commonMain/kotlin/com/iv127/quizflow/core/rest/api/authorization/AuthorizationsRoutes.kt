@@ -1,6 +1,6 @@
 package com.iv127.quizflow.core.rest.api.authorization
 
-interface AuthorizationRoutes {
+interface AuthorizationsRoutes {
 
     companion object {
         const val ROUTE_PATH: String = "/authorizations"

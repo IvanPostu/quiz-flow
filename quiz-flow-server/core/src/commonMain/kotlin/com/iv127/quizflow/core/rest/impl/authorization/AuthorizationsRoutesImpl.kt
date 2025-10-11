@@ -4,8 +4,8 @@ import com.iv127.quizflow.core.model.User
 import com.iv127.quizflow.core.model.authorization.Authorization
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.authorization.AuthorizationResponse
-import com.iv127.quizflow.core.rest.api.authorization.AuthorizationRoutes
-import com.iv127.quizflow.core.rest.api.authorization.AuthorizationRoutes.Companion.ROUTE_PATH
+import com.iv127.quizflow.core.rest.api.authorization.AuthorizationsRoutes
+import com.iv127.quizflow.core.rest.api.authorization.AuthorizationsRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.rest.api.authorization.AuthorizationScopeResponse
 import com.iv127.quizflow.core.rest.api.authorization.UsernamePasswordAuthorizationRequest
 import com.iv127.quizflow.core.security.AuthenticationException
@@ -22,7 +22,7 @@ import kotlin.time.ExperimentalTime
 import org.koin.core.KoinApplication
 
 @OptIn(ExperimentalTime::class)
-class AuthorizationRoutesImpl(koinApp: KoinApplication) : AuthorizationRoutes, ApiRoute {
+class AuthorizationsRoutesImpl(koinApp: KoinApplication) : AuthorizationsRoutes, ApiRoute {
 
     private val authorizationService: AuthorizationService by koinApp.koin.inject()
     private val userService: UserService by koinApp.koin.inject()

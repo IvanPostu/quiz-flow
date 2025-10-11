@@ -73,7 +73,8 @@ class QuizBuilder {
             val unknownAnswerIndices = answer.chosenAnswerIndexes.filterNot { it in existingAnswerIndices }
             if (unknownAnswerIndices.isNotEmpty()) {
                 throw InvalidQuizAnswerException(
-                    $unknownAnswerIndices
+
+                    "Answer with id: ${answer.questionId} has unknown answer indexes: $unknownAnswerIndices"
                 )
             }
         }

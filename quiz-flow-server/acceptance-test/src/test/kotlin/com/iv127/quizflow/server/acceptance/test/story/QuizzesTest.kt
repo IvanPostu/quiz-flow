@@ -16,7 +16,7 @@ import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
 import com.iv127.quizflow.core.rest.api.user.UserResponse
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes
 import com.iv127.quizflow.server.acceptance.test.rest.RestErrorException
-import com.iv127.quizflow.server.acceptance.test.rest.impl.AuthorizationRoutesTestImpl
+import com.iv127.quizflow.server.acceptance.test.rest.impl.AuthorizationsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionSetsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuizzesRoutesTestImpl
@@ -29,7 +29,7 @@ import org.junit.jupiter.api.assertThrows
 
 class QuizzesTest {
 
-    private val authorizationRoutes = AuthorizationRoutesTestImpl()
+    private val authorizationRoutes = AuthorizationsRoutesTestImpl()
     private val questionSetsRoutes: QuestionSetsRoutes = QuestionSetsRoutesTestImpl()
     private val questionsRoutes: QuestionsRoutes = QuestionsRoutesTestImpl()
     private val usersRoutes: UsersRoutes = UsersRoutesTestImpl()

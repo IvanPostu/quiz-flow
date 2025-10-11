@@ -5,7 +5,7 @@ import com.iv127.quizflow.core.ktor.AuthorizationPlugin
 import com.iv127.quizflow.core.ktor.CustomStatusPagesConfig
 import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.rest.ApiRoute
-import com.iv127.quizflow.core.rest.impl.authorization.AuthorizationRoutesImpl
+import com.iv127.quizflow.core.rest.impl.authorization.AuthorizationsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.healthcheck.HealthCheckRoutesImpl
 import com.iv127.quizflow.core.rest.impl.question.QuestionsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.questionset.QuestionSetsRoutesImpl
@@ -100,7 +100,7 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         QuestionSetsRoutesImpl(koinApp),
         UsersRoutesImpl(koinApp),
         QuestionsRoutesImpl(koinApp),
-        AuthorizationRoutesImpl(koinApp),
+        AuthorizationsRoutesImpl(koinApp),
         QuizzesRoutesImpl(koinApp)
     )
     val processUtils = platformServices.getProcessUtils()

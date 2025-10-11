@@ -4,7 +4,7 @@ import com.iv127.quizflow.core.rest.api.authorization.UsernamePasswordAuthorizat
 import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes
 import com.iv127.quizflow.server.acceptance.test.rest.RestErrorException
-import com.iv127.quizflow.server.acceptance.test.rest.impl.AuthorizationRoutesTestImpl
+import com.iv127.quizflow.server.acceptance.test.rest.impl.AuthorizationsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.UsersRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.security.ApiAuthorizationTestImpl
 import kotlinx.coroutines.test.runTest
@@ -16,7 +16,7 @@ class UsersRoutesTest {
 
     companion object {
         private val USER_ROUTES: UsersRoutes = UsersRoutesTestImpl()
-        private val AUTHORIZATION_ROUTES = AuthorizationRoutesTestImpl()
+        private val AUTHORIZATION_ROUTES = AuthorizationsRoutesTestImpl()
     }
 
     @Test
