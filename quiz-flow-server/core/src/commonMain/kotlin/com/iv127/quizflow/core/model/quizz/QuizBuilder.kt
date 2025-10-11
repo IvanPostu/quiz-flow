@@ -38,7 +38,7 @@ class QuizBuilder {
         this.questionSetVersion = quiz.questionSetVersion
         this.createdDate = quiz.createdDate
         this.finalizedDate = quiz.finalizedDate
-        this.quizQuestionsById = quiz.quizQuestionIds.associateWith { questionsById[it]!! }
+        this.quizQuestionsById = quiz.quizQuestions.associate { it.questionId to questionsById[it.questionId]!! }
     }
 
     fun withAnswers(answers: List<QuizAnswer>) {
@@ -59,7 +59,7 @@ class QuizBuilder {
             questionSetVersion = questionSetVersion,
             createdDate = createdDate,
             finalizedDate = finalizedDate,
-            quizQuestionIds = quizQuestionsById.keys.toList(),
+            quizQuestions = quizQuestionsById.values.map { QuizQuestion(it.id, it.correctAnswerIndexes) },
             quizAnswers = quizAnswers.toList()
         )
     }

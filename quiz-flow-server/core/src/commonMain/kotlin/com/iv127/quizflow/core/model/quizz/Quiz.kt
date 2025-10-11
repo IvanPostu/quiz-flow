@@ -15,7 +15,7 @@ data class Quiz(
     @SerialName("question_set_version") val questionSetVersion: Int,
     @SerialName("created_date") @Serializable(with = InstantSerializer::class) val createdDate: Instant,
     @SerialName("finalized_date") @Serializable(with = InstantSerializer::class) val finalizedDate: Instant,
-    @SerialName("quiz_question_ids") val quizQuestionIds: List<String>,
+    @SerialName("quiz_questions") val quizQuestions: List<QuizQuestion>,
     @SerialName("quiz_answers") val quizAnswers: List<QuizAnswer>,
 ) {
 

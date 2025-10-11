@@ -12,6 +12,7 @@ import com.iv127.quizflow.core.rest.api.quiz.QuizCreateRequest
 import com.iv127.quizflow.core.rest.api.quiz.QuizQuestionResponse
 import com.iv127.quizflow.core.rest.api.quiz.QuizUpdateRequest
 import com.iv127.quizflow.core.rest.api.quiz.QuizzesRoutes
+import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutes
 import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
 import com.iv127.quizflow.core.rest.api.user.UserResponse
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes
@@ -19,14 +20,17 @@ import com.iv127.quizflow.server.acceptance.test.rest.RestErrorException
 import com.iv127.quizflow.server.acceptance.test.rest.impl.AuthorizationsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionSetsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionsRoutesTestImpl
+import com.iv127.quizflow.server.acceptance.test.rest.impl.QuizResultsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuizzesRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.UsersRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.security.ApiAuthorizationTestImpl
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
+@OptIn(ExperimentalTime::class)
 class QuizzesTest {
 
     private val authorizationRoutes = AuthorizationsRoutesTestImpl()
@@ -34,6 +38,7 @@ class QuizzesTest {
     private val questionsRoutes: QuestionsRoutes = QuestionsRoutesTestImpl()
     private val usersRoutes: UsersRoutes = UsersRoutesTestImpl()
     private val quizzesRoutes: QuizzesRoutes = QuizzesRoutesTestImpl()
+    private val quizResultsRoutes: QuizResultsRoutes = QuizResultsRoutesTestImpl()
 
     private val questionsContent = """
             ```
@@ -64,6 +69,55 @@ class QuizzesTest {
             The right answers
             ```
         """.trimIndent().encodeToByteArray()
+
+
+    @Test
+    fun `test take a quiz and get result`() = runTest {
+        val (user, password) = createUser()
+        val auth = authorizationRoutes.authorize(UsernamePasswordAuthorizationRequest(user.username, password))
+        val questionSet =
+            questionSetsRoutes.create(QuestionSetCreateRequest("Example of questionnaire", "Example of description"))
+
+        val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+            listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
+            questionSet.id
+        )
+        assertThat(questionsSetVersion.questions).hasSize(3)
+
+        val createdQuiz = quizzesRoutes.create(
+            ApiAuthorizationTestImpl(auth),
+            QuizCreateRequest(
+                questionSet.id, questionsSetVersion.version,
+                listOf(
+                    questionsSetVersion.questions[0].id,
+                    questionsSetVersion.questions[1].id,
+                    questionsSetVersion.questions[2].id,
+                )
+            )
+        )
+
+        val finalizedQuiz = quizzesRoutes.update(
+            ApiAuthorizationTestImpl(auth), createdQuiz.id, QuizUpdateRequest(
+                true,
+                listOf(
+                    QuizAnswerRequest(questionsSetVersion.questions[0].id, listOf(1)),
+                    QuizAnswerRequest(questionsSetVersion.questions[1].id, listOf(1)),
+                )
+            )
+        )
+
+        val evaluationResult = quizResultsRoutes.get(ApiAuthorizationTestImpl(auth), finalizedQuiz.id)
+        assertThat(evaluationResult).satisfies({ result ->
+            assertThat(result.quizId).isEqualTo(finalizedQuiz.id)
+            assertThat(result.questionSetId).isEqualTo(finalizedQuiz.questionSetId)
+            assertThat(result.questionSetVersion).isEqualTo(finalizedQuiz.questionSetVersion)
+            assertThat(result.quizCreatedDate).isEqualTo(finalizedQuiz.createdDate)
+            assertThat(result.quizFinalizedDate).isEqualTo(finalizedQuiz.finalizedDate)
+            assertThat(result.questionsCount).isEqualTo(3)
+            assertThat(result.answersCount).isEqualTo(2)
+            assertThat(result.correctAnswersCount).isEqualTo(1)
+        })
+    }
 
     @Test
     fun testAttemptToSelectInvalidAnswer() = runTest {

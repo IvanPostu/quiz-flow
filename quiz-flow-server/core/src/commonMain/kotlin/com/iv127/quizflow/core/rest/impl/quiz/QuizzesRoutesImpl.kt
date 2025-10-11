@@ -100,7 +100,9 @@ class QuizzesRoutesImpl(koinApp: KoinApplication) : QuizzesRoutes, ApiRoute {
             val updatedQuiz = quizService
                 .updateQuiz(authorization, quizId, questionSetVersion) { quizBuilder ->
                     quizBuilder.withAnswers(
-                        request.quizAnswerRequests.map { QuizAnswer(it.questionId, it.chosenAnswerIndexes) }
+                        request.quizAnswerRequests.map {
+                            QuizAnswer(it.questionId, it.chosenAnswerIndexes)
+                        }
                     )
                     if (request.finalize) {
                         quizBuilder.withFinalized()
@@ -143,7 +145,7 @@ class QuizzesRoutesImpl(koinApp: KoinApplication) : QuizzesRoutes, ApiRoute {
             quiz.createdDate,
             if (isFinalized) quiz.finalizedDate else null,
             isFinalized,
-            quiz.quizQuestionIds.map { mapQuestionToResponse(questionsById[it]!!) },
+            quiz.quizQuestions.map { mapQuestionToResponse(questionsById[it.questionId]!!) },
             quiz.quizAnswers.map { mapAnswerToResponse(it) }
         )
     }
