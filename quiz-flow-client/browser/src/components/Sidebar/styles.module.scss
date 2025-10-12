@@ -1,0 +1,88 @@
+.sidebarCollapsed {
+  margin-left: -264px;
+}
+
+.sidebarRoot {
+  max-width: 264px;
+  min-width: 264px;
+  transition: all 0.35s ease-in-out;
+  box-shadow: 0 0 35px 0 rgba(48, 57, 66, 0.6);
+  padding: 1rem 0;
+
+  .sidebarContainer {
+    height: 100% !important;
+    width: 100% !important;
+    // position: fixed;
+  }
+
+  .sidebarLogo {
+    padding: 1.15rem 1.5rem;
+  }
+
+  .sidebarLogo a {
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+
+  .sidebarNav {
+    color: inherit;
+  }
+
+  /* Style for sidebar nav */
+
+  .sidebarHeader {
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 1.5rem 1.5rem 0.375rem;
+  }
+
+  a.sidebarLink {
+    padding: 0.625rem 1.625rem;
+    color: #fff;
+    position: relative;
+    display: block;
+    font-size: 1rem;
+  }
+
+  .sidebarLink i {
+    padding-right: 0.5rem;
+  }
+
+  /* Style for dropdown toggle and icon */
+
+  .sidebarItem .sidebarDropdown {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 200ms linear, max-height 200ms linear;
+    will-change: opacity, max-height;
+    color: #fff;
+    padding: 0 25px;
+  }
+
+  .sidebarLink.hasDropdown::after {
+    content: "";
+    display: inline-block;
+    padding: 2px;
+    position: absolute;
+    right: 1.5rem;
+    top: 1.4rem;
+    transform: rotate(45deg);
+    transition: all 0.2s ease-out;
+    border: solid;
+    border-width: 0 0.075rem 0.075rem 0;
+  }
+
+  .sidebarLink.hasDropdown.active::after {
+    transform: rotate(-135deg);
+    transition: all 0.2s ease-out;
+  }
+
+  .sidebarItem .hasDropdown.active + .sidebarDropdown {
+    opacity: 1;
+    max-height: 15em;
+    transition: all 200ms linear;
+    will-change: opacity, max-height;
+  }
+}

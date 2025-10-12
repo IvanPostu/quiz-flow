@@ -119,3 +119,4 @@ java -jar $PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0
 21. <https://www.npmjs.com/package/uuidv7>
 22. <https://github.com/huarangmeng/uuid>
 23. <https://docs.gradle.org/current/userguide/gradle_wrapper.html#sec:upgrading_wrapper>
+24. <https://github.com/codzsword/sidebar-html-css-js>
