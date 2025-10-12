@@ -1,42 +1,100 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const webpack = require("webpack");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
-module.exports = {
-    mode: "development",
+module.exports = (env, argv) => {
+  const isProduction = argv.mode === "production";
+  console.log(`isProduction=${isProduction}`);
+
+  return {
+    mode: isProduction ? "production" : "development",
     entry: path.resolve(__dirname, "src", "index.ts"),
     output: {
-        path: path.resolve(__dirname, "dist/public"),
-        filename: "bundle.js",
-        publicPath: "/public/",
-        clean: true
+      path: path.resolve(__dirname, "dist/public"),
+      filename: isProduction ? "[name]-[contenthash].js" : "[name].js",
+      publicPath: isProduction ? "/public/" : "",
+      clean: true,
     },
     resolve: {
-        extensions: [".tsx", ".ts", ".js"]
+      extensions: [".tsx", ".ts", ".js"],
+      alias: {
+        src: path.resolve(__dirname, "src"),
+      },
     },
     module: {
-        rules: [
+      rules: [
+        {
+          test: /\.(ts|tsx)$/,
+          exclude: /node_modules/,
+          use: "ts-loader",
+        },
+        {
+          test: /\.css$/,
+          use: [
+            isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+            "css-loader",
+          ],
+        },
+        {
+          test: /\.module\.scss$/,
+          use: [
+            isProduction ? MiniCssExtractPlugin.loader : "style-loader",
             {
-                test: /\.(ts|tsx)$/,
-                exclude: /node_modules/,
-                use: "ts-loader"
+              loader: "css-loader",
+              options: {
+                modules: {
+                  localIdentName: isProduction
+                    ? "[hash:base64:5]"
+                    : "[name]__[local]___[hash:base64:5]",
+                },
+              },
             },
-            {
-                test: /\.css$/,
-                use: ["style-loader", "css-loader"]
-            }
-        ]
+            "sass-loader",
+          ],
+        },
+        {
+          test: /\.scss$/,
+          exclude: /\.module\.scss$/,
+          use: [
+            isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+            "css-loader",
+            "sass-loader",
+          ],
+        },
+      ],
     },
     plugins: [
-        new HtmlWebpackPlugin({
-            template: "./public/index.html"
-        })
+      new HtmlWebpackPlugin({
+        template: path.join(__dirname, "public", "index.html"),
+      }),
+      new webpack.SourceMapDevToolPlugin({}),
+      new MiniCssExtractPlugin({
+        filename: isProduction ? "[name]-[contenthash].css" : "[name].css",
+      }),
     ],
+    stats: {
+      errorDetails: !isProduction,
+    },
+    devtool: false,
     devServer: {
-        static: path.join(__dirname, "public"),
-        compress: true,
-        port: 3000,
-        historyApiFallback: true,
-        hot: true,
-        open: false
-    }
-}
+      static: path.join(__dirname, "public"),
+      compress: true,
+      port: 3000,
+      historyApiFallback: true,
+      hot: true,
+      open: false,
+      proxy: [
+        {
+          context: ["/api"],
+          target: "http://127.0.0.1:9000",
+          secure: false,
+          changeOrigin: true,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        },
+      ],
+    },
+  };
+};
