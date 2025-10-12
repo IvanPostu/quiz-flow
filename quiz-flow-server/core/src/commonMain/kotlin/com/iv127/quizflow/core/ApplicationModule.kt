@@ -35,7 +35,6 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.uri
 import io.ktor.server.response.respondBytes
-import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
@@ -150,7 +149,7 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
                     if (match == null) {
                         call.respond(HttpStatusCode.NotFound, typeInfo = null)
                     } else {
-                        call.respondRedirect("/", permanent = false)
+                        call.respondBytes(staticFilesProviderPlugin.getIndexHtmlStaticFileOrElse("Index html is missing!"))
                     }
                 }
             }

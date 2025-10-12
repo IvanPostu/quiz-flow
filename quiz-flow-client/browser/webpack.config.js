@@ -7,6 +7,18 @@ module.exports = (env, argv) => {
   const isProduction = argv.mode === "production";
   console.log(`isProduction=${isProduction}`);
 
+  const pluginsArray = [
+    new HtmlWebpackPlugin({
+      template: path.join(__dirname, "public", "index.html"),
+    }),
+    new MiniCssExtractPlugin({
+      filename: isProduction ? "[name]-[contenthash].css" : "[name].css",
+    }),
+  ];
+  if (!isProduction) {
+    pluginsArray.push(new webpack.SourceMapDevToolPlugin({}));
+  }
+
   return {
     mode: isProduction ? "production" : "development",
     entry: path.resolve(__dirname, "src", "index.ts"),
@@ -64,15 +76,7 @@ module.exports = (env, argv) => {
         },
       ],
     },
-    plugins: [
-      new HtmlWebpackPlugin({
-        template: path.join(__dirname, "public", "index.html"),
-      }),
-      new webpack.SourceMapDevToolPlugin({}),
-      new MiniCssExtractPlugin({
-        filename: isProduction ? "[name]-[contenthash].css" : "[name].css",
-      }),
-    ],
+    plugins: pluginsArray,
     stats: {
       errorDetails: !isProduction,
     },
