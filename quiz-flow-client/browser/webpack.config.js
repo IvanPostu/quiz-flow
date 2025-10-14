@@ -49,6 +49,15 @@ module.exports = (env, argv) => {
           ],
         },
         {
+          test: /\.scss$/,
+          exclude: /\.module\.scss$/,
+          use: [
+            isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+            "css-loader",
+            "sass-loader",
+          ],
+        },
+        {
           test: /\.module\.scss$/,
           use: [
             isProduction ? MiniCssExtractPlugin.loader : "style-loader",
@@ -66,13 +75,8 @@ module.exports = (env, argv) => {
           ],
         },
         {
-          test: /\.scss$/,
-          exclude: /\.module\.scss$/,
-          use: [
-            isProduction ? MiniCssExtractPlugin.loader : "style-loader",
-            "css-loader",
-            "sass-loader",
-          ],
+          test: /\.(woff|woff2|eot|ttf|otf)$/i,
+          type: 'asset/resource',
         },
       ],
     },
