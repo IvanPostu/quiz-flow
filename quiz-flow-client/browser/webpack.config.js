@@ -2,10 +2,12 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 
 module.exports = (env, argv) => {
-  const isProduction = argv.mode === "production";
-  console.log(`isProduction=${isProduction}`);
+  const isProduction = process.env.NODE_ENV === "production";
+  const buildAnalyze = process.env.BUILD_ANALYZE === "true";
+  console.log(`isProduction=${isProduction},buildAnalyze=${buildAnalyze}`);
 
   const pluginsArray = [
     new HtmlWebpackPlugin({
@@ -17,6 +19,15 @@ module.exports = (env, argv) => {
   ];
   if (!isProduction) {
     pluginsArray.push(new webpack.SourceMapDevToolPlugin({}));
+  }
+  if (buildAnalyze) {
+    pluginsArray.push(
+      new BundleAnalyzerPlugin({
+        analyzerMode: "static",
+        openAnalyzer: false,
+        reportFilename: "report.html",
+      })
+    );
   }
 
   return {
@@ -76,13 +87,16 @@ module.exports = (env, argv) => {
         },
         {
           test: /\.(woff|woff2|eot|ttf|otf)$/i,
-          type: 'asset/resource',
+          type: "asset/resource",
         },
       ],
     },
     plugins: pluginsArray,
     stats: {
       errorDetails: !isProduction,
+      modules: true,
+      reasons: true,
+      chunkModules: true,
     },
     devtool: false,
     devServer: {

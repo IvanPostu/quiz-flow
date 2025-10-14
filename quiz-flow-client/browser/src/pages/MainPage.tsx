@@ -1,10 +1,48 @@
 import { Fragment } from "react";
 import { Container } from "src/components/Container/Container";
 
+import { useAppSelector, useAppDispatch } from "src/redux";
+import {
+  increment,
+  decrement,
+  incrementByAmount,
+} from "src/redux/counter/counterSlice";
+
 export const MainPage = () => {
+  const count = useAppSelector((state) => state.counter.value);
+  const dispatch = useAppDispatch();
+
   return (
     <Fragment>
       <Container>
+        <div>
+          <div>
+            <b>Counter:</b>
+            <span>{count}</span>
+          </div>
+          <button
+            onClick={() => {
+              dispatch(increment());
+            }}
+          >
+            Increment
+          </button>
+          <button
+            onClick={() => {
+              dispatch(decrement());
+            }}
+          >
+            Decrement
+          </button>
+          <button
+            onClick={() => {
+              dispatch(incrementByAmount(10));
+            }}
+          >
+            Add 10
+          </button>
+        </div>
+
         <div>
           Lorem, ipsum dolor sit amet consectetur adipisicing elit. Rerum
           temporibus voluptates sint excepturi. Rerum earum suscipit deleniti
