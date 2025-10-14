@@ -1,0 +1,29 @@
+@use "src/mixins/mixins";
+
+.containerRoot {
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+  
+    @include mixins.mq-up(sm) {
+      max-width: 540px;
+    }
+  
+    @include mixins.mq-up(md) {
+      max-width: 720px;
+    }
+  
+    @include mixins.mq-up(lg) {
+      max-width: 960px;
+    }
+  
+    @include mixins.mq-up(xl) {
+      max-width: 1140px;
+    }
+  
+    @include mixins.mq-up(xxl) {
+      max-width: 1320px;
+    }
+}
