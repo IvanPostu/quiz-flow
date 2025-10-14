@@ -37,7 +37,6 @@ export const Sidebar = (props: SidebarPropsType) => {
 
   return (
     <aside
-      id="sidebar"
       className={`${styles.sidebarRoot} ${
         props.sidebarIsShown ? "" : styles.sidebarCollapsed
       }`}

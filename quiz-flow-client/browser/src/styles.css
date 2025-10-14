@@ -1,13 +1,36 @@
+:root {
+  --white: #ffffff;
+  --off-white: #f9f9f9;
+  --light-gray: #f0f0f0;
+
+  --gray-100: #e0e0e0;
+  --gray-200: #cccccc;
+  --gray-300: #999999;
+  --gray-400: #666666;
+  --gray-500: #333333;
+
+  --blue-light: #d0e8ff;
+  --blue: #007bff;
+  --blue-muted: #6699cc;
+  --blue-dark: #0056b3;
+  --blue-darker: #003d80;
+  --blue-deep: #002b5c;
+
+  --dark: #1a1a1a;
+  --dark-gray: #2c2c2c;
+  --black: #000000;
+
+  --accent-green: #28a745;
+  --accent-red: #dc3545;
+  --accent-yellow: #ffc107;
+}
+
 *,
 ::after,
 ::before {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
-}
-
-body {
-  background-color: grey;
 }
 
 a {
@@ -50,7 +73,6 @@ li {
 }
 
 .toggle-btn i {
-  color: #fff;
   font-size: 1.5rem;
 }
 
