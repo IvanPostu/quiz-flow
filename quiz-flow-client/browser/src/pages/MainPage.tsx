@@ -1,12 +1,13 @@
 import { Fragment } from "react";
 import { Container } from "src/components/Container/Container";
+import { QuestionSetContainer } from "src/components/QuestionSetContainer/QuestionSetContainer";
 
 import { useAppSelector, useAppDispatch } from "src/redux";
 import {
   increment,
   decrement,
   incrementByAmount,
-  incrementAsync
+  incrementAsync,
 } from "src/redux/counter/counterSlice";
 
 export const MainPage = () => {
@@ -17,7 +18,9 @@ export const MainPage = () => {
   return (
     <Fragment>
       <Container>
-        <div>
+        <QuestionSetContainer />
+
+        <div style={{ marginTop: "600px" }}>
           <div>
             <b>Counter:</b>
             <span>{count}</span>

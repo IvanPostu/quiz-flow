@@ -38,6 +38,10 @@ function LayoutSidebar(props: { sidebarIsShown: boolean }) {
           headerText: "Pages",
           items: [
             {
+              text: "Main",
+              icon: "home",
+            },
+            {
               text: "Profile",
               icon: "person",
             },

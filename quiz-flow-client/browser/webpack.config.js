@@ -2,8 +2,8 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 
 module.exports = (env, argv) => {
@@ -116,14 +116,14 @@ module.exports = (env, argv) => {
         new CssMinimizerPlugin(), // Minifies CSS
       ],
       splitChunks: {
-        chunks: 'all',
+        chunks: "all",
       },
       runtimeChunk: {
-        name: 'runtime',
+        name: "runtime",
       },
     },
     performance: {
-      hints: 'warning', // Or false to disable
+      hints: isProduction ? "warning" : false, // Or false to disable
     },
     devtool: false,
     devServer: {

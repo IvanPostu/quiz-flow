@@ -1,0 +1,50 @@
+.rootContainer {
+    background-color: var(--white);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 100%;
+    margin: 0 auto;
+    box-shadow: var(--grey-border-box-shadow);
+
+  .title {
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .card {
+    border-bottom: 1px solid #eee;
+    padding: 1rem 0;
+
+    h3 {
+      margin: 0 0 0.5rem;
+    }
+
+    p {
+      margin: 0 0 1rem;
+      color: #555;
+    }
+
+    a {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background-color: var(--blue);
+      color: var(--white);
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+  }
+
+  .bottomLink {
+    margin-top: 1.5rem;
+    text-align: left;
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+      font-weight: 500;
+    }
+  }
+}

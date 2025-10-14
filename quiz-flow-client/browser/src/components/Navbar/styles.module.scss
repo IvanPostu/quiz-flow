@@ -2,10 +2,9 @@
   display: flex;
   flex-wrap: nowrap;
   padding: 0.5rem 1.5rem;
-  border-bottom: 1px solid rgb(255, 255, 255, 0.14);
-  background-color: var(--off-white);
-  box-shadow: 0 0 5px 0 rgba(55, 55, 55, 0.2);
-  border: 1px solid rgba(128, 128, 128, 0.255);
+  border-bottom: 1px var(--grey-border);
+  background-color: var(--white);
+  box-shadow: var(--grey-border-box-shadow);
 }
 
 .toggleBtn {

@@ -8,10 +8,10 @@
   max-width: 264px;
   min-width: 264px;
   transition: all 0.35s ease-in-out;
-  box-shadow: 0 0 35px 0 rgba(55, 55, 55, 0.2);
+  box-shadow: var(--grey-border-box-shadow);
   padding: 1rem 0;
-  background-color: var(--off-white);
-  border: 1px solid rgba(128, 128, 128, 0.255);
+  background-color: var(--white);
+  border: 1px var(--grey-border);
   @include mixins.uncopyable;
 
   .sidebarContainer {
