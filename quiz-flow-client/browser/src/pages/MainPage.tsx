@@ -6,10 +6,12 @@ import {
   increment,
   decrement,
   incrementByAmount,
+  incrementAsync
 } from "src/redux/counter/counterSlice";
 
 export const MainPage = () => {
   const count = useAppSelector((state) => state.counter.value);
+  const status = useAppSelector((state) => state.counter.status);
   const dispatch = useAppDispatch();
 
   return (
@@ -19,6 +21,10 @@ export const MainPage = () => {
           <div>
             <b>Counter:</b>
             <span>{count}</span>
+          </div>
+          <div>
+            <b>Status:</b>
+            <span>{status}</span>
           </div>
           <button
             onClick={() => {
@@ -40,6 +46,13 @@ export const MainPage = () => {
             }}
           >
             Add 10
+          </button>
+          <button
+            onClick={() => {
+              dispatch(incrementAsync(10));
+            }}
+          >
+            Add 10 async
           </button>
         </div>
 
