@@ -2,6 +2,8 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 
 module.exports = (env, argv) => {
@@ -12,9 +14,15 @@ module.exports = (env, argv) => {
   const pluginsArray = [
     new HtmlWebpackPlugin({
       template: path.join(__dirname, "public", "index.html"),
+      minify: {
+        collapseWhitespace: true,
+        removeComments: true,
+        removeRedundantAttributes: true,
+        useShortDoctype: true,
+      },
     }),
     new MiniCssExtractPlugin({
-      filename: isProduction ? "[name]-[contenthash].css" : "[name].css",
+      filename: isProduction ? "[name].[contenthash].css" : "[name].css",
     }),
   ];
   if (!isProduction) {
@@ -34,8 +42,11 @@ module.exports = (env, argv) => {
     mode: isProduction ? "production" : "development",
     entry: path.resolve(__dirname, "src", "index.ts"),
     output: {
-      path: path.resolve(__dirname, "dist/public"),
-      filename: isProduction ? "[name]-[contenthash].js" : "[name].js",
+      path: path.resolve(__dirname, "dist", "public"),
+      filename: isProduction ? "[name].[contenthash].js" : "[name].js",
+      assetModuleFilename: isProduction
+        ? "assets/[hash][ext][query]"
+        : "[name].[ext]",
       publicPath: isProduction ? "/public/" : "",
       clean: true,
     },
@@ -97,6 +108,22 @@ module.exports = (env, argv) => {
       modules: true,
       reasons: true,
       chunkModules: true,
+    },
+    optimization: {
+      minimize: true,
+      minimizer: [
+        new TerserPlugin(), // Minifies JS
+        new CssMinimizerPlugin(), // Minifies CSS
+      ],
+      splitChunks: {
+        chunks: 'all',
+      },
+      runtimeChunk: {
+        name: 'runtime',
+      },
+    },
+    performance: {
+      hints: 'warning', // Or false to disable
     },
     devtool: false,
     devServer: {
