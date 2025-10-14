@@ -45,19 +45,19 @@
     padding: 0.625rem 1.625rem;
     color: var(--dark-gray);
     position: relative;
-    display: block;
-    font-size: 1rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    font-size: 1.2rem;
 
     &:hover {
       background-color: var(--light-gray);
     }
-  }
 
-  .sidebarLink i {
-    padding-right: 0.5rem;
+    .icon {
+      margin-right: 0.5rem;
+    }
   }
-
-  /* Style for dropdown toggle and icon */
 
   .sidebarItem .sidebarDropdown {
     opacity: 0;

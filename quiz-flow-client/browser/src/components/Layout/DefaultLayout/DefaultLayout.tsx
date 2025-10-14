@@ -39,16 +39,16 @@ function LayoutSidebar(props: { sidebarIsShown: boolean }) {
           items: [
             {
               text: "Profile",
-              icon: "lni lni-user",
+              icon: "person",
             },
             {
               text: "Task",
-              icon: "lni lni-agenda",
+              icon: "document",
             },
             {
               header: {
                 text: "Auth",
-                icon: "lni lni-protection",
+                icon: "shield",
               },
               items: ["Sign-In", "Sign-Up"],
             },
@@ -59,7 +59,7 @@ function LayoutSidebar(props: { sidebarIsShown: boolean }) {
           items: [
             {
               header: {
-                icon: "lni lni-layout",
+                icon: "layers",
                 text: "Form Elements",
               },
               items: ["Accordion", "Tabs"],

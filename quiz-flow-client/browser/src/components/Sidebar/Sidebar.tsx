@@ -1,10 +1,24 @@
 import { Fragment } from "react/jsx-runtime";
 import * as styles from "./styles.module.scss";
 import { useState } from "react";
+import {
+  IoDocumentOutline,
+  IoPersonOutline,
+  IoDocumentsOutline,
+  IoShieldOutline,
+  IoLayersOutline,
+} from "react-icons/io5";
+
+type SidebarIconType =
+  | "document"
+  | "person"
+  | "documents"
+  | "shield"
+  | "layers";
 
 interface SidebarItem {
   text: string;
-  icon?: string;
+  icon?: SidebarIconType;
 }
 
 type SidebarDropdown = {
@@ -30,6 +44,14 @@ function isSidebarDropdown(obj: any): obj is SidebarDropdown {
   return obj && Boolean(obj.header);
 }
 
+const ICON_BY_TYPE: Record<SidebarIconType, React.ReactElement> = {
+  document: <IoDocumentOutline className={styles.icon} />,
+  person: <IoPersonOutline className={styles.icon} />,
+  documents: <IoDocumentsOutline className={styles.icon} />,
+  shield: <IoShieldOutline className={styles.icon} />,
+  layers: <IoLayersOutline className={styles.icon} />,
+};
+
 export const Sidebar = (props: SidebarPropsType) => {
   const [state, setState] = useState({
     activeDropdownPaths: new Set<string>(),
@@ -54,7 +76,7 @@ export const Sidebar = (props: SidebarPropsType) => {
                   return (
                     <li className={styles.sidebarItem} key={item.text}>
                       <a href="#" className={styles.sidebarLink}>
-                        {item.icon && <i className={item.icon}></i>}
+                        {item.icon && ICON_BY_TYPE[item.icon]}
                         {item.text}
                       </a>
                     </li>
@@ -95,9 +117,7 @@ export const Sidebar = (props: SidebarPropsType) => {
                           item.header
                         ) : (
                           <Fragment>
-                            {item.header.icon && (
-                              <i className={item.header.icon}></i>
-                            )}
+                            {item.header.icon && ICON_BY_TYPE[item.header.icon]}
                             {item.header.text}
                           </Fragment>
                         )}

@@ -1,4 +1,5 @@
 import * as styles from "./styles.module.scss";
+import { IoMenuOutline } from "react-icons/io5";
 
 export const Navbar = (props: { triggerSidebar: () => void }) => {
   return (
@@ -8,7 +9,7 @@ export const Navbar = (props: { triggerSidebar: () => void }) => {
         type="button"
         onClick={props.triggerSidebar}
       >
-        <i className="lni lni-grid-alt"></i>
+        <IoMenuOutline className={styles.icon} />
       </button>
     </nav>
   );
