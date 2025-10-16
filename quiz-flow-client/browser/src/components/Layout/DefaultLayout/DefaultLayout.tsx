@@ -40,6 +40,7 @@ function LayoutSidebar(props: { sidebarIsShown: boolean }) {
             {
               text: "Main",
               icon: "home",
+              link: "/",
             },
             {
               text: "Profile",
@@ -54,7 +55,7 @@ function LayoutSidebar(props: { sidebarIsShown: boolean }) {
                 text: "Auth",
                 icon: "shield",
               },
-              items: ["Sign-In", "Sign-Up"],
+              items: [{ text: "Sign-In" }, { text: "Sign-Up" }],
             },
           ],
         },
@@ -63,10 +64,14 @@ function LayoutSidebar(props: { sidebarIsShown: boolean }) {
           items: [
             {
               header: {
-                icon: "layers",
-                text: "Form Elements",
+                icon: "hammer",
+                text: "Development",
               },
-              items: ["Accordion", "Tabs"],
+              items: [
+                { text: "Accordion" },
+                { text: "Tabs" },
+                { text: "Sandbox", link: "/sandbox" },
+              ],
             },
             {
               text: "Notifications",

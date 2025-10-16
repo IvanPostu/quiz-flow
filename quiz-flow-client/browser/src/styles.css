@@ -28,6 +28,7 @@
   font-style: italic;
 }
 
+/* // TODO to define as scss variables (to support static analysis) */
 :root {
   --white: #ffffff;
   --off-white: #f9f9f9;

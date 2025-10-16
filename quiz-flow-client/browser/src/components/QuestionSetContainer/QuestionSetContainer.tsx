@@ -1,3 +1,4 @@
+import { CardContainer } from "../CardContainer/CardContainer";
 import * as styles from "./styles.module.scss";
 
 export const QuestionSetContainer = () => {
@@ -27,7 +28,7 @@ const items = [
 
 const ItemList = () => {
   return (
-    <div className={styles.rootContainer}>
+    <CardContainer className={styles.rootContainer}>
       <h2 className={styles.title}>Question Set Items</h2>
 
       {items.map((item) => (
@@ -43,6 +44,6 @@ const ItemList = () => {
       <div className={styles.bottomLink}>
         <a href="#">See more...</a>
       </div>
-    </div>
+    </CardContainer>
   );
 };

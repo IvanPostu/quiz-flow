@@ -6,38 +6,31 @@
     color: #333;
   }
 
-  .card {
-    border-bottom: 1px solid #eee;
-    padding: 1rem 0;
+  .main {
+    color: black;
+  }
 
-    h3 {
-      margin: 0 0 0.5rem;
-    }
-
-    p {
-      margin: 0 0 1rem;
-      color: #555;
-    }
+  .bottomLink {
+    margin-top: 0.5rem;
+    text-align: left;
 
     a {
       display: inline-block;
+      margin: 1rem 0 0.5rem 0;
       padding: 0.5rem 1rem;
       background-color: var(--blue);
       color: var(--white);
       text-decoration: none;
       border-radius: 4px;
       font-weight: bold;
-    }
-  }
 
-  .bottomLink {
-    margin-top: 1.5rem;
-    text-align: left;
+      &:hover {
+        background-color: var(--blue-dark);
+      }
 
-    a {
-      color: var(--blue);
-      text-decoration: none;
-      font-weight: 500;
+      &:active {
+        background-color: var(--blue-darker);
+      }
     }
   }
 }

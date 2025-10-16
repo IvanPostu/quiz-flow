@@ -121,3 +121,4 @@ java -jar $PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0
 23. <https://docs.gradle.org/current/userguide/gradle_wrapper.html#sec:upgrading_wrapper>
 24. <https://github.com/codzsword/sidebar-html-css-js>
 25. <https://react-redux.js.org/tutorials/typescript-quick-start>
+26. <https://github.com/wopian/kitsu-season-trends/tree/master>

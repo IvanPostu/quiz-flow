@@ -4,22 +4,30 @@ import { useState } from "react";
 import {
   IoDocumentOutline,
   IoPersonOutline,
-  IoDocumentsOutline,
   IoShieldOutline,
   IoLayersOutline,
   IoHomeOutline,
+  IoHammerOutline,
 } from "react-icons/io5";
+import { Link } from "react-router-dom";
 
-type SidebarIconType = "document" | "person" | "home" | "shield" | "layers";
+type SidebarIconType =
+  | "document"
+  | "person"
+  | "home"
+  | "shield"
+  | "layers"
+  | "hammer";
 
 interface SidebarItem {
   text: string;
+  link?: string;
   icon?: SidebarIconType;
 }
 
 type SidebarDropdown = {
   header: string | SidebarItem;
-  items: Array<string>;
+  items: Array<SidebarItem>;
 };
 
 type SidebarElement = {
@@ -46,6 +54,7 @@ const ICON_BY_TYPE: Record<SidebarIconType, React.ReactElement> = {
   home: <IoHomeOutline className={styles.icon} />,
   shield: <IoShieldOutline className={styles.icon} />,
   layers: <IoLayersOutline className={styles.icon} />,
+  hammer: <IoHammerOutline className={styles.icon} />,
 };
 
 export const Sidebar = (props: SidebarPropsType) => {
@@ -61,7 +70,7 @@ export const Sidebar = (props: SidebarPropsType) => {
     >
       <div className={styles.sidebarContainer}>
         <div className={styles.sidebarLogo}>
-          <a href="#">Quiz Flow</a>
+          <Link to="/">Quiz Flow</Link>
         </div>
         <ul className={styles.sidebarNav}>
           {props.elements.map((element) => (
@@ -71,10 +80,13 @@ export const Sidebar = (props: SidebarPropsType) => {
                 if (isSidebarItem(item)) {
                   return (
                     <li className={styles.sidebarItem} key={item.text}>
-                      <a href="#" className={styles.sidebarLink}>
+                      <Link
+                        to={item.link || "#"}
+                        className={styles.sidebarLink}
+                      >
                         {item.icon && ICON_BY_TYPE[item.icon]}
                         {item.text}
-                      </a>
+                      </Link>
                     </li>
                   );
                 }
@@ -121,13 +133,13 @@ export const Sidebar = (props: SidebarPropsType) => {
                       <ul className={styles.sidebarDropdown}>
                         <li className={styles.sidebarItem}>
                           {item.items.map((dropdownItem) => (
-                            <a
-                              href="#"
+                            <Link
+                              to={dropdownItem.link || "#"}
                               className={styles.sidebarLink}
-                              key={dropdownItem}
+                              key={dropdownItem.text}
                             >
-                              {dropdownItem}
-                            </a>
+                              {dropdownItem.text}
+                            </Link>
                           ))}
                         </li>
                       </ul>
