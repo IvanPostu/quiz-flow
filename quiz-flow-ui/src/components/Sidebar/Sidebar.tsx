@@ -9,7 +9,7 @@ import {
   IoHomeOutline,
   IoHammerOutline,
 } from "react-icons/io5";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 type SidebarIconType =
   | "document"
@@ -61,6 +61,14 @@ export const Sidebar = (props: SidebarPropsType) => {
   const [state, setState] = useState({
     activeDropdownPaths: new Set<string>(),
   });
+  const location = useLocation();
+
+  function isActiveLink(elementLink?: string) {
+    if (!elementLink) {
+      return false;
+    }
+    return (location.pathname || "") === elementLink;
+  }
 
   return (
     <aside
@@ -82,7 +90,9 @@ export const Sidebar = (props: SidebarPropsType) => {
                     <li className={styles.sidebarItem} key={item.text}>
                       <Link
                         to={item.link || "#"}
-                        className={styles.sidebarLink}
+                        className={`${
+                          isActiveLink(item.link) ? styles.isActive : ""
+                        } ${styles.sidebarLink} `}
                       >
                         {item.icon && ICON_BY_TYPE[item.icon]}
                         {item.text}
@@ -135,7 +145,11 @@ export const Sidebar = (props: SidebarPropsType) => {
                           {item.items.map((dropdownItem) => (
                             <Link
                               to={dropdownItem.link || "#"}
-                              className={styles.sidebarLink}
+                              className={`${
+                                isActiveLink(dropdownItem.link)
+                                  ? styles.isActive
+                                  : ""
+                              } ${styles.sidebarLink} `}
                               key={dropdownItem.text}
                             >
                               {dropdownItem.text}
@@ -147,7 +161,7 @@ export const Sidebar = (props: SidebarPropsType) => {
                   );
                 }
                 console.error("Can't map item " + item);
-                return <Fragment key={""} />;
+                return <Fragment />;
               })}
             </Fragment>
           ))}

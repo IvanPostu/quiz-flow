@@ -55,7 +55,10 @@ function LayoutSidebar(props: { sidebarIsShown: boolean }) {
                 text: "Auth",
                 icon: "shield",
               },
-              items: [{ text: "Sign-In" }, { text: "Sign-Up" }],
+              items: [
+                { text: "Sign-In", link: "/sign-in" },
+                { text: "Sign-Up", link: "/sign-up" },
+              ],
             },
           ],
         },
@@ -69,7 +72,7 @@ function LayoutSidebar(props: { sidebarIsShown: boolean }) {
               },
               items: [
                 { text: "Accordion" },
-                { text: "Tabs" },
+                { text: "Quiz Demo", link: "/quiz" },
                 { text: "Sandbox", link: "/sandbox" },
               ],
             },

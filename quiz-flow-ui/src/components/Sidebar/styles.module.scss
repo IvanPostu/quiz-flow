@@ -54,6 +54,10 @@
       background-color: var(--light-gray);
     }
 
+    &.isActive {
+      background-color: var(--gray-200);
+    }
+
     .icon {
       margin-right: 0.5rem;
     }
@@ -67,6 +71,14 @@
     will-change: opacity, max-height;
     color: var(--dark-gray);
     padding: 0 25px;
+  }
+
+  .sidebarDropdown {
+    .sidebarItem {
+      .sidebarLink {
+        font-size: 1rem;
+      }
+    }
   }
 
   .sidebarLink.hasDropdown::after {
