@@ -1,5 +1,7 @@
 import { useCallback, useState } from "react";
 import * as styles from "./styles.module.scss";
+import { Container } from "../Container/Container";
+import { CardContainer } from "../CardContainer/CardContainer";
 
 const QUIZZES = [
   {
@@ -90,8 +92,8 @@ export const QuizContainer = () => {
   const quizItem = state.quizzItems[state.currentItemElement];
 
   return (
-    <div className={styles.quizRoot}>
-      <div className={styles.quizContainer}>
+    <Container>
+      <CardContainer className={styles.quizRoot}>
         <div className={styles.quizHeader}>
           <div className={styles.questionsNavItems}>
             {state.quizzItems.map((item, index) => {
@@ -141,7 +143,7 @@ export const QuizContainer = () => {
         >
           Submit
         </button>
-      </div>
-    </div>
+      </CardContainer>
+    </Container>
   );
 };
