@@ -2,6 +2,7 @@
 
 ## TODO
 
+- Rename quiz-flow-client/browser -> quiz-flow-ui
 - Acceptance tests - rename GlobalConfig to GlobalContext
 - Add static analyzer detekt
 - Add formatter klint

@@ -76,7 +76,7 @@ npm run start --prefix $PROJECT_ROOT/quiz-flow-client/browser
 ### Release
 
 ```sh
-./gradlew clean :quiz-flow-client-browser:runNpmBuild build \
+./gradlew clean :quiz-flow-ui:runNpmBuild build \
   -PbuildType=RELEASE \
   -Pkotlin.native.cacheKind=none
 ```

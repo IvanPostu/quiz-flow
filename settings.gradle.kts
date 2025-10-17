@@ -21,8 +21,7 @@ includeModule("core", "quiz-flow-server")
 includeModule("rest", "quiz-flow-server")
 includeModule("acceptance-test", "quiz-flow-server")
 
-includeModule("quiz-flow-client")
-includeModule("browser", "quiz-flow-client")
+includeModule("quiz-flow-ui")
 
 private fun includeModule(moduleName: String, vararg pathParts: String) {
     val mergedParts = buildList {
