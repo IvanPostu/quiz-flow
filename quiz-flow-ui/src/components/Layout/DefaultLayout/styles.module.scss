@@ -11,6 +11,8 @@
     transition: all 0.35s ease-in-out;
 
     .content {
+      max-height: 100vh;
+      overflow-y: auto;
       flex: 1;
       padding: 1rem 1.5rem;
     }
