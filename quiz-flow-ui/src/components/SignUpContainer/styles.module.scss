@@ -1,0 +1,13 @@
+.rootContainer {
+  max-width: 450px;
+  color: var(--dark);
+  position: relative;
+
+  .title {
+    text-align: center;
+  }
+
+  .element {
+    margin: 20px;
+  }
+}

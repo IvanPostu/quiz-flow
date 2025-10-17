@@ -1,13 +1,17 @@
-import { PropsWithChildren } from "react";
+import { CSSProperties, PropsWithChildren } from "react";
 import * as styles from "./styles.module.scss";
 
 type CardContainerPropsType = PropsWithChildren<{
   className?: string;
+  style?: CSSProperties;
 }>;
 
 export const CardContainer = (props: CardContainerPropsType) => {
   return (
-    <div className={`${props.className || ""} ${styles.rootContainer}`}>
+    <div
+      style={props.style}
+      className={`${props.className || ""} ${styles.rootContainer}`}
+    >
       {props.children}
     </div>
   );

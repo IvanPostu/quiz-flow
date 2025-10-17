@@ -1,3 +1,5 @@
+import { SignInContainer } from "src/components/SignInContainer/SignInContainer";
+
 export const SignInPage = () => {
-  return <div>SignInPage</div>;
+  return <SignInContainer />;
 };

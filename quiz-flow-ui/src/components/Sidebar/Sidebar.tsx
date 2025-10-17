@@ -106,7 +106,12 @@ export const Sidebar = (props: SidebarPropsType) => {
                       ? item.header
                       : item.header.text;
                   const dropdownPath = `${element.headerText}/${headerText}`;
-                  const isActive = state.activeDropdownPaths.has(dropdownPath);
+                  let isActive = state.activeDropdownPaths.has(dropdownPath);
+                  if (!isActive) {
+                    isActive = item.items.some((value) =>
+                      isActiveLink(value.link)
+                    );
+                  }
                   return (
                     <li className={styles.sidebarItem} key={headerText}>
                       <a
