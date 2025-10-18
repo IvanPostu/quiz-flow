@@ -3,8 +3,10 @@ package com.iv127.quizflow.server.acceptance.test
 import com.iv127.quizflow.core.rest.api.error.RestErrorResponse
 import com.iv127.quizflow.server.acceptance.test.rest.RestErrorException
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.cio.CIOEngineConfig
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
@@ -17,21 +19,30 @@ import java.io.InputStream
 
 data class GlobalConfig(val baseUrl: String = "http://localhost:8080") {
     companion object {
-        private val CLIENT = HttpClient(CIO) {
-            install(ContentNegotiation) {
-                json()
-            }
-            install(Logging) {
-                logger = Logger.DEFAULT
-                level = LogLevel.ALL
+        private val CLIENT = createConfiguredHttpClient()
+
+        fun createConfiguredHttpClient(setup: HttpClientConfig<CIOEngineConfig>.() -> Unit = {}): HttpClient {
+            return HttpClient(CIO) {
+                install(ContentNegotiation) {
+                    json()
+                }
+                install(Logging) {
+                    logger = Logger.DEFAULT
+                    level = LogLevel.ALL
+                }
+                setup()
             }
         }
+
         val INSTANCE = GlobalConfig()
     }
 
     @Throws(RestErrorException::class)
-    suspend fun performRequest(requestCallback: suspend (client: HttpClient) -> HttpResponse): HttpResponse {
-        val response = requestCallback(CLIENT)
+    suspend fun performRequest(
+        client: HttpClient = CLIENT,
+        requestCallback: suspend (client: HttpClient) -> HttpResponse
+    ): HttpResponse {
+        val response = requestCallback(client)
         remapExceptionIfPossibleAndThrow(response)
         return response
     }

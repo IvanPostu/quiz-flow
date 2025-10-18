@@ -1,8 +1,27 @@
 # Development related stuff
 
+## Auth system
+
+- 2 entities: Access Token, Refresh Token
+
+- **Refresh Token**
+  - Long Live, e.g. 1 year
+  - should be secure: `Set-Cookie: refresh_token=abc123; HttpOnly; Secure; Path=/auth/refresh; SameSite=Strict`
+    - HttpOnly blocks JS access to cookie
+    - Secure requires https
+    - Path: Cookie will only be sent to /auth/refresh requests
+    - Max-Age (TTL in seconds) e.g. `Max-Age=604800;`
+      - TTL of a refresh token should match the token's actual expiration set by your auth logic (e.g., JWT expiration or database record).
+    - Using Expires (absolute date/time) `Expires=Sat, 25 Oct 2025 12:00:00 GMT;`
+  - revocable (can be blacklisted)
+  - rotatable (creation of a ne token invalidates the old one)
+- **Access Token**
+  - TTL e.g. 5-60 min.
+  - JWT or Opaque(random string)
+  - e.g. `Authorization: Bearer <access_token>`
+
 ## TODO
 
-- Rename quiz-flow-client/browser -> quiz-flow-ui
 - Acceptance tests - rename GlobalConfig to GlobalContext
 - Add static analyzer detekt
 - Add formatter klint
@@ -101,6 +120,15 @@ curl -i -X POST http://localhost:8080/api/authorizations \
     -H "Content-Type: application/json" \
     -d '{"username":"admin1","password":"admin"}'
 
+# authenticate as super admin
+curl -i -X POST http://localhost:8080/api/authentications/sign-in \
+    -H "Content-Type: application/json" \
+    -d '{"username":"super_admin","password":"super_admin"}'
+
+curl -i -X POST http://localhost:8080/api/authentications/access-token \
+    -H "Content-Type: application/json" \
+    -H "Cookie: refreshable_token=f89aadc001991000218e0000adfb9d9df89aadc0019910007f1700001e50cbc6" \
+    -d ''
 ```
 
 ## Run the app
@@ -121,3 +149,97 @@ gcc -fPIC -shared -o libsqlite3.so sqlite3.c -DSQLITE_OMIT_LOAD_EXTENSION -DSQLI
 
 gcc -fPIC -shared -o libsqlite3.so sqlite3.c
 ```
+
+package com.iv127.quizflow.server.acceptance.test.rest.impl
+
+import com.iv127.quizflow.core.rest.api.authentication.AccessTokenResponse
+import com.iv127.quizflow.core.rest.api.authentication.AuthenticationsRoutes
+import com.iv127.quizflow.core.rest.api.authentication.AuthenticationsRoutes.Companion.ROUTE_PATH
+import com.iv127.quizflow.core.rest.api.authentication.UsernamePasswordAuthenticationRequest
+import com.iv127.quizflow.core.rest.api.cookie.CookieRequest
+import com.iv127.quizflow.core.rest.api.cookie.CookieResponse
+import com.iv127.quizflow.server.acceptance.test.GlobalConfig
+import io.ktor.client.call.body
+import io.ktor.client.plugins.cookies.CookiesStorage
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
+import io.ktor.http.Cookie
+import io.ktor.http.Url
+import io.ktor.http.contentType
+
+class CookieAwareAuthenticationsRoutesTestImpl(
+    private val config: GlobalConfig = GlobalConfig.INSTANCE
+) : AuthenticationsRoutes {
+
+    companion object {
+        class CustomCookieStorage : CookiesStorage {
+            private val cookies = mutableListOf<Cookie>()
+
+            override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
+                cookies.add(cookie)
+            }
+
+            override suspend fun get(requestUrl: Url): List<Cookie> {
+                return listOf()
+            }
+
+            override fun close() {
+                cookies.clear()
+            }
+
+            fun getCookies(): List<Cookie> {
+                return cookies.toList()
+            }
+        }
+    }
+
+    private val customCookieStorage = CustomCookieStorage()
+    private val cookieAwareHttpClient = GlobalConfig.createConfiguredHttpClient {
+        install(HttpCookies) {
+            storage = customCookieStorage
+        }
+    }
+
+    override suspend fun signIn(request: UsernamePasswordAuthenticationRequest): Pair<List<CookieResponse>, AccessTokenResponse> {
+        val response: HttpResponse = config.performRequest(cookieAwareHttpClient) { client ->
+            client.post("${config.baseUrl}/api${ROUTE_PATH}/sign-in") {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+        }
+        val responseData: AccessTokenResponse = response.body<AccessTokenResponse>()
+        val cookies = getCookies()
+        return Pair(cookies.map { mapToCookieResponse(it) }, responseData)
+    }
+
+    override suspend fun createAccessToken(cookies: List<CookieRequest>): AccessTokenResponse {
+        val response: HttpResponse = config.performRequest(cookieAwareHttpClient) { client ->
+            client.post("${config.baseUrl}/api${ROUTE_PATH}/access-token") {
+                contentType(ContentType.Application.Json)
+                setBody(mapOf<String, String>())
+            }
+        }
+        val responseData: AccessTokenResponse = response.body<AccessTokenResponse>()
+        return responseData
+    }
+
+    fun getCookies(): List<Cookie> = customCookieStorage.getCookies()
+
+    private fun mapToCookieResponse(cookie: Cookie): CookieResponse {
+        return CookieResponse(
+            name = cookie.name,
+            value = cookie.value,
+            maxAge = cookie.maxAge,
+            path = cookie.path,
+            secure = cookie.secure,
+            httpOnly = cookie.httpOnly,
+            encoding = cookie.encoding,
+            expires = cookie.expires,
+            domain = cookie.domain,
+            extensions = cookie.extensions
+        )
+    }
+}

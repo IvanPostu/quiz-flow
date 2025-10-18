@@ -58,8 +58,8 @@ class AuthorizationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : A
             for (scopeId in scopeIds) {
                 db.executeAndGetChangedRowsCount(
                     """
-                    INSERT INTO authorization_authorization_scope (
-                        authorization_primary_key,
+                    INSERT INTO authentication_authorization_scope (
+                        authentication_primary_key,
                         authorization_scope_primary_key) VALUES ( ?, ? );
                 """.trimIndent(),
                     listOf<Any?>(lastId, scopeId)
@@ -105,8 +105,8 @@ class AuthorizationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : A
             for (scopeId in oldScopeIds) {
                 db.executeAndGetChangedRowsCount(
                     """
-                    DELETE FROM authorization_authorization_scope WHERE
-                        authorization_primary_key=? AND authorization_scope_primary_key=?;
+                    DELETE FROM authentication_authorization_scope WHERE
+                        authentication_primary_key=? AND authorization_scope_primary_key=?;
                 """.trimIndent(),
                     listOf<Any?>(lastId, scopeId)
                 )
@@ -114,8 +114,8 @@ class AuthorizationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : A
             for (scopeId in newScopeIds) {
                 db.executeAndGetChangedRowsCount(
                     """
-                    INSERT INTO authorization_authorization_scope (
-                        authorization_primary_key,
+                    INSERT INTO authentication_authorization_scope (
+                        authentication_primary_key,
                         authorization_scope_primary_key) VALUES ( ?, ? );
                 """.trimIndent(),
                     listOf<Any?>(lastId, scopeId)
@@ -194,8 +194,8 @@ class AuthorizationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : A
                 FROM authorization_scopes AS a
                 WHERE a.primary_key IN (
                     SELECT authorization_scope_primary_key 
-                    FROM authorization_authorization_scope
-                    WHERE authorization_primary_key=?
+                    FROM authentication_authorization_scope
+                    WHERE authentication_primary_key=?
                 );
             """.trimIndent(),
             listOf(authorizationId)

@@ -6,12 +6,15 @@ import com.iv127.quizflow.core.ktor.CustomStatusPagesConfig
 import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutesImpl
+import com.iv127.quizflow.core.rest.impl.authentication.AuthenticationsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.authorization.AuthorizationsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.healthcheck.HealthCheckRoutesImpl
 import com.iv127.quizflow.core.rest.impl.question.QuestionsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.questionset.QuestionSetsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.quiz.QuizzesRoutesImpl
 import com.iv127.quizflow.core.rest.impl.user.UsersRoutesImpl
+import com.iv127.quizflow.core.services.authentication.AuthenticationService
+import com.iv127.quizflow.core.services.authentication.impl.AuthenticationServiceImpl
 import com.iv127.quizflow.core.services.authorization.AuthorizationService
 import com.iv127.quizflow.core.services.authorization.impl.AuthorizationServiceImpl
 import com.iv127.quizflow.core.services.questionset.QuestionSetService
@@ -79,6 +82,11 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
                 get<SqliteDatabase>(named("appDb"))
             }
         }
+        single<AuthenticationService> {
+            AuthenticationServiceImpl {
+                get<SqliteDatabase>(named("appDb"))
+            }
+        }
         single<QuizService> {
             QuizServiceImpl {
                 get<SqliteDatabase>(named("appDb"))
@@ -101,6 +109,7 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         UsersRoutesImpl(koinApp),
         QuestionsRoutesImpl(koinApp),
         AuthorizationsRoutesImpl(koinApp),
+        AuthenticationsRoutesImpl(koinApp),
         QuizzesRoutesImpl(koinApp),
         QuizResultsRoutesImpl(koinApp),
     )
