@@ -1,13 +1,12 @@
 package com.iv127.quizflow.core.services.authentication
 
 import com.iv127.quizflow.core.model.User
-import com.iv127.quizflow.core.model.authentication.CreatedAuthenticationAccessToken
-import com.iv127.quizflow.core.model.authentication.CreatedAuthenticationRefreshToken
+import com.iv127.quizflow.core.model.authentication.Authentication
 
 interface AuthenticationService {
 
-    fun createAuthenticationRefreshToken(user: User): CreatedAuthenticationRefreshToken
+    fun createAuthenticationRefreshToken(user: User): Authentication
 
-    fun createAuthenticationAccessToken(refreshToken: String): CreatedAuthenticationAccessToken
+    fun createAuthenticationAccessToken(refreshToken: String): Authentication
 
 }

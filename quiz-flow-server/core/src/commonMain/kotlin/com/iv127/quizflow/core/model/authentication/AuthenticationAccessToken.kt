@@ -1,6 +1,5 @@
 package com.iv127.quizflow.core.model.authentication
 
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -11,8 +10,4 @@ data class AuthenticationAccessToken(
     val accessTokenHash: String,
     val createdDate: Instant,
     val expirationDate: Instant
-) {
-
-    fun isExpired(): Boolean = Clock.System.now().toEpochMilliseconds() > expirationDate.toEpochMilliseconds()
-
-}
+)

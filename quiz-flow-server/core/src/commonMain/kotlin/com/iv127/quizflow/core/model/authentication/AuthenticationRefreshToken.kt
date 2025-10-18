@@ -1,6 +1,5 @@
 package com.iv127.quizflow.core.model.authentication
 
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -12,8 +11,4 @@ data class AuthenticationRefreshToken(
     val expirationDate: Instant,
     val userId: String,
     val authorizationScopes: Set<AuthorizationScope>
-) {
-
-    fun isExpired(): Boolean = Clock.System.now().toEpochMilliseconds() > expirationDate.toEpochMilliseconds()
-
-}
+)

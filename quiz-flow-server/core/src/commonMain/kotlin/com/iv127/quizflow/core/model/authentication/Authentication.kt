@@ -1,7 +1,8 @@
 package com.iv127.quizflow.core.model.authentication
 
-data class CreatedAuthenticationAccessToken(
+data class Authentication(
     val authenticationAccessToken: AuthenticationAccessToken,
     val accessToken: String,
-    val authorizationScopes: Set<AuthorizationScope>
+    val authenticationRefreshToken: AuthenticationRefreshToken,
+    val refreshToken: String
 )

@@ -3,12 +3,11 @@ package com.iv127.quizflow.core.services.authentication.impl
 import com.iv127.quizflow.core.lang.Sha256
 import com.iv127.quizflow.core.lang.UUIDv4
 import com.iv127.quizflow.core.model.User
+import com.iv127.quizflow.core.model.authentication.Authentication
 import com.iv127.quizflow.core.model.authentication.AuthenticationAccessToken
 import com.iv127.quizflow.core.model.authentication.AuthenticationNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshToken
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
-import com.iv127.quizflow.core.model.authentication.CreatedAuthenticationAccessToken
-import com.iv127.quizflow.core.model.authentication.CreatedAuthenticationRefreshToken
 import com.iv127.quizflow.core.services.authentication.AuthenticationService
 import com.iv127.quizflow.core.services.utils.DatabaseRecord
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
@@ -26,13 +25,13 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
         val ACCESS_TOKEN_TIME_TO_LIVE = 10.minutes
     }
 
-    override fun createAuthenticationRefreshToken(user: User): CreatedAuthenticationRefreshToken {
+    override fun createAuthenticationRefreshToken(user: User): Authentication {
         val now = Clock.System.now()
-        val opaqueTokenString =
+        val refreshToken =
             UUIDv4.generate(UUIDv4.Companion.Format.COMPACT) + UUIDv4.generate(UUIDv4.Companion.Format.COMPACT)
         val authenticationRefreshToken = AuthenticationRefreshToken(
             id = UUIDv4.generate(),
-            refreshTokenHash = Sha256.hashToHex(opaqueTokenString.encodeToByteArray()),
+            refreshTokenHash = Sha256.hashToHex(refreshToken.encodeToByteArray()),
             createdDate = now,
             expirationDate = now.plus(REFRESH_TOKEN_TIME_TO_LIVE),
             userId = user.id,
@@ -74,18 +73,41 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
                     listOf<Any?>(lastId, scopeId)
                 )
             }
+            val (accessToken, authenticationAccessToken) = internalCreateAuthenticationAccessToken(
+                db, authenticationRefreshToken
+            )
             db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
-            return CreatedAuthenticationRefreshToken(
-                authenticationRefreshToken = authenticationRefreshToken,
-                plainRefreshToken = opaqueTokenString
+            return Authentication(authenticationAccessToken, accessToken, authenticationRefreshToken, refreshToken)
+        }
+    }
+
+    override fun createAuthenticationAccessToken(refreshToken: String): Authentication {
+        return internalCreateAuthenticationAccessToken(refreshToken)
+    }
+
+    private fun internalCreateAuthenticationAccessToken(refreshToken: String): Authentication {
+        val hashedToken = Sha256.hashToHex(refreshToken.encodeToByteArray())
+        val refreshTokenRecord = selectAuthenticationRefreshTokenByColumn("refresh_token_hash", hashedToken)
+        val authenticationRefreshToken = refreshTokenRecord.result
+        dbSupplier().use { db ->
+            db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
+            val (accessToken, authenticationAccessToken) = internalCreateAuthenticationAccessToken(
+                db, authenticationRefreshToken
+            )
+            db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
+            return Authentication(
+                authenticationAccessToken,
+                accessToken,
+                authenticationRefreshToken,
+                refreshToken
             )
         }
     }
 
-    override fun createAuthenticationAccessToken(refreshToken: String): CreatedAuthenticationAccessToken {
-        val hashedToken = Sha256.hashToHex(refreshToken.encodeToByteArray())
-        val refreshTokenRecord = selectAuthenticationRefreshTokenByColumn("refresh_token_hash", hashedToken)
-        val authenticationRefreshToken = refreshTokenRecord.result
+    private fun internalCreateAuthenticationAccessToken(
+        db: SqliteDatabase,
+        authenticationRefreshToken: AuthenticationRefreshToken
+    ): Pair<String, AuthenticationAccessToken> {
         val now = Clock.System.now()
         val opaqueTokenString =
             UUIDv4.generate(UUIDv4.Companion.Format.COMPACT) + UUIDv4.generate(UUIDv4.Companion.Format.COMPACT)
@@ -97,10 +119,8 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             createdDate = now,
             expirationDate = now.plus(ACCESS_TOKEN_TIME_TO_LIVE)
         )
-        dbSupplier().use { db ->
-            db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
-            db.executeAndGetChangedRowsCount(
-                """
+        db.executeAndGetChangedRowsCount(
+            """
                     INSERT INTO authentication_access_tokens (
                         authentication_refresh_token_id,
                         user_id,
@@ -109,22 +129,16 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
                         expires_at ) 
                     VALUES (?, ?, ?, ?, ? );
                 """.trimIndent(),
-                listOf<Any?>
-                    (
-                    authenticationAccessToken.id,
-                    authenticationAccessToken.userId,
-                    authenticationAccessToken.accessTokenHash,
-                    SqliteTimestampUtils.toValue(authenticationAccessToken.createdDate),
-                    SqliteTimestampUtils.toValue(authenticationAccessToken.expirationDate),
-                )
+            listOf<Any?>
+                (
+                authenticationAccessToken.id,
+                authenticationAccessToken.userId,
+                authenticationAccessToken.accessTokenHash,
+                SqliteTimestampUtils.toValue(authenticationAccessToken.createdDate),
+                SqliteTimestampUtils.toValue(authenticationAccessToken.expirationDate),
             )
-            db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
-            return CreatedAuthenticationAccessToken(
-                authenticationAccessToken = authenticationAccessToken,
-                accessToken = opaqueTokenString,
-                authorizationScopes = authenticationRefreshToken.authorizationScopes
-            )
-        }
+        )
+        return Pair(opaqueTokenString, authenticationAccessToken)
     }
 
     private fun getAuthorizationScopes(user: User): Set<AuthorizationScope> {
