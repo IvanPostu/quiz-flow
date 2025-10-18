@@ -2,8 +2,6 @@ package com.iv127.quizflow.server.acceptance.test.route
 
 import com.iv127.quizflow.core.rest.api.MultipartData
 import com.iv127.quizflow.core.rest.api.SortOrder
-import com.iv127.quizflow.core.rest.api.authorization.AuthorizationResponse
-import com.iv127.quizflow.core.rest.api.authorization.UsernamePasswordAuthorizationRequest
 import com.iv127.quizflow.core.rest.api.question.QuestionSetVersionResponse
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
@@ -17,14 +15,13 @@ import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutes
 import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
 import com.iv127.quizflow.core.rest.api.user.UserResponse
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes
+import com.iv127.quizflow.server.acceptance.test.acceptance.AuthenticationAcceptance
 import com.iv127.quizflow.server.acceptance.test.rest.RestErrorException
-import com.iv127.quizflow.server.acceptance.test.rest.impl.AuthorizationsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionSetsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuizResultsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuizzesRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.UsersRoutesTestImpl
-import com.iv127.quizflow.server.acceptance.test.rest.security.ApiAuthorizationTestImpl
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -32,7 +29,6 @@ import org.junit.jupiter.api.assertThrows
 
 class QuizResultsRoutesTest {
 
-    private val authorizationRoutes = AuthorizationsRoutesTestImpl()
     private val questionSetsRoutes: QuestionSetsRoutes = QuestionSetsRoutesTestImpl()
     private val questionsRoutes: QuestionsRoutes = QuestionsRoutesTestImpl()
     private val usersRoutes: UsersRoutes = UsersRoutesTestImpl()
@@ -72,11 +68,11 @@ class QuizResultsRoutesTest {
     @Test
     fun testFinalizedQuizNotFoundCase() = runTest {
         val (user, password) = createUser()
-        val auth = authorizationRoutes.authorize(UsernamePasswordAuthorizationRequest(user.username, password))
-        val quizNotFinalized = generateFinalizedQuizzes(auth, 1, false)[0]
+        val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
+        val quizNotFinalized = generateFinalizedQuizzes(auth.accessToken, 1, false)[0]
 
         var e = assertThrows<RestErrorException> {
-            quizResultsRoutes.get(ApiAuthorizationTestImpl(auth), quizNotFinalized.id)
+            quizResultsRoutes.get(auth.accessToken, quizNotFinalized.id)
         }
         assertThat(e.httpStatusCode).isEqualTo(400)
         assertThat(e.restErrorResponse.errorCode).isEqualTo("finalized_quiz_not_found")
@@ -89,7 +85,7 @@ class QuizResultsRoutesTest {
         )
 
         e = assertThrows<RestErrorException> {
-            quizResultsRoutes.get(ApiAuthorizationTestImpl(auth), "blahblah1")
+            quizResultsRoutes.get(auth.accessToken, "blahblah1")
         }
         assertThat(e.httpStatusCode).isEqualTo(400)
         assertThat(e.restErrorResponse.errorCode).isEqualTo("finalized_quiz_not_found")
@@ -105,13 +101,13 @@ class QuizResultsRoutesTest {
     @Test
     fun testQuizResultsWithExplicitLimitOffsetAndSortOrder() = runTest {
         val (user, password) = createUser()
-        val auth = authorizationRoutes.authorize(UsernamePasswordAuthorizationRequest(user.username, password))
-        val quizzes = generateFinalizedQuizzes(auth, 20)
+        val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
+        val quizzes = generateFinalizedQuizzes(auth.accessToken, 20)
 
-        assertThat(quizResultsRoutes.list(ApiAuthorizationTestImpl(auth), 2, 5, SortOrder.ASC).map { it.quizId })
+        assertThat(quizResultsRoutes.list(auth.accessToken, 2, 5, SortOrder.ASC).map { it.quizId })
             .hasSize(5)
             .containsExactlyElementsOf(quizzes.map { it.id }.subList(2, 7))
-        assertThat(quizResultsRoutes.list(ApiAuthorizationTestImpl(auth), 2, 5, SortOrder.DESC).map { it.quizId })
+        assertThat(quizResultsRoutes.list(auth.accessToken, 2, 5, SortOrder.DESC).map { it.quizId })
             .hasSize(5)
             .containsExactlyElementsOf(quizzes.reversed().map { it.id }.subList(2, 7))
     }
@@ -119,17 +115,17 @@ class QuizResultsRoutesTest {
     @Test
     fun testQuizResultDefaultLimitOffsetAndSortOrder() = runTest {
         val (user, password) = createUser()
-        val auth = authorizationRoutes.authorize(UsernamePasswordAuthorizationRequest(user.username, password))
-        val quizzes = generateFinalizedQuizzes(auth, 20)
+        val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
+        val quizzes = generateFinalizedQuizzes(auth.accessToken, 20)
 
-        assertThat(quizResultsRoutes.list(ApiAuthorizationTestImpl(auth), null, null, null).map { it.quizId })
+        assertThat(quizResultsRoutes.list(auth.accessToken, null, null, null).map { it.quizId })
             .hasSize(10)
             .containsExactlyElementsOf(quizzes.reversed().map { it.id }.subList(0, 10))
-            .isEqualTo(quizResultsRoutes.list(ApiAuthorizationTestImpl(auth), 0, 10, SortOrder.DESC).map { it.quizId })
+            .isEqualTo(quizResultsRoutes.list(auth.accessToken, 0, 10, SortOrder.DESC).map { it.quizId })
     }
 
     private suspend fun generateFinalizedQuizzes(
-        auth: AuthorizationResponse,
+        accessToken: String,
         resultsCount: Int,
         finalized: Boolean = true
     ): List<QuizResponse> {
@@ -145,7 +141,7 @@ class QuizResultsRoutesTest {
         val quizzes = IntArray(resultsCount)
             .map {
                 val createdQuiz = quizzesRoutes.create(
-                    ApiAuthorizationTestImpl(auth),
+                    accessToken,
                     QuizCreateRequest(
                         questionSet.id, questionsSetVersion.version,
                         listOf(
@@ -157,7 +153,7 @@ class QuizResultsRoutesTest {
                 )
 
                 quizzesRoutes.update(
-                    ApiAuthorizationTestImpl(auth), createdQuiz.id, QuizUpdateRequest(
+                    accessToken, createdQuiz.id, QuizUpdateRequest(
                         finalized,
                         listOf(
                             QuizAnswerRequest(questionsSetVersion.questions[0].id, listOf(1)),
@@ -170,10 +166,10 @@ class QuizResultsRoutesTest {
     }
 
     private suspend fun createUser(): Pair<UserResponse, String> {
-        val auth = authorizationRoutes.authorize(UsernamePasswordAuthorizationRequest("super_admin", "super_admin"))
+        val auth = AuthenticationAcceptance.authenticateSuperUser()
         val username = "testUsername1${System.currentTimeMillis()}"
         val password = "test1Password${System.currentTimeMillis()}"
-        val createdUser = usersRoutes.create(ApiAuthorizationTestImpl(auth), UserCreateRequest(username, password))
+        val createdUser = usersRoutes.create(auth.accessToken, UserCreateRequest(username, password))
         return Pair(createdUser, password)
     }
 }

@@ -1,12 +1,10 @@
 package com.iv127.quizflow.server.acceptance.test.route
 
-import com.iv127.quizflow.core.rest.api.authorization.UsernamePasswordAuthorizationRequest
 import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes
+import com.iv127.quizflow.server.acceptance.test.acceptance.AuthenticationAcceptance
 import com.iv127.quizflow.server.acceptance.test.rest.RestErrorException
-import com.iv127.quizflow.server.acceptance.test.rest.impl.AuthorizationsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.UsersRoutesTestImpl
-import com.iv127.quizflow.server.acceptance.test.rest.security.ApiAuthorizationTestImpl
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -14,23 +12,20 @@ import org.junit.jupiter.api.assertThrows
 
 class UsersRoutesTest {
 
-    companion object {
-        private val USER_ROUTES: UsersRoutes = UsersRoutesTestImpl()
-        private val AUTHORIZATION_ROUTES = AuthorizationsRoutesTestImpl()
-    }
+    private val userRoutes: UsersRoutes = UsersRoutesTestImpl()
 
     @Test
     fun testCreateAndGetUserFromList() = runTest {
-        val auth = AUTHORIZATION_ROUTES.authorize(UsernamePasswordAuthorizationRequest("super_admin", "super_admin"))
+        val auth = AuthenticationAcceptance.authenticateSuperUser()
 
         val username = "testUsername1${System.currentTimeMillis()}"
         val password = "test1Password${System.currentTimeMillis()}"
-        val createdUser = USER_ROUTES.create(ApiAuthorizationTestImpl(auth), UserCreateRequest(username, password))
+        val createdUser = userRoutes.create(auth.accessToken, UserCreateRequest(username, password))
 
         assertThat(createdUser.id).isNotBlank()
         assertThat(createdUser.username).isEqualTo(username)
 
-        val userList = USER_ROUTES.list(ApiAuthorizationTestImpl(auth))
+        val userList = userRoutes.list(auth.accessToken)
         assertThat(userList)
             .anySatisfy({
                 assertThat(it).isEqualTo(createdUser)
@@ -39,17 +34,17 @@ class UsersRoutesTest {
 
     @Test
     fun testCreateUsingSameUsername() = runTest {
-        val auth = AUTHORIZATION_ROUTES.authorize(UsernamePasswordAuthorizationRequest("super_admin", "super_admin"))
+        val auth = AuthenticationAcceptance.authenticateSuperUser()
 
         val username = "testUsername1${System.currentTimeMillis()}"
         val password = "test1Password${System.currentTimeMillis()}"
-        val createdUser = USER_ROUTES.create(ApiAuthorizationTestImpl(auth), UserCreateRequest(username, password))
+        val createdUser = userRoutes.create(auth.accessToken, UserCreateRequest(username, password))
 
         assertThat(createdUser.id).isNotBlank()
         assertThat(createdUser.username).isEqualTo(username)
 
         val e = assertThrows<RestErrorException> {
-            USER_ROUTES.create(ApiAuthorizationTestImpl(auth), UserCreateRequest(username, password))
+            userRoutes.create(auth.accessToken, UserCreateRequest(username, password))
         }
         assertThat(e.httpStatusCode).isEqualTo(400)
         assertThat(e.restErrorResponse).satisfies({
@@ -66,7 +61,7 @@ class UsersRoutesTest {
         val username = "testUsername1${System.currentTimeMillis()}"
         val password = "test1Password${System.currentTimeMillis()}"
         val e = assertThrows<RestErrorException> {
-            USER_ROUTES.create(ApiAuthorizationTestImpl(token), UserCreateRequest(username, password))
+            userRoutes.create(token, UserCreateRequest(username, password))
         }
         assertThat(e.httpStatusCode).isEqualTo(401)
         assertThat(e.restErrorResponse).satisfies({
@@ -85,7 +80,7 @@ class UsersRoutesTest {
     fun testListUsersWithRandomStringAsToken() = runTest {
         val token = "token${System.currentTimeMillis()}"
         val e = assertThrows<RestErrorException> {
-            USER_ROUTES.list(ApiAuthorizationTestImpl(token))
+            userRoutes.list(token)
         }
         assertThat(e.httpStatusCode).isEqualTo(401)
         assertThat(e.restErrorResponse).satisfies({
@@ -102,13 +97,13 @@ class UsersRoutesTest {
 
     @Test
     fun testCreateWithEmptyUsername() = runTest {
-        val auth = AUTHORIZATION_ROUTES.authorize(UsernamePasswordAuthorizationRequest("super_admin", "super_admin"))
+        val auth = AuthenticationAcceptance.authenticateSuperUser()
 
         val username = ""
         val password = "test1Password${System.currentTimeMillis()}"
 
         val e = assertThrows<RestErrorException> {
-            USER_ROUTES.create(ApiAuthorizationTestImpl(auth), UserCreateRequest(username, password))
+            userRoutes.create(auth.accessToken, UserCreateRequest(username, password))
         }
         assertThat(e.httpStatusCode).isEqualTo(400)
         assertThat(e.restErrorResponse).satisfies({
@@ -127,13 +122,13 @@ class UsersRoutesTest {
 
     @Test
     fun testCreateWithEmptyPassword() = runTest {
-        val auth = AUTHORIZATION_ROUTES.authorize(UsernamePasswordAuthorizationRequest("super_admin", "super_admin"))
+        val auth = AuthenticationAcceptance.authenticateSuperUser()
 
         val username = "testUsername${System.currentTimeMillis()}"
         val password = ""
 
         val e = assertThrows<RestErrorException> {
-            USER_ROUTES.create(ApiAuthorizationTestImpl(auth), UserCreateRequest(username, password))
+            userRoutes.create(auth.accessToken, UserCreateRequest(username, password))
         }
         assertThat(e.httpStatusCode).isEqualTo(400)
         assertThat(e.restErrorResponse).satisfies({

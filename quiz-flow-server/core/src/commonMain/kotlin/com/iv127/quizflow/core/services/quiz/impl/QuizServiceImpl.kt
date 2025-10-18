@@ -1,6 +1,5 @@
 package com.iv127.quizflow.core.services.quiz.impl
 
-import com.iv127.quizflow.core.model.authorization.Authorization
 import com.iv127.quizflow.core.model.question.Question
 import com.iv127.quizflow.core.model.question.QuestionSetVersion
 import com.iv127.quizflow.core.model.quizz.FinalizedQuizUpdateException
@@ -18,13 +17,12 @@ import kotlinx.serialization.json.Json
 class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizService {
 
     override fun getQuizList(
-        authorization: Authorization,
+        userId: String,
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,
         finalizedOnly: Boolean
     ): List<Quiz> {
-        val userId = authorization.userId
         val isAscSortOrder = SortOrder.ASC == sortOrder
         val finalizedOnlyOrTrue = if (finalizedOnly) " finalized_at IS NOT NULL " else " 1=1 "
 
@@ -73,19 +71,19 @@ class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizServic
         }
     }
 
-    override fun getQuiz(authorization: Authorization, quizId: String): Quiz {
+    override fun getQuiz(userId: String, quizId: String): Quiz {
         return dbSupplier().use { db ->
-            selectQuizById(db, quizId, authorization.userId)
+            selectQuizById(db, quizId, userId)
         }
     }
 
     override fun createQuiz(
-        authorization: Authorization,
+        userId: String,
         questionSetVersion: QuestionSetVersion,
         questions: List<Question>
     ): Quiz {
         checkQuestionsArePartOfQuestionSet(questionSetVersion, questions)
-        val quizBuilder = QuizBuilder(authorization.userId, questionSetVersion, questions)
+        val quizBuilder = QuizBuilder(userId, questionSetVersion, questions)
         val quiz = quizBuilder.build()
         return dbSupplier().use { db ->
             db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
@@ -118,13 +116,13 @@ class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizServic
     }
 
     override fun updateQuiz(
-        authorization: Authorization,
+        userId: String,
         quizId: String,
         questionSetVersion: QuestionSetVersion,
         updateFunc: (quizBuilder: QuizBuilder) -> Unit
     ): Quiz {
         return dbSupplier().use { db ->
-            val selectedQuiz = selectQuizById(db, quizId, authorization.userId)
+            val selectedQuiz = selectQuizById(db, quizId, userId)
 
             if (selectedQuiz.isFinalized()) {
                 throw FinalizedQuizUpdateException(quizId)

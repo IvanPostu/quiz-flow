@@ -1,17 +1,18 @@
 package com.iv127.quizflow.core.rest.impl.user
 
 import com.iv127.quizflow.core.model.User
+import com.iv127.quizflow.core.model.authentication.AuthorizationScope
 import com.iv127.quizflow.core.rest.ApiRoute
-import com.iv127.quizflow.core.rest.api.authorization.ApiAuthorization
 import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
 import com.iv127.quizflow.core.rest.api.user.UserResponse
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.rest.impl.exception.ApiClientErrorExceptionTranslator
 import com.iv127.quizflow.core.rest.impl.exception.InvalidFieldValueException
-import com.iv127.quizflow.core.security.AuthenticationProvider
+import com.iv127.quizflow.core.security.AccessTokenProvider
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.routingContextWebResponse
+import com.iv127.quizflow.core.services.authentication.AuthenticationService
 import com.iv127.quizflow.core.services.user.UserService
 import com.iv127.quizflow.core.services.user.UsernameAlreadyTakenException
 import io.ktor.server.request.receive
@@ -23,25 +24,28 @@ import org.koin.core.KoinApplication
 class UsersRoutesImpl(koinApp: KoinApplication) : UsersRoutes, ApiRoute {
 
     private val userService: UserService by koinApp.koin.inject()
+    private val authenticationService: AuthenticationService by koinApp.koin.inject()
 
     override fun setup(parent: Route) {
         parent.get(ROUTE_PATH, routingContextWebResponse {
-            val authorization = AuthenticationProvider.provide(call)
-            JsonWebResponse.create(list(authorization))
+            val accessToken = AccessTokenProvider.provide(call)
+            JsonWebResponse.create(list(accessToken))
         })
         parent.post(ROUTE_PATH, routingContextWebResponse {
             val request = call.receive<UserCreateRequest>()
-            val authorization = AuthenticationProvider.provide(call)
-            JsonWebResponse.create(create(authorization, request))
+            val accessToken = AccessTokenProvider.provide(call)
+            JsonWebResponse.create(create(accessToken, request))
         })
     }
 
-    override suspend fun list(authorization: ApiAuthorization): List<UserResponse> {
+    override suspend fun list(accessToken: String): List<UserResponse> {
+        authenticationService.checkAuthorizationScopes(accessToken, setOf(AuthorizationScope.SUPER_ADMIN))
         return userService.getAll()
             .map { mapToUserResponse(it) }
     }
 
-    override suspend fun create(authorization: ApiAuthorization, request: UserCreateRequest): UserResponse {
+    override suspend fun create(accessToken: String, request: UserCreateRequest): UserResponse {
+        authenticationService.checkAuthorizationScopes(accessToken, setOf(AuthorizationScope.SUPER_ADMIN))
         try {
             if (request.username.isBlank()) {
                 throw InvalidFieldValueException(

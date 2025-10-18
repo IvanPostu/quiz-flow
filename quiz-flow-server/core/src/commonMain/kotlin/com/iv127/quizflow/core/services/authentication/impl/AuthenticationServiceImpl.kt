@@ -5,9 +5,11 @@ import com.iv127.quizflow.core.lang.UUIDv4
 import com.iv127.quizflow.core.model.User
 import com.iv127.quizflow.core.model.authentication.Authentication
 import com.iv127.quizflow.core.model.authentication.AuthenticationAccessToken
-import com.iv127.quizflow.core.model.authentication.AuthenticationNotFoundException
+import com.iv127.quizflow.core.model.authentication.AuthenticationAccessTokenNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshToken
+import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshTokenNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
+import com.iv127.quizflow.core.security.AuthenticationException
 import com.iv127.quizflow.core.services.authentication.AuthenticationService
 import com.iv127.quizflow.core.services.utils.DatabaseRecord
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
@@ -25,7 +27,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
         val ACCESS_TOKEN_TIME_TO_LIVE = 10.minutes
     }
 
-    override fun createAuthenticationRefreshToken(user: User): Authentication {
+    override fun createAuthenticationRefreshToken(user: User): AuthenticationService.AuthenticationWithRefreshToken {
         val now = Clock.System.now()
         val refreshToken =
             UUIDv4.generate(UUIDv4.Companion.Format.COMPACT) + UUIDv4.generate(UUIDv4.Companion.Format.COMPACT)
@@ -77,12 +79,47 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
                 db, authenticationRefreshToken
             )
             db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
-            return Authentication(authenticationAccessToken, accessToken, authenticationRefreshToken, refreshToken)
+            return authenticationWithRefreshToken(
+                Authentication(authenticationAccessToken, accessToken, authenticationRefreshToken),
+                refreshToken
+            )
         }
     }
 
-    override fun createAuthenticationAccessToken(refreshToken: String): Authentication {
-        return internalCreateAuthenticationAccessToken(refreshToken)
+    override fun createAuthenticationAccessToken(refreshToken: String): AuthenticationService.AuthenticationWithRefreshToken {
+        return authenticationWithRefreshToken(
+            internalCreateAuthenticationAccessToken(refreshToken),
+            refreshToken
+        )
+    }
+
+    override fun checkAuthorizationScopes(accessToken: String, requiredScopes: Set<AuthorizationScope>) {
+        val authentication = try {
+            getAuthenticationByAccessToken(accessToken)
+        } catch (e: AuthenticationAccessTokenNotFoundException) {
+            throw AuthenticationException("Access token is invalid")
+        }
+        checkAuthorizationScopes(authentication, requiredScopes)
+    }
+
+    override fun checkAuthorizationScopes(authentication: Authentication, requiredScopes: Set<AuthorizationScope>) {
+        if (requiredScopes.isEmpty()) {
+            throw IllegalArgumentException("requiredScopes should not be empty")
+        }
+        val accessAllowed = requiredScopes.all { scope ->
+            authentication.authenticationRefreshToken.authorizationScopes.contains(scope)
+        }
+        if (!accessAllowed) {
+            throw AuthenticationException("required authorization scopes are missing")
+        }
+    }
+
+    override fun getAuthenticationByAccessToken(accessToken: String): Authentication {
+        val authenticationAccessToken = selectAuthenticationAccessToken(accessToken)
+        val authenticationRefreshTokenByColumn = selectAuthenticationRefreshTokenByColumn(
+            "id", authenticationAccessToken.id
+        )
+        return Authentication(authenticationAccessToken, accessToken, authenticationRefreshTokenByColumn.result)
     }
 
     private fun internalCreateAuthenticationAccessToken(refreshToken: String): Authentication {
@@ -99,7 +136,6 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
                 authenticationAccessToken,
                 accessToken,
                 authenticationRefreshToken,
-                refreshToken
             )
         }
     }
@@ -177,8 +213,8 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
                 listOf(columnValue)
             )
             if (result.isEmpty()) {
-                throw AuthenticationNotFoundException(
-                    "Authentication by $column with value $columnValue was not found"
+                throw AuthenticationRefreshTokenNotFoundException(
+                    "Authentication refresh token by $column with value $columnValue was not found"
                 )
             }
             val primaryKey = result[0]["primary_key"]!!.toInt()
@@ -191,6 +227,39 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
                 selectAuthorizationScopes(db, primaryKey)
             )
             return DatabaseRecord(primaryKey, authenticationRefreshToken)
+        }
+    }
+
+    private fun selectAuthenticationAccessToken(accessToken: String): AuthenticationAccessToken {
+        dbSupplier().use { db ->
+            val hashedAccessToken = Sha256.hashToHex(accessToken.encodeToByteArray())
+            val result = db.executeAndGetResultSet(
+                """
+                SELECT 
+                    a.primary_key,
+                    a.authentication_refresh_token_id,
+                    a.user_id,
+                    a.access_token_hash,
+                    a.created_at,
+                    a.expires_at
+                FROM authentication_access_tokens AS a
+                WHERE a.access_token_hash=?
+                LIMIT 1;
+            """.trimIndent(),
+                listOf(hashedAccessToken)
+            )
+            if (result.isEmpty()) {
+                throw AuthenticationAccessTokenNotFoundException(
+                    "Authentication access token by access_token_hash with value $hashedAccessToken was not found"
+                )
+            }
+            return AuthenticationAccessToken(
+                id = result[0]["authentication_refresh_token_id"].toString(),
+                userId = result[0]["user_id"].toString(),
+                accessTokenHash = result[0]["access_token_hash"].toString(),
+                createdDate = SqliteTimestampUtils.fromValue(result[0]["created_at"].toString()),
+                expirationDate = SqliteTimestampUtils.fromValue(result[0]["expires_at"].toString()),
+            )
         }
     }
 
@@ -220,7 +289,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             """
                 SELECT a.primary_key
                 FROM authorization_scopes AS a
-                WHERE a.scope IN (${scopes.map { "?" }.joinToString(separator = ",")});
+                WHERE a.scope IN (${scopes.joinToString(separator = ",") { "?" }});
             """.trimIndent(),
             scopes.map { it.name }
         )
@@ -228,4 +297,17 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             it["primary_key"].toString().toInt()
         }.toSet()
     }
+
+    private fun authenticationWithRefreshToken(
+        authentication: Authentication,
+        refreshToken: String
+    ): AuthenticationService.AuthenticationWithRefreshToken {
+        return object : AuthenticationService.AuthenticationWithRefreshToken {
+            override fun authentication(): Authentication = authentication
+
+            override fun refreshToken(): String = refreshToken
+
+        }
+    }
+
 }

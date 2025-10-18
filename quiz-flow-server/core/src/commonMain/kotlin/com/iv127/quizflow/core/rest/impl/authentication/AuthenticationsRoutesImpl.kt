@@ -1,7 +1,7 @@
 package com.iv127.quizflow.core.rest.impl.authentication
 
 import com.iv127.quizflow.core.model.User
-import com.iv127.quizflow.core.model.authentication.AuthenticationNotFoundException
+import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshTokenNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.authentication.AccessTokenResponse
@@ -66,7 +66,7 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
         } catch (e: AuthenticationException) {
             throw e
         } catch (e: Exception) {
-            if (e is AuthenticationNotFoundException) {
+            if (e is AuthenticationRefreshTokenNotFoundException) {
                 throw AuthenticationException("Refreshable token is invalid")
             }
             throw IllegalStateException(e)
@@ -88,6 +88,7 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
         val refreshToken = refreshTokenCookies[0].value
 
         val authentication = authenticationService.createAuthenticationAccessToken(refreshToken)
+            .authentication()
         return AccessTokenResponse(
             authentication.accessToken,
             authentication.authenticationRefreshToken.authorizationScopes.map { mapScope(it) }.toSet()
@@ -98,11 +99,15 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
     private fun internalSignIn(request: UsernamePasswordAuthenticationRequest): Pair<List<CookieResponse>, AccessTokenResponse> {
         val user: User = getUser(request)
         val authentication = authenticationService.createAuthenticationRefreshToken(user)
+        val expiresGMTDate = GMTDate(
+            authentication.authentication()
+                .authenticationRefreshToken.expirationDate.toEpochMilliseconds()
+        )
         val cookieResponseList = listOf(
             CookieResponse(
                 name = REFRESHABLE_TOKEN_NAME,
-                value = authentication.refreshToken,
-                expires = GMTDate(authentication.authenticationRefreshToken.expirationDate.toEpochMilliseconds()),
+                value = authentication.refreshToken(),
+                expires = expiresGMTDate,
                 path = REFRESHABLE_TOKEN_COOKIE_PATH,
                 secure = false, // set true if using HTTPS
                 httpOnly = true
@@ -111,8 +116,9 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
         return Pair(
             cookieResponseList,
             AccessTokenResponse(
-                authentication.accessToken,
-                authentication.authenticationRefreshToken.authorizationScopes.map { mapScope(it) }.toSet()
+                authentication.authentication().accessToken,
+                authentication.authentication().authenticationRefreshToken.authorizationScopes.map { mapScope(it) }
+                    .toSet()
             )
         )
     }

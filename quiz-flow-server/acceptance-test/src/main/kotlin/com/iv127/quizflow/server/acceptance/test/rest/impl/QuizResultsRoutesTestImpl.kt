@@ -1,7 +1,6 @@
 package com.iv127.quizflow.server.acceptance.test.rest.impl
 
 import com.iv127.quizflow.core.rest.api.SortOrder
-import com.iv127.quizflow.core.rest.api.authorization.ApiAuthorization
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultResponse
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutes
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutes.Companion.ROUTE_PATH
@@ -19,19 +18,19 @@ class QuizResultsRoutesTestImpl(
     private val config: GlobalConfig = GlobalConfig.INSTANCE
 ) : QuizResultsRoutes {
 
-    override suspend fun get(authorization: ApiAuthorization, quizId: String): QuizResultResponse {
+    override suspend fun get(accessToken: String, quizId: String): QuizResultResponse {
         val response: HttpResponse = config.performRequest { client ->
             val url: Url = URLBuilder("${config.baseUrl}/api${ROUTE_PATH}/${quizId}").build()
             client.get(url) {
                 contentType(ContentType.Application.Json)
-                bearerAuth(authorization.getToken())
+                bearerAuth(accessToken)
             }
         }
         return response.body<QuizResultResponse>()
     }
 
     override suspend fun list(
-        authorization: ApiAuthorization,
+        accessToken: String,
         offset: Int?,
         limit: Int?,
         sortOrder: SortOrder?
@@ -52,7 +51,7 @@ class QuizResultsRoutesTestImpl(
                 .build()
             client.get(url) {
                 contentType(ContentType.Application.Json)
-                bearerAuth(authorization.getToken())
+                bearerAuth(accessToken)
             }
         }
         return response.body<List<QuizResultResponse>>()

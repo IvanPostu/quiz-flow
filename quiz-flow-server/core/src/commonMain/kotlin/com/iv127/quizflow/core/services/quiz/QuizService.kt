@@ -1,6 +1,5 @@
 package com.iv127.quizflow.core.services.quiz
 
-import com.iv127.quizflow.core.model.authorization.Authorization
 import com.iv127.quizflow.core.model.question.Question
 import com.iv127.quizflow.core.model.question.QuestionSetVersion
 import com.iv127.quizflow.core.model.quizz.Quiz
@@ -10,7 +9,7 @@ import com.iv127.quizflow.core.rest.api.SortOrder
 interface QuizService {
 
     fun getQuizList(
-        authorization: Authorization,
+        userId: String,
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,
@@ -18,18 +17,18 @@ interface QuizService {
     ): List<Quiz>
 
     fun getQuiz(
-        authorization: Authorization,
+        userId: String,
         quizId: String,
     ): Quiz
 
     fun createQuiz(
-        authorization: Authorization,
+        userId: String,
         questionSetVersion: QuestionSetVersion,
         questions: List<Question>
     ): Quiz
 
     fun updateQuiz(
-        authorization: Authorization,
+        userId: String,
         quizId: String,
         questionSetVersion: QuestionSetVersion,
         updateFunc: (quizBuilder: QuizBuilder) -> Unit

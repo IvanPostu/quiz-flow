@@ -1,6 +1,5 @@
 package com.iv127.quizflow.server.acceptance.test.rest.impl
 
-import com.iv127.quizflow.core.rest.api.authorization.ApiAuthorization
 import com.iv127.quizflow.core.rest.api.quiz.QuizCreateRequest
 import com.iv127.quizflow.core.rest.api.quiz.QuizResponse
 import com.iv127.quizflow.core.rest.api.quiz.QuizUpdateRequest
@@ -20,21 +19,21 @@ class QuizzesRoutesTestImpl(
     private val config: GlobalConfig = GlobalConfig.INSTANCE
 ) : QuizzesRoutes {
 
-    override suspend fun get(authorization: ApiAuthorization, quizId: String): QuizResponse {
+    override suspend fun get(accessToken: String, quizId: String): QuizResponse {
         val response: HttpResponse = config.performRequest { client ->
             client.get("${config.baseUrl}/api${QuizzesRoutes.ROUTE_PATH}/${quizId}") {
                 contentType(ContentType.Application.Json)
-                bearerAuth(authorization.getToken())
+                bearerAuth(accessToken)
             }
         }
         return response.body<QuizResponse>()
     }
 
-    override suspend fun create(authorization: ApiAuthorization, request: QuizCreateRequest): QuizResponse {
+    override suspend fun create(accessToken: String, request: QuizCreateRequest): QuizResponse {
         val response: HttpResponse = config.performRequest { client ->
             client.post("${config.baseUrl}/api${QuizzesRoutes.ROUTE_PATH}") {
                 contentType(ContentType.Application.Json)
-                bearerAuth(authorization.getToken())
+                bearerAuth(accessToken)
                 setBody(request)
             }
         }
@@ -42,14 +41,14 @@ class QuizzesRoutesTestImpl(
     }
 
     override suspend fun update(
-        authorization: ApiAuthorization,
+        accessToken: String,
         quizId: String,
         request: QuizUpdateRequest
     ): QuizResponse {
         val response: HttpResponse = config.performRequest { client ->
             client.put("${config.baseUrl}/api${QuizzesRoutes.ROUTE_PATH}/${quizId}") {
                 contentType(ContentType.Application.Json)
-                bearerAuth(authorization.getToken())
+                bearerAuth(accessToken)
                 setBody(request)
             }
         }

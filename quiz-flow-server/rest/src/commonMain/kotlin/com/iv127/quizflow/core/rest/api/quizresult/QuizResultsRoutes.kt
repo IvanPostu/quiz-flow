@@ -8,10 +8,10 @@ interface QuizResultsRoutes {
         const val ROUTE_PATH: String = "/quiz-results"
     }
 
-    suspend fun get(authorization: ApiAuthorization, quizId: String): QuizResultResponse
+    suspend fun get(accessToken: String, quizId: String): QuizResultResponse
 
     suspend fun list(
-        authorization: ApiAuthorization,
+        accessToken: String,
         offset: Int?,
         limit: Int?,
         sortOrder: SortOrder?

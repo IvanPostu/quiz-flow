@@ -1,6 +1,5 @@
 package com.iv127.quizflow.server.acceptance.test.rest.impl
 
-import com.iv127.quizflow.core.rest.api.authorization.ApiAuthorization
 import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
 import com.iv127.quizflow.core.rest.api.user.UserResponse
 import com.iv127.quizflow.core.rest.api.user.UsersRoutes
@@ -17,21 +16,21 @@ import io.ktor.http.contentType
 class UsersRoutesTestImpl(
     private val config: GlobalConfig = GlobalConfig.INSTANCE
 ) : UsersRoutes {
-    override suspend fun list(authorization: ApiAuthorization): List<UserResponse> {
+    override suspend fun list(accessToken: String): List<UserResponse> {
         val response: HttpResponse = config.performRequest { client ->
             client.get("${config.baseUrl}/api${UsersRoutes.ROUTE_PATH}") {
                 contentType(ContentType.Application.Json)
-                bearerAuth(authorization.getToken())
+                bearerAuth(accessToken)
             }
         }
         return response.body<List<UserResponse>>()
     }
 
-    override suspend fun create(authorization: ApiAuthorization, request: UserCreateRequest): UserResponse {
+    override suspend fun create(accessToken: String, request: UserCreateRequest): UserResponse {
         val response: HttpResponse = config.performRequest { client ->
             client.post("${config.baseUrl}/api${UsersRoutes.ROUTE_PATH}") {
                 contentType(ContentType.Application.Json)
-                bearerAuth(authorization.getToken())
+                bearerAuth(accessToken)
                 setBody(request)
             }
         }

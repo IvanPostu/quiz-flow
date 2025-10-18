@@ -1,6 +1,7 @@
 package com.iv127.quizflow.core
 
 import com.iv127.quizflow.core.application.ApplicationState
+import com.iv127.quizflow.core.ktor.AuthenticationPlugin
 import com.iv127.quizflow.core.ktor.AuthorizationPlugin
 import com.iv127.quizflow.core.ktor.CustomStatusPagesConfig
 import com.iv127.quizflow.core.platform.PlatformServices
@@ -140,6 +141,7 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
             staticFilesProviderPlugin.intercept(this)
         }
         install(AuthorizationPlugin(koinApp))
+        install(AuthenticationPlugin(koinApp))
         install(StatusPages, CustomStatusPagesConfig.configure())
 
         routing {
