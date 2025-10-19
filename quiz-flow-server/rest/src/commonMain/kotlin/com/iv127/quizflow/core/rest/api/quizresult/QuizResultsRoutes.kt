@@ -1,7 +1,6 @@
 package com.iv127.quizflow.core.rest.api.quizresult
 
 import com.iv127.quizflow.core.rest.api.SortOrder
-import com.iv127.quizflow.core.rest.api.authorization.ApiAuthorization
 
 interface QuizResultsRoutes {
     companion object {

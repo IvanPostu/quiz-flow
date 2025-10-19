@@ -2,13 +2,11 @@ package com.iv127.quizflow.core
 
 import com.iv127.quizflow.core.application.ApplicationState
 import com.iv127.quizflow.core.ktor.AuthenticationPlugin
-import com.iv127.quizflow.core.ktor.AuthorizationPlugin
 import com.iv127.quizflow.core.ktor.CustomStatusPagesConfig
 import com.iv127.quizflow.core.platform.PlatformServices
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.authentication.AuthenticationsRoutesImpl
-import com.iv127.quizflow.core.rest.impl.authorization.AuthorizationsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.healthcheck.HealthCheckRoutesImpl
 import com.iv127.quizflow.core.rest.impl.question.QuestionsRoutesImpl
 import com.iv127.quizflow.core.rest.impl.questionset.QuestionSetsRoutesImpl
@@ -16,8 +14,6 @@ import com.iv127.quizflow.core.rest.impl.quiz.QuizzesRoutesImpl
 import com.iv127.quizflow.core.rest.impl.user.UsersRoutesImpl
 import com.iv127.quizflow.core.services.authentication.AuthenticationService
 import com.iv127.quizflow.core.services.authentication.impl.AuthenticationServiceImpl
-import com.iv127.quizflow.core.services.authorization.AuthorizationService
-import com.iv127.quizflow.core.services.authorization.impl.AuthorizationServiceImpl
 import com.iv127.quizflow.core.services.questionset.QuestionSetService
 import com.iv127.quizflow.core.services.questionset.impl.QuestionSetServiceImpl
 import com.iv127.quizflow.core.services.quiz.QuizService
@@ -78,11 +74,6 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
                 get<SqliteDatabase>(named("appDb"))
             }
         }
-        single<AuthorizationService> {
-            AuthorizationServiceImpl {
-                get<SqliteDatabase>(named("appDb"))
-            }
-        }
         single<AuthenticationService> {
             AuthenticationServiceImpl {
                 get<SqliteDatabase>(named("appDb"))
@@ -109,7 +100,6 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         QuestionSetsRoutesImpl(koinApp),
         UsersRoutesImpl(koinApp),
         QuestionsRoutesImpl(koinApp),
-        AuthorizationsRoutesImpl(koinApp),
         AuthenticationsRoutesImpl(koinApp),
         QuizzesRoutesImpl(koinApp),
         QuizResultsRoutesImpl(koinApp),
@@ -140,7 +130,6 @@ fun createApplicationModule(platformServices: PlatformServices): Application.() 
         intercept(ApplicationCallPipeline.Call) {
             staticFilesProviderPlugin.intercept(this)
         }
-        install(AuthorizationPlugin(koinApp))
         install(AuthenticationPlugin(koinApp))
         install(StatusPages, CustomStatusPagesConfig.configure())
 
