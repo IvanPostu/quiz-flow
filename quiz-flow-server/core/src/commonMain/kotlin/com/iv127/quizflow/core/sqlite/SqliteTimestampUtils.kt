@@ -18,10 +18,12 @@ class SqliteTimestampUtils {
             day()
             char(' ')
             hour()
-            char(':');
+            char(':')
             minute()
-            char(':');
+            char(':')
             second()
+            char('.')
+            secondFraction(fixedLength = 9)
         }
 
         @OptIn(ExperimentalTime::class)

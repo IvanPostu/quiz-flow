@@ -2,6 +2,7 @@ package com.iv127.quizflow.core.services.authentication
 
 import com.iv127.quizflow.core.model.User
 import com.iv127.quizflow.core.model.authentication.Authentication
+import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshToken
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
 
 interface AuthenticationService {
@@ -15,6 +16,12 @@ interface AuthenticationService {
     fun checkAuthorizationScopes(authentication: Authentication, requiredScopes: Set<AuthorizationScope>)
 
     fun getAuthenticationByAccessToken(accessToken: String): Authentication
+
+    fun markRefreshTokenAsExpired(refreshTokenId: String): AuthenticationRefreshToken
+
+    fun markAccessTokenAsExpired(accessTokenId: String): Authentication
+
+    fun extendAccessTokenLifetime(accessToken: String): Authentication
 
     interface AuthenticationWithRefreshToken {
         fun authentication(): Authentication

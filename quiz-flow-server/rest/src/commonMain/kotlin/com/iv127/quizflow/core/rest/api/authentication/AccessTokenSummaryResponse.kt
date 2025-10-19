@@ -8,15 +8,15 @@ import kotlinx.serialization.Serializable
 
 @OptIn(ExperimentalTime::class)
 @Serializable
-data class AccessTokenResponse(
-    @SerialName("access_token")
-    val accessToken: String,
-    @SerialName("authorization_scopes")
-    val authorizationScopes: Set<AuthorizationScopeResponse>,
-    @SerialName("access_token_expiration_date")
+data class AccessTokenSummaryResponse(
+    @SerialName("id")
+    val id: String,
+    @SerialName("access_token_hash")
+    val accessTokenHash: String,
     @Serializable(with = InstantSerializer::class)
-    val accessTokenExpirationDate: Instant,
-    @SerialName("refresh_token_expiration_date")
+    @SerialName("created_date")
+    val createdDate: Instant,
     @Serializable(with = InstantSerializer::class)
-    val refreshTokenExpirationDate: Instant,
+    @SerialName("expiration_date")
+    val expirationDate: Instant
 )

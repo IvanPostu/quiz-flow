@@ -1,6 +1,7 @@
 package com.iv127.quizflow.core.rest.impl.authentication
 
 import com.iv127.quizflow.core.model.User
+import com.iv127.quizflow.core.model.authentication.AuthenticationAccessTokenNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshTokenNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
 import com.iv127.quizflow.core.rest.ApiRoute
@@ -9,10 +10,14 @@ import com.iv127.quizflow.core.rest.api.authentication.AuthenticationsRoutes
 import com.iv127.quizflow.core.rest.api.authentication.AuthenticationsRoutes.Companion.REFRESHABLE_TOKEN_NAME
 import com.iv127.quizflow.core.rest.api.authentication.AuthenticationsRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.rest.api.authentication.AuthorizationScopeResponse
+import com.iv127.quizflow.core.rest.api.authentication.MarkAccessTokenAsExpiredRequest
+import com.iv127.quizflow.core.rest.api.authentication.MarkRefreshTokenAsExpiredRequest
+import com.iv127.quizflow.core.rest.api.authentication.RefreshTokenSummaryResponse
 import com.iv127.quizflow.core.rest.api.authentication.UsernamePasswordAuthenticationRequest
 import com.iv127.quizflow.core.rest.api.cookie.CookieRequest
 import com.iv127.quizflow.core.rest.api.cookie.CookieResponse
 import com.iv127.quizflow.core.rest.cookie.CookieMapper
+import com.iv127.quizflow.core.security.AccessTokenProvider
 import com.iv127.quizflow.core.security.AuthenticationException
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.routingContextWebResponse
@@ -55,6 +60,10 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
             }.map { CookieMapper.mapToCookieRequest(it.first, it.second) }
             JsonWebResponse.create(createAccessToken(cookieRequests))
         })
+        parent.post("$ROUTE_PATH/access-token-lifetime", routingContextWebResponse {
+            val accessToken = AccessTokenProvider.provide(call)
+            JsonWebResponse.create(extendAccessTokenLifetime(accessToken))
+        })
     }
 
     override suspend fun signIn(request: UsernamePasswordAuthenticationRequest):
@@ -71,6 +80,41 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
             }
             throw IllegalStateException(e)
         }
+    }
+
+    override suspend fun extendAccessTokenLifetime(accessToken: String): AccessTokenResponse {
+        val authentication = try {
+            authenticationService.extendAccessTokenLifetime(accessToken)
+        } catch (e: AuthenticationAccessTokenNotFoundException) {
+            throw AuthenticationException("Access token is invalid")
+        }
+        return AccessTokenResponse(
+            authentication.accessToken,
+            authentication.authenticationRefreshToken.authorizationScopes.map { mapScope(it) }.toSet(),
+            authentication.authenticationAccessToken.expirationDate,
+            authentication.authenticationRefreshToken.expirationDate,
+        )
+    }
+
+    override suspend fun markRefreshTokenAsExpired(
+        accessToken: String,
+        markRefreshTokenAsExpiredRequest: MarkRefreshTokenAsExpiredRequest
+    ): RefreshTokenSummaryResponse {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun markAccessTokenAsExpired(
+        accessToken: String,
+        markAccessTokenAsExpiredRequest: MarkAccessTokenAsExpiredRequest
+    ): RefreshTokenSummaryResponse {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getUserTokens(
+        accessToken: String,
+        markAccessTokenAsExpiredRequest: MarkAccessTokenAsExpiredRequest
+    ): List<RefreshTokenSummaryResponse> {
+        TODO("Not yet implemented")
     }
 
     private fun internalCreateAccessToken(cookies: List<CookieRequest>): AccessTokenResponse {
@@ -91,7 +135,9 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
             .authentication()
         return AccessTokenResponse(
             authentication.accessToken,
-            authentication.authenticationRefreshToken.authorizationScopes.map { mapScope(it) }.toSet()
+            authentication.authenticationRefreshToken.authorizationScopes.map { mapScope(it) }.toSet(),
+            authentication.authenticationAccessToken.expirationDate,
+            authentication.authenticationRefreshToken.expirationDate,
         )
     }
 
@@ -118,7 +164,9 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
             AccessTokenResponse(
                 authentication.authentication().accessToken,
                 authentication.authentication().authenticationRefreshToken.authorizationScopes.map { mapScope(it) }
-                    .toSet()
+                    .toSet(),
+                authentication.authentication().authenticationAccessToken.expirationDate,
+                authentication.authentication().authenticationRefreshToken.expirationDate,
             )
         )
     }

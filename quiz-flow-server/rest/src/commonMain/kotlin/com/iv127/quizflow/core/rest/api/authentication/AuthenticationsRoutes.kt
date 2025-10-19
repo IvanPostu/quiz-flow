@@ -15,4 +15,30 @@ interface AuthenticationsRoutes {
 
     suspend fun createAccessToken(cookies: List<CookieRequest>): AccessTokenResponse
 
+    suspend fun extendAccessTokenLifetime(accessToken: String): AccessTokenResponse
+
+    /**
+     * Super admin only
+     */
+    suspend fun markRefreshTokenAsExpired(
+        accessToken: String,
+        markRefreshTokenAsExpiredRequest: MarkRefreshTokenAsExpiredRequest
+    ): RefreshTokenSummaryResponse
+
+    /**
+     * Super admin only
+     */
+    suspend fun markAccessTokenAsExpired(
+        accessToken: String,
+        markAccessTokenAsExpiredRequest: MarkAccessTokenAsExpiredRequest
+    ): RefreshTokenSummaryResponse
+
+    /**
+     * Super admin only
+     */
+    suspend fun getUserTokens(
+        accessToken: String,
+        markAccessTokenAsExpiredRequest: MarkAccessTokenAsExpiredRequest
+    ): List<RefreshTokenSummaryResponse>
+
 }

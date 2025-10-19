@@ -3,6 +3,9 @@ package com.iv127.quizflow.server.acceptance.test.rest.impl
 import com.iv127.quizflow.core.rest.api.authentication.AccessTokenResponse
 import com.iv127.quizflow.core.rest.api.authentication.AuthenticationsRoutes
 import com.iv127.quizflow.core.rest.api.authentication.AuthenticationsRoutes.Companion.ROUTE_PATH
+import com.iv127.quizflow.core.rest.api.authentication.MarkAccessTokenAsExpiredRequest
+import com.iv127.quizflow.core.rest.api.authentication.MarkRefreshTokenAsExpiredRequest
+import com.iv127.quizflow.core.rest.api.authentication.RefreshTokenSummaryResponse
 import com.iv127.quizflow.core.rest.api.authentication.UsernamePasswordAuthenticationRequest
 import com.iv127.quizflow.core.rest.api.cookie.CookieRequest
 import com.iv127.quizflow.core.rest.api.cookie.CookieResponse
@@ -10,6 +13,7 @@ import com.iv127.quizflow.server.acceptance.test.GlobalConfig
 import io.ktor.client.call.body
 import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -69,7 +73,7 @@ class CookieAwareAuthenticationsRoutesTestImpl(
             .joinToString("; ")
         val response: HttpResponse = config.performRequest { client ->
             client.post("${config.baseUrl}/api${ROUTE_PATH}/access-token") {
-                header("Qbc", "Qcde")
+                header("Test", "test")
                 header("Cookie", cookieValue)
                 contentType(ContentType.Application.Json)
                 setBody(mapOf<String, String>())
@@ -77,6 +81,39 @@ class CookieAwareAuthenticationsRoutesTestImpl(
         }
         val responseData: AccessTokenResponse = response.body<AccessTokenResponse>()
         return responseData
+    }
+
+    override suspend fun extendAccessTokenLifetime(accessToken: String): AccessTokenResponse {
+        val response: HttpResponse = config.performRequest { client ->
+            client.post("${config.baseUrl}/api${ROUTE_PATH}/access-token-lifetime") {
+                contentType(ContentType.Application.Json)
+                bearerAuth(accessToken)
+                setBody(mapOf<String, String>())
+            }
+        }
+        val responseData: AccessTokenResponse = response.body<AccessTokenResponse>()
+        return responseData
+    }
+
+    override suspend fun markRefreshTokenAsExpired(
+        accessToken: String,
+        markRefreshTokenAsExpiredRequest: MarkRefreshTokenAsExpiredRequest
+    ): RefreshTokenSummaryResponse {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun markAccessTokenAsExpired(
+        accessToken: String,
+        markAccessTokenAsExpiredRequest: MarkAccessTokenAsExpiredRequest
+    ): RefreshTokenSummaryResponse {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getUserTokens(
+        accessToken: String,
+        markAccessTokenAsExpiredRequest: MarkAccessTokenAsExpiredRequest
+    ): List<RefreshTokenSummaryResponse> {
+        TODO("Not yet implemented")
     }
 
     fun getCookies(): List<Cookie> = customCookieStorage.getCookies()

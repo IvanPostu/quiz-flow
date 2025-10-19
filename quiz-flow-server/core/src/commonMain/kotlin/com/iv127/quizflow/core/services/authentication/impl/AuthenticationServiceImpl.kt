@@ -115,11 +115,71 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
     }
 
     override fun getAuthenticationByAccessToken(accessToken: String): Authentication {
-        val authenticationAccessToken = selectAuthenticationAccessToken(accessToken)
+        val hashedAccessToken = Sha256.hashToHex(accessToken.encodeToByteArray())
+        val authenticationAccessToken = selectAuthenticationAccessTokenByColumn(
+            "access_token_hash",
+            hashedAccessToken
+        )
+        val authenticationRefreshTokenByColumn = selectAuthenticationRefreshTokenByColumn(
+            "id",
+            authenticationAccessToken.id
+        )
+        return Authentication(authenticationAccessToken, accessToken, authenticationRefreshTokenByColumn.result)
+    }
+
+    override fun markRefreshTokenAsExpired(refreshTokenId: String): AuthenticationRefreshToken {
+        val refreshTokenRecord = selectAuthenticationRefreshTokenByColumn("id", refreshTokenId)
+        val authenticationRefreshToken = refreshTokenRecord.result
+        dbSupplier().use { db ->
+            db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
+            db.executeAndGetChangedRowsCount(
+                """
+                UPDATE authentication_refresh_tokens 
+                    SET expires_at=created_at
+                WHERE id=?;
+            """.trimIndent(),
+                listOf(authenticationRefreshToken.id)
+            )
+            db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
+        }
+        val updatedRefreshTokenRecord = selectAuthenticationRefreshTokenByColumn("id", refreshTokenId)
+        return updatedRefreshTokenRecord.result
+    }
+
+    override fun markAccessTokenAsExpired(accessTokenId: String): Authentication {
+        TODO("TODO")
+    }
+
+    override fun extendAccessTokenLifetime(accessToken: String): Authentication {
+        val hashedAccessToken = Sha256.hashToHex(accessToken.encodeToByteArray())
+        val authenticationAccessToken = selectAuthenticationAccessTokenByColumn(
+            "access_token_hash",
+            hashedAccessToken
+        )
+        val now = Clock.System.now()
+        dbSupplier().use { db ->
+            db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
+            db.executeAndGetChangedRowsCount(
+                """
+                UPDATE authentication_access_tokens
+                    SET expires_at=?
+                WHERE authentication_refresh_token_id=?
+            """.trimIndent(),
+                listOf(
+                    SqliteTimestampUtils.toValue(now.plus(ACCESS_TOKEN_TIME_TO_LIVE)),
+                    authenticationAccessToken.id
+                )
+            )
+            db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
+        }
         val authenticationRefreshTokenByColumn = selectAuthenticationRefreshTokenByColumn(
             "id", authenticationAccessToken.id
         )
-        return Authentication(authenticationAccessToken, accessToken, authenticationRefreshTokenByColumn.result)
+        val updatedAuthenticationAccessToken = selectAuthenticationAccessTokenByColumn(
+            "access_token_hash",
+            hashedAccessToken
+        )
+        return Authentication(updatedAuthenticationAccessToken, accessToken, authenticationRefreshTokenByColumn.result)
     }
 
     private fun internalCreateAuthenticationAccessToken(refreshToken: String): Authentication {
@@ -192,6 +252,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
         return authorizationScopes.toSet()
     }
 
+    @Throws(AuthenticationRefreshTokenNotFoundException::class)
     private fun selectAuthenticationRefreshTokenByColumn(
         column: String,
         columnValue: String
@@ -230,9 +291,12 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
         }
     }
 
-    private fun selectAuthenticationAccessToken(accessToken: String): AuthenticationAccessToken {
+    @Throws(AuthenticationAccessTokenNotFoundException::class)
+    private fun selectAuthenticationAccessTokenByColumn(
+        column: String,
+        columnValue: String
+    ): AuthenticationAccessToken {
         dbSupplier().use { db ->
-            val hashedAccessToken = Sha256.hashToHex(accessToken.encodeToByteArray())
             val result = db.executeAndGetResultSet(
                 """
                 SELECT 
@@ -243,14 +307,16 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
                     a.created_at,
                     a.expires_at
                 FROM authentication_access_tokens AS a
-                WHERE a.access_token_hash=?
+                WHERE a.$column=?
                 LIMIT 1;
             """.trimIndent(),
-                listOf(hashedAccessToken)
+                listOf(
+                    columnValue
+                )
             )
             if (result.isEmpty()) {
                 throw AuthenticationAccessTokenNotFoundException(
-                    "Authentication access token by access_token_hash with value $hashedAccessToken was not found"
+                    "Authentication access token by $column with value $columnValue was not found"
                 )
             }
             return AuthenticationAccessToken(
