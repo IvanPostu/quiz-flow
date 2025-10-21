@@ -6,6 +6,7 @@ import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshTokenNo
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.authentication.AccessTokenResponse
+import com.iv127.quizflow.core.rest.api.authentication.AccessTokenSummaryResponse
 import com.iv127.quizflow.core.rest.api.authentication.AuthenticationsRoutes
 import com.iv127.quizflow.core.rest.api.authentication.AuthenticationsRoutes.Companion.REFRESHABLE_TOKEN_NAME
 import com.iv127.quizflow.core.rest.api.authentication.AuthenticationsRoutes.Companion.ROUTE_PATH
@@ -13,6 +14,7 @@ import com.iv127.quizflow.core.rest.api.authentication.AuthorizationScopeRespons
 import com.iv127.quizflow.core.rest.api.authentication.MarkAccessTokenAsExpiredRequest
 import com.iv127.quizflow.core.rest.api.authentication.MarkRefreshTokenAsExpiredRequest
 import com.iv127.quizflow.core.rest.api.authentication.RefreshTokenSummaryResponse
+import com.iv127.quizflow.core.rest.api.authentication.TokenSummaryResponse
 import com.iv127.quizflow.core.rest.api.authentication.UsernamePasswordAuthenticationRequest
 import com.iv127.quizflow.core.rest.api.cookie.CookieRequest
 import com.iv127.quizflow.core.rest.api.cookie.CookieResponse
@@ -64,6 +66,16 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
             val accessToken = AccessTokenProvider.provide(call)
             JsonWebResponse.create(extendAccessTokenLifetime(accessToken))
         })
+        parent.post("$ROUTE_PATH/refresh-token-expiration", routingContextWebResponse {
+            val accessToken = AccessTokenProvider.provide(call)
+            val request = call.receive<MarkRefreshTokenAsExpiredRequest>()
+            JsonWebResponse.create(markRefreshTokenAsExpired(accessToken, request))
+        })
+        parent.post("$ROUTE_PATH/access-token-expiration", routingContextWebResponse {
+            val accessToken = AccessTokenProvider.provide(call)
+            val request = call.receive<MarkAccessTokenAsExpiredRequest>()
+            JsonWebResponse.create(markAccessTokenAsExpired(accessToken, request))
+        })
     }
 
     override suspend fun signIn(request: UsernamePasswordAuthenticationRequest):
@@ -89,6 +101,8 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
             throw AuthenticationException("Access token is invalid")
         }
         return AccessTokenResponse(
+            authentication.authenticationAccessToken.id,
+            authentication.authenticationRefreshToken.id,
             authentication.accessToken,
             authentication.authenticationRefreshToken.authorizationScopes.map { mapScope(it) }.toSet(),
             authentication.authenticationAccessToken.expirationDate,
@@ -100,20 +114,35 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
         accessToken: String,
         markRefreshTokenAsExpiredRequest: MarkRefreshTokenAsExpiredRequest
     ): RefreshTokenSummaryResponse {
-        TODO("Not yet implemented")
+        val auth = authenticationService
+            .markRefreshTokenAsExpired(markRefreshTokenAsExpiredRequest.refreshTokenId)
+        return RefreshTokenSummaryResponse(
+            refreshTokenId = auth.id,
+            refreshTokenHash = auth.refreshTokenHash,
+            createdDate = auth.createdDate,
+            expirationDate = auth.expirationDate,
+            authorizationScopes = auth.authorizationScopes.map { mapScope(it) }.toSet()
+        )
     }
 
     override suspend fun markAccessTokenAsExpired(
         accessToken: String,
         markAccessTokenAsExpiredRequest: MarkAccessTokenAsExpiredRequest
-    ): RefreshTokenSummaryResponse {
-        TODO("Not yet implemented")
+    ): AccessTokenSummaryResponse {
+        val auth = authenticationService
+            .markAccessTokenAsExpired(markAccessTokenAsExpiredRequest.accessTokenId)
+        return AccessTokenSummaryResponse(
+            accessTokenId = auth.id,
+            accessTokenHash = auth.accessTokenHash,
+            createdDate = auth.createdDate,
+            expirationDate = auth.expirationDate,
+        )
     }
 
     override suspend fun getUserTokens(
         accessToken: String,
         markAccessTokenAsExpiredRequest: MarkAccessTokenAsExpiredRequest
-    ): List<RefreshTokenSummaryResponse> {
+    ): TokenSummaryResponse {
         TODO("Not yet implemented")
     }
 
@@ -134,6 +163,8 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
         val authentication = authenticationService.createAuthenticationAccessToken(refreshToken)
             .authentication()
         return AccessTokenResponse(
+            authentication.authenticationAccessToken.id,
+            authentication.authenticationRefreshToken.id,
             authentication.accessToken,
             authentication.authenticationRefreshToken.authorizationScopes.map { mapScope(it) }.toSet(),
             authentication.authenticationAccessToken.expirationDate,
@@ -162,6 +193,8 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
         return Pair(
             cookieResponseList,
             AccessTokenResponse(
+                authentication.authentication().authenticationAccessToken.id,
+                authentication.authentication().authenticationRefreshToken.id,
                 authentication.authentication().accessToken,
                 authentication.authentication().authenticationRefreshToken.authorizationScopes.map { mapScope(it) }
                     .toSet(),

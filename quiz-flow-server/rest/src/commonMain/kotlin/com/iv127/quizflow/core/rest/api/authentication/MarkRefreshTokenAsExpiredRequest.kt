@@ -1,3 +1,9 @@
 package com.iv127.quizflow.core.rest.api.authentication
 
-data class MarkRefreshTokenAsExpiredRequest(val refreshTokenId: String)
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class MarkRefreshTokenAsExpiredRequest(
+    @SerialName("refresh_token_id") val refreshTokenId: String
+)

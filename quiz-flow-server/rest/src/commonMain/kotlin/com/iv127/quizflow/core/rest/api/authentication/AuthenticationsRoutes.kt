@@ -31,7 +31,7 @@ interface AuthenticationsRoutes {
     suspend fun markAccessTokenAsExpired(
         accessToken: String,
         markAccessTokenAsExpiredRequest: MarkAccessTokenAsExpiredRequest
-    ): RefreshTokenSummaryResponse
+    ): AccessTokenSummaryResponse
 
     /**
      * Super admin only
@@ -39,6 +39,6 @@ interface AuthenticationsRoutes {
     suspend fun getUserTokens(
         accessToken: String,
         markAccessTokenAsExpiredRequest: MarkAccessTokenAsExpiredRequest
-    ): List<RefreshTokenSummaryResponse>
+    ): TokenSummaryResponse
 
 }

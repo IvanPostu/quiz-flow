@@ -1,11 +1,13 @@
 package com.iv127.quizflow.server.acceptance.test.rest.impl
 
 import com.iv127.quizflow.core.rest.api.authentication.AccessTokenResponse
+import com.iv127.quizflow.core.rest.api.authentication.AccessTokenSummaryResponse
 import com.iv127.quizflow.core.rest.api.authentication.AuthenticationsRoutes
 import com.iv127.quizflow.core.rest.api.authentication.AuthenticationsRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.rest.api.authentication.MarkAccessTokenAsExpiredRequest
 import com.iv127.quizflow.core.rest.api.authentication.MarkRefreshTokenAsExpiredRequest
 import com.iv127.quizflow.core.rest.api.authentication.RefreshTokenSummaryResponse
+import com.iv127.quizflow.core.rest.api.authentication.TokenSummaryResponse
 import com.iv127.quizflow.core.rest.api.authentication.UsernamePasswordAuthenticationRequest
 import com.iv127.quizflow.core.rest.api.cookie.CookieRequest
 import com.iv127.quizflow.core.rest.api.cookie.CookieResponse
@@ -99,20 +101,36 @@ class CookieAwareAuthenticationsRoutesTestImpl(
         accessToken: String,
         markRefreshTokenAsExpiredRequest: MarkRefreshTokenAsExpiredRequest
     ): RefreshTokenSummaryResponse {
-        TODO("Not yet implemented")
+        val response: HttpResponse = config.performRequest { client ->
+            client.post("${config.baseUrl}/api${ROUTE_PATH}/refresh-token-expiration") {
+                contentType(ContentType.Application.Json)
+                bearerAuth(accessToken)
+                setBody(markRefreshTokenAsExpiredRequest)
+            }
+        }
+        val responseData: RefreshTokenSummaryResponse = response.body<RefreshTokenSummaryResponse>()
+        return responseData
     }
 
     override suspend fun markAccessTokenAsExpired(
         accessToken: String,
         markAccessTokenAsExpiredRequest: MarkAccessTokenAsExpiredRequest
-    ): RefreshTokenSummaryResponse {
-        TODO("Not yet implemented")
+    ): AccessTokenSummaryResponse {
+        val response: HttpResponse = config.performRequest { client ->
+            client.post("${config.baseUrl}/api${ROUTE_PATH}/access-token-expiration") {
+                contentType(ContentType.Application.Json)
+                bearerAuth(accessToken)
+                setBody(markAccessTokenAsExpiredRequest)
+            }
+        }
+        val responseData: AccessTokenSummaryResponse = response.body<AccessTokenSummaryResponse>()
+        return responseData
     }
 
     override suspend fun getUserTokens(
         accessToken: String,
         markAccessTokenAsExpiredRequest: MarkAccessTokenAsExpiredRequest
-    ): List<RefreshTokenSummaryResponse> {
+    ): TokenSummaryResponse {
         TODO("Not yet implemented")
     }
 

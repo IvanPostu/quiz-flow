@@ -9,8 +9,8 @@ import kotlinx.serialization.Serializable
 @OptIn(ExperimentalTime::class)
 @Serializable
 data class AccessTokenSummaryResponse(
-    @SerialName("id")
-    val id: String,
+    @SerialName("access_token_id")
+    val accessTokenId: String,
     @SerialName("access_token_hash")
     val accessTokenHash: String,
     @Serializable(with = InstantSerializer::class)

@@ -9,6 +9,10 @@ import kotlinx.serialization.Serializable
 @OptIn(ExperimentalTime::class)
 @Serializable
 data class AccessTokenResponse(
+    @SerialName("access_token_id")
+    val accessTokenId: String,
+    @SerialName("refresh_token_id")
+    val refreshTokenId: String,
     @SerialName("access_token")
     val accessToken: String,
     @SerialName("authorization_scopes")

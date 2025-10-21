@@ -18,6 +18,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : AuthenticationService {
@@ -127,6 +128,22 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
         return Authentication(authenticationAccessToken, accessToken, authenticationRefreshTokenByColumn.result)
     }
 
+    override fun getAuthenticationByRefreshTokenId(refreshTokenId: String): AuthenticationRefreshToken {
+        val authenticationRefreshTokenByColumn = selectAuthenticationRefreshTokenByColumn(
+            "id",
+            refreshTokenId
+        )
+        return authenticationRefreshTokenByColumn.result
+    }
+
+    override fun getAuthenticationByAccessTokenId(accessTokenId: String): AuthenticationAccessToken {
+        val authenticationAccessToken = selectAuthenticationAccessTokenByColumn(
+            "id",
+            accessTokenId
+        )
+        return authenticationAccessToken
+    }
+
     override fun markRefreshTokenAsExpired(refreshTokenId: String): AuthenticationRefreshToken {
         val refreshTokenRecord = selectAuthenticationRefreshTokenByColumn("id", refreshTokenId)
         val authenticationRefreshToken = refreshTokenRecord.result
@@ -146,8 +163,11 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
         return updatedRefreshTokenRecord.result
     }
 
-    override fun markAccessTokenAsExpired(accessTokenId: String): Authentication {
-        TODO("TODO")
+    override fun markAccessTokenAsExpired(accessTokenId: String): AuthenticationAccessToken {
+        val authenticationAccessToken = selectAuthenticationAccessTokenByColumn("id", accessTokenId)
+        val newExpiresAt = authenticationAccessToken.createdDate
+        val updatedAuthenticationAccessToken = setAccessTokenExpiration(authenticationAccessToken, newExpiresAt)
+        return updatedAuthenticationAccessToken
     }
 
     override fun extendAccessTokenLifetime(accessToken: String): Authentication {
@@ -156,31 +176,17 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             "access_token_hash",
             hashedAccessToken
         )
-        val now = Clock.System.now()
-        dbSupplier().use { db ->
-            db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
-            db.executeAndGetChangedRowsCount(
-                """
-                UPDATE authentication_access_tokens
-                    SET expires_at=?
-                WHERE id=?
-            """.trimIndent(),
-                listOf(
-                    SqliteTimestampUtils.toValue(now.plus(ACCESS_TOKEN_TIME_TO_LIVE)),
-                    authenticationAccessToken.id
-                )
-            )
-            db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
-        }
+        val newExpiresAt = Clock.System.now().plus(ACCESS_TOKEN_TIME_TO_LIVE)
+        val updatedAuthenticationAccessToken = setAccessTokenExpiration(authenticationAccessToken, newExpiresAt)
         val authenticationRefreshTokenByColumn = selectAuthenticationRefreshTokenByColumn(
             "id",
-            authenticationAccessToken.refreshTokenId
-        )
-        val updatedAuthenticationAccessToken = selectAuthenticationAccessTokenByColumn(
-            "access_token_hash",
-            hashedAccessToken
+            updatedAuthenticationAccessToken.refreshTokenId
         )
         return Authentication(updatedAuthenticationAccessToken, accessToken, authenticationRefreshTokenByColumn.result)
+    }
+
+    override fun getRefreshTokenSummary(refreshTokenId: String): Pair<AuthenticationRefreshToken, List<AuthenticationAccessToken>> {
+        TODO("Not yet implemented")
     }
 
     private fun internalCreateAuthenticationAccessToken(refreshToken: String): Authentication {
@@ -375,6 +381,32 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             override fun refreshToken(): String = refreshToken
 
         }
+    }
+
+    private fun setAccessTokenExpiration(
+        authenticationAccessToken: AuthenticationAccessToken,
+        expiresAt: Instant
+    ): AuthenticationAccessToken {
+        dbSupplier().use { db ->
+            db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
+            db.executeAndGetChangedRowsCount(
+                """
+                UPDATE authentication_access_tokens
+                    SET expires_at=?
+                WHERE id=?
+            """.trimIndent(),
+                listOf(
+                    SqliteTimestampUtils.toValue(expiresAt),
+                    authenticationAccessToken.id
+                )
+            )
+            db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
+        }
+        val updatedAuthenticationAccessToken = selectAuthenticationAccessTokenByColumn(
+            "id",
+            authenticationAccessToken.id
+        )
+        return updatedAuthenticationAccessToken
     }
 
 }

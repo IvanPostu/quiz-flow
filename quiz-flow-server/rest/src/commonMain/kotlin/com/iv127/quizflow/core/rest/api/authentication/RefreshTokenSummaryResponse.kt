@@ -9,8 +9,8 @@ import kotlinx.serialization.Serializable
 @OptIn(ExperimentalTime::class)
 @Serializable
 data class RefreshTokenSummaryResponse(
-    @SerialName("id")
-    val id: String,
+    @SerialName("refresh_token_id")
+    val refreshTokenId: String,
     @SerialName("refresh_token_hash")
     val refreshTokenHash: String,
     @SerialName("created_date")
@@ -21,6 +21,4 @@ data class RefreshTokenSummaryResponse(
     val expirationDate: Instant,
     @SerialName("authorization_scopes")
     val authorizationScopes: Set<AuthorizationScopeResponse>,
-    @SerialName("access_tokens")
-    val accessTokens: List<AccessTokenSummaryResponse>,
 )

@@ -1,8 +1,12 @@
 package com.iv127.quizflow.server.acceptance.test.route
 
 import com.iv127.quizflow.core.rest.api.authentication.AuthorizationScopeResponse
+import com.iv127.quizflow.core.rest.api.authentication.MarkAccessTokenAsExpiredRequest
+import com.iv127.quizflow.core.rest.api.authentication.MarkRefreshTokenAsExpiredRequest
 import com.iv127.quizflow.core.rest.api.authentication.UsernamePasswordAuthenticationRequest
 import com.iv127.quizflow.core.rest.api.cookie.CookieRequest
+import com.iv127.quizflow.server.acceptance.test.acceptance.AuthenticationAcceptance
+import com.iv127.quizflow.server.acceptance.test.acceptance.UserAcceptance
 import com.iv127.quizflow.server.acceptance.test.rest.RestErrorException
 import com.iv127.quizflow.server.acceptance.test.rest.impl.CookieAwareAuthenticationsRoutesTestImpl
 import java.time.Instant
@@ -21,6 +25,60 @@ import org.junit.jupiter.params.provider.CsvSource
 
 @OptIn(ExperimentalTime::class)
 class AuthenticationRoutesTest {
+
+    @Test
+    fun testMarkRefreshTokenExpired() = runTest {
+        val cookieAwareAuthenticationsRoutesTestImpl = CookieAwareAuthenticationsRoutesTestImpl()
+        val superUserAuth = AuthenticationAcceptance.authenticateSuperUser()
+
+        val username = "testUsername1${System.currentTimeMillis()}"
+        val password = "test1Password${System.currentTimeMillis()}"
+        UserAcceptance.createUser(username, password)
+        val (cookies, response) = cookieAwareAuthenticationsRoutesTestImpl.signIn(
+            UsernamePasswordAuthenticationRequest(
+                username,
+                password
+            )
+        )
+        assertThat(cookies).hasSize(1)
+
+        val expiredRefreshTokenResponse = cookieAwareAuthenticationsRoutesTestImpl
+            .markRefreshTokenAsExpired(
+                superUserAuth.accessToken,
+                MarkRefreshTokenAsExpiredRequest(response.refreshTokenId)
+            )
+        assertThat(expiredRefreshTokenResponse.expirationDate)
+            .isEqualTo(expiredRefreshTokenResponse.createdDate)
+        assertThat(expiredRefreshTokenResponse.createdDate)
+            .isLessThan(response.refreshTokenExpirationDate)
+    }
+
+    @Test
+    fun testMarkAccessTokenExpired() = runTest {
+        val cookieAwareAuthenticationsRoutesTestImpl = CookieAwareAuthenticationsRoutesTestImpl()
+        val superUserAuth = AuthenticationAcceptance.authenticateSuperUser()
+
+        val username = "testUsername1${System.currentTimeMillis()}"
+        val password = "test1Password${System.currentTimeMillis()}"
+        UserAcceptance.createUser(username, password)
+        val (cookies, response) = cookieAwareAuthenticationsRoutesTestImpl.signIn(
+            UsernamePasswordAuthenticationRequest(
+                username,
+                password
+            )
+        )
+        assertThat(cookies).hasSize(1)
+
+        val expiredAccessTokenResponse = cookieAwareAuthenticationsRoutesTestImpl
+            .markAccessTokenAsExpired(
+                superUserAuth.accessToken,
+                MarkAccessTokenAsExpiredRequest(response.accessTokenId)
+            )
+        assertThat(expiredAccessTokenResponse.expirationDate)
+            .isEqualTo(expiredAccessTokenResponse.createdDate)
+        assertThat(expiredAccessTokenResponse.createdDate)
+            .isLessThan(response.accessTokenExpirationDate)
+    }
 
     @Test
     fun testExtendAccessTokenLifetime() = runTest {
@@ -142,6 +200,8 @@ class AuthenticationRoutesTest {
             })
         val accessTokenResponse = signInResult.second
 
+        assertThat(accessTokenResponse.refreshTokenId).hasSize(36)
+        assertThat(accessTokenResponse.accessTokenId).hasSize(36)
         assertThat(accessTokenResponse.accessToken).hasSize(64)
         assertThat(accessTokenResponse.authorizationScopes).isEqualTo(
             setOf(
