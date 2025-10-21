@@ -6,7 +6,7 @@ import kotlin.time.Instant
 @OptIn(ExperimentalTime::class)
 data class AuthenticationAccessToken(
     val id: String,
-    val userId: String,
+    val refreshTokenId: String,
     val accessTokenHash: String,
     val createdDate: Instant,
     val expirationDate: Instant

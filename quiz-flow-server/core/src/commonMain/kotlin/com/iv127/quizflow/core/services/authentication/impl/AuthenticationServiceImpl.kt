@@ -122,7 +122,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
         )
         val authenticationRefreshTokenByColumn = selectAuthenticationRefreshTokenByColumn(
             "id",
-            authenticationAccessToken.id
+            authenticationAccessToken.refreshTokenId
         )
         return Authentication(authenticationAccessToken, accessToken, authenticationRefreshTokenByColumn.result)
     }
@@ -163,7 +163,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
                 """
                 UPDATE authentication_access_tokens
                     SET expires_at=?
-                WHERE authentication_refresh_token_id=?
+                WHERE id=?
             """.trimIndent(),
                 listOf(
                     SqliteTimestampUtils.toValue(now.plus(ACCESS_TOKEN_TIME_TO_LIVE)),
@@ -173,7 +173,8 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             db.executeAndGetChangedRowsCount("COMMIT TRANSACTION;")
         }
         val authenticationRefreshTokenByColumn = selectAuthenticationRefreshTokenByColumn(
-            "id", authenticationAccessToken.id
+            "id",
+            authenticationAccessToken.refreshTokenId
         )
         val updatedAuthenticationAccessToken = selectAuthenticationAccessTokenByColumn(
             "access_token_hash",
@@ -209,8 +210,8 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             UUIDv4.generate(UUIDv4.Companion.Format.COMPACT) + UUIDv4.generate(UUIDv4.Companion.Format.COMPACT)
 
         val authenticationAccessToken = AuthenticationAccessToken(
-            id = authenticationRefreshToken.id,
-            userId = authenticationRefreshToken.userId,
+            id = UUIDv4.generate(),
+            refreshTokenId = authenticationRefreshToken.id,
             accessTokenHash = Sha256.hashToHex(opaqueTokenString.encodeToByteArray()),
             createdDate = now,
             expirationDate = now.plus(ACCESS_TOKEN_TIME_TO_LIVE)
@@ -218,17 +219,17 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
         db.executeAndGetChangedRowsCount(
             """
                     INSERT INTO authentication_access_tokens (
+                        id,
                         authentication_refresh_token_id,
-                        user_id,
                         access_token_hash,
                         created_at,
                         expires_at ) 
-                    VALUES (?, ?, ?, ?, ? );
+                    VALUES (?, ?, ?, ?, ?);
                 """.trimIndent(),
             listOf<Any?>
                 (
                 authenticationAccessToken.id,
-                authenticationAccessToken.userId,
+                authenticationAccessToken.refreshTokenId,
                 authenticationAccessToken.accessTokenHash,
                 SqliteTimestampUtils.toValue(authenticationAccessToken.createdDate),
                 SqliteTimestampUtils.toValue(authenticationAccessToken.expirationDate),
@@ -301,8 +302,8 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
                 """
                 SELECT 
                     a.primary_key,
+                    a.id,
                     a.authentication_refresh_token_id,
-                    a.user_id,
                     a.access_token_hash,
                     a.created_at,
                     a.expires_at
@@ -320,8 +321,8 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
                 )
             }
             return AuthenticationAccessToken(
-                id = result[0]["authentication_refresh_token_id"].toString(),
-                userId = result[0]["user_id"].toString(),
+                id = result[0]["id"].toString(),
+                refreshTokenId = result[0]["authentication_refresh_token_id"].toString(),
                 accessTokenHash = result[0]["access_token_hash"].toString(),
                 createdDate = SqliteTimestampUtils.fromValue(result[0]["created_at"].toString()),
                 expirationDate = SqliteTimestampUtils.fromValue(result[0]["expires_at"].toString()),

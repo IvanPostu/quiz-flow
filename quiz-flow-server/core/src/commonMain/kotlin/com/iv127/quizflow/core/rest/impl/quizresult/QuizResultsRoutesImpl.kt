@@ -46,7 +46,7 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
         authenticationService.checkAuthorizationScopes(authorization, setOf(AuthorizationScope.REGULAR_USER))
 
         try {
-            val quiz = getFinalizedQuiz(authorization.authenticationAccessToken.userId, quizId)
+            val quiz = getFinalizedQuiz(authorization.authenticationRefreshToken.userId, quizId)
             return mapToQuizResultResponse(quiz)
         } catch (e: FinalizedQuizNotFoundException) {
             throw ApiClientErrorExceptionTranslator.translateAndThrowOrElseFail(
@@ -70,7 +70,7 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
         val explicitSortOrder = sortOrder ?: SortOrder.DESC
 
         val finalizedQuizzes = quizService.getQuizList(
-            authorization.authenticationAccessToken.userId,
+            authorization.authenticationRefreshToken.userId,
             explicitOffset,
             explicitLimit,
             explicitSortOrder,

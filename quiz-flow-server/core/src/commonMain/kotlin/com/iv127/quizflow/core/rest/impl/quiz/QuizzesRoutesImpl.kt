@@ -64,7 +64,7 @@ class QuizzesRoutesImpl(koinApp: KoinApplication) : QuizzesRoutes, ApiRoute {
         authenticationService.checkAuthorizationScopes(authorization, setOf(AuthorizationScope.REGULAR_USER))
 
         try {
-            val quiz = quizService.getQuiz(authorization.authenticationAccessToken.userId, quizId)
+            val quiz = quizService.getQuiz(authorization.authenticationRefreshToken.userId, quizId)
             val questionSetVersion = getQuestionSetVersion(quiz.questionSetId, quiz.questionSetVersion)
             val questionsById: Map<String, Question> = questionSetVersion.questions.associateBy { item -> item.id }
             return mapToQuizResponse(quiz, questionsById)
@@ -89,7 +89,7 @@ class QuizzesRoutesImpl(koinApp: KoinApplication) : QuizzesRoutes, ApiRoute {
         }
 
         val createdQuiz =
-            quizService.createQuiz(authorization.authenticationAccessToken.userId, questionSetVersion, questions)
+            quizService.createQuiz(authorization.authenticationRefreshToken.userId, questionSetVersion, questions)
         return mapToQuizResponse(createdQuiz, questionsById)
     }
 
@@ -102,12 +102,16 @@ class QuizzesRoutesImpl(koinApp: KoinApplication) : QuizzesRoutes, ApiRoute {
         authenticationService.checkAuthorizationScopes(authorization, setOf(AuthorizationScope.REGULAR_USER))
 
         try {
-            val quiz = quizService.getQuiz(authorization.authenticationAccessToken.userId, quizId)
+            val quiz = quizService.getQuiz(authorization.authenticationRefreshToken.userId, quizId)
             val questionSetVersion = getQuestionSetVersion(quiz.questionSetId, quiz.questionSetVersion)
             val questionsById: Map<String, Question> = questionSetVersion.questions.associateBy { item -> item.id }
 
             val updatedQuiz = quizService
-                .updateQuiz(authorization.authenticationAccessToken.userId, quizId, questionSetVersion) { quizBuilder ->
+                .updateQuiz(
+                    authorization.authenticationRefreshToken.userId,
+                    quizId,
+                    questionSetVersion
+                ) { quizBuilder ->
                     quizBuilder.withAnswers(
                         request.quizAnswerRequests.map {
                             QuizAnswer(it.questionId, it.chosenAnswerIndexes)
