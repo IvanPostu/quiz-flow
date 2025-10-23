@@ -5,6 +5,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
+const scssVariables = require("./src/styles/variables.json");
 
 module.exports = (env, argv) => {
   const isProduction = process.env.NODE_ENV === "production";
@@ -37,6 +38,10 @@ module.exports = (env, argv) => {
       })
     );
   }
+
+  const scssVariablesAsString = Object.entries(scssVariables)
+    .map(([key, value]) => `$${key}: ${value};`)
+    .join("\n");
 
   return {
     mode: isProduction ? "production" : "development",
@@ -76,7 +81,12 @@ module.exports = (env, argv) => {
           use: [
             isProduction ? MiniCssExtractPlugin.loader : "style-loader",
             "css-loader",
-            "sass-loader",
+            {
+              loader: "sass-loader",
+              options: {
+                additionalData: scssVariablesAsString,
+              },
+            },
           ],
         },
         {
@@ -93,7 +103,12 @@ module.exports = (env, argv) => {
                 },
               },
             },
-            "sass-loader",
+            {
+              loader: "sass-loader",
+              options: {
+                additionalData: scssVariablesAsString,
+              },
+            },
           ],
         },
         {

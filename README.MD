@@ -122,3 +122,4 @@ java -jar $PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0
 24. <https://github.com/codzsword/sidebar-html-css-js>
 25. <https://react-redux.js.org/tutorials/typescript-quick-start>
 26. <https://github.com/wopian/kitsu-season-trends/tree/master>
+27. <https://stackoverflow.com/questions/60058352/pass-webpack-environment-variable-to-scss-file>

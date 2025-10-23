@@ -4,6 +4,7 @@ import App from "./app/App";
 
 import "normalize.css";
 import "./styles.css";
+import "./styles/styles.scss";
 
 const container = document.getElementById("root");
 const root = createRoot(container!);
