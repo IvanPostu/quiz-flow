@@ -7,6 +7,7 @@ import { ListOfItems } from "src/components/ListOfItems/ListOfItems";
 import { LoaderDots } from "src/components/LoaderDots/LoaderDots";
 import { LoaderSpinner } from "src/components/LoaderSpinner/LoaderSpinner";
 import { QuestionSetContainer } from "src/components/QuestionSetContainer/QuestionSetContainer";
+import { useToast } from "src/components/ToastNotification/ToastContext";
 
 import { useAppSelector, useAppDispatch } from "src/redux";
 import {
@@ -20,6 +21,7 @@ export const SandboxPage = () => {
   const count = useAppSelector((state) => state.counter.value);
   const status = useAppSelector((state) => state.counter.status);
   const dispatch = useAppDispatch();
+  const { addToast } = useToast();
 
   return (
     <Fragment>
@@ -47,6 +49,26 @@ export const SandboxPage = () => {
           }}
         >
           <LoaderDots />
+        </div>
+
+        <div style={{ margin: "20px 0" }}>
+          <button onClick={() => addToast("Success!", "success")}>
+            Success
+          </button>
+          <button
+            onClick={() =>
+              addToast(
+                "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Fugiat, voluptatem? Aliquid id praesentium libero cum odio culpa molestiae quisquam sint, quaerat sequi.",
+                "error"
+              )
+            }
+          >
+            Error
+          </button>
+          <button onClick={() => addToast("Info!", "info")}>Info</button>
+          <button onClick={() => addToast("Warning!", "warning")}>
+            Warning
+          </button>
         </div>
 
         <QuestionSetContainer />

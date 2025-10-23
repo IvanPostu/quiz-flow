@@ -10,25 +10,28 @@ import { store } from "src/redux/store/store";
 import { SandboxPage } from "src/pages/SandboxPage";
 import { SignInPage } from "src/pages/SignInPage";
 import { SignUpPage } from "src/pages/SignUpPage";
+import { ToastProvider } from "src/components/ToastNotification/ToastContext";
 
 const App = () => {
   return (
     <Provider store={store}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/quiz/" element={<QuizLayout />}>
-            <Route index element={<QuizPage />} />
-          </Route>
-          <Route path="/" element={<DefaultLayout />}>
-            <Route index element={<MainPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/sandbox" element={<SandboxPage />} />
-            <Route path="/sign-in" element={<SignInPage />} />
-            <Route path="/sign-up" element={<SignUpPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <ToastProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/quiz/" element={<QuizLayout />}>
+              <Route index element={<QuizPage />} />
+            </Route>
+            <Route path="/" element={<DefaultLayout />}>
+              <Route index element={<MainPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/sandbox" element={<SandboxPage />} />
+              <Route path="/sign-in" element={<SignInPage />} />
+              <Route path="/sign-up" element={<SignUpPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </ToastProvider>
     </Provider>
   );
 };
