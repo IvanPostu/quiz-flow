@@ -1,3 +1,5 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+
 .loader {
   display: flex;
   justify-content: center;
@@ -9,7 +11,7 @@
 .dot {
   width: 12px;
   height: 12px;
-  background-color: var(--blue);
+  background-color: variables.$blue300;
   border-radius: 50%;
   animation: bounce 1.2s infinite ease-in-out;
 }

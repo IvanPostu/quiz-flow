@@ -1,4 +1,5 @@
 @charset "UTF-8";
+@use "src/styles/mixins";
 
 @font-face {
   font-family: "LibraSans";
@@ -26,43 +27,6 @@
   src: url("src/fonts/libraSans/LibraSans-Italic.ttf") format("truetype");
   font-weight: normal;
   font-style: italic;
-}
-
-/* // TODO to define as scss variables (to support static analysis) */
-:root {
-  --white: #ffffff;
-  --off-white: #f9f9f9;
-  --light-gray: #f0f0f0;
-
-  --gray-100: #e0e0e0;
-  --gray-200: #cccccc;
-  --gray-300: #999999;
-  --gray-400: #666666;
-  --gray-500: #333333;
-
-  --white-blue-1: #f8fbff;
-  --white-blue-2: #f0f8ff;
-  --white-blue-3: #eaf4ff;
-  --white-blue-4: #e0f0ff;
-  --white-blue-5: #d6ebff;
-
-  --blue-light: #d0e8ff;
-  --blue: #007bff;
-  --blue-muted: #6699cc;
-  --blue-dark: #0056b3;
-  --blue-darker: #003d80;
-  --blue-deep: #002b5c;
-
-  --dark: #1a1a1a;
-  --dark-gray: #2c2c2c;
-  --black: #000000;
-
-  --accent-green: #28a745;
-  --accent-red: #dc3545;
-  --accent-yellow: #ffc107;
-
-  --grey-border: solid rgba(128, 128, 128, 0.3);
-  --grey-border-box-shadow: 0 0 5px 0 rgba(55, 55, 55, 0.2);
 }
 
 *,

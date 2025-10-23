@@ -8,17 +8,23 @@
 }
 
 $mq-breakpoints: (
-  xs: 0,
   // extra small (default/mobile)
-  sm: 576px,
+  xs: 0,
+
   // small devices (phones)
-  md: 768px,
+  sm: 576px,
+
   // medium devices (tablets)
-  lg: 992px,
+  md: 768px,
+
   // large devices (desktops)
-  xl: 1200px,
+  lg: 992px,
+
   // extra large devices
-  xxl: 1400px // ultra large,,,
+  xl: 1200px,
+
+  // ultra large,,,,
+  xxl: 1400px
 );
 
 // Mixin for min-width media queries

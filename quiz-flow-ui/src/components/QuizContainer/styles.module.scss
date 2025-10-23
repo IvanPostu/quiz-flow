@@ -1,4 +1,5 @@
-@use "src/mixins/mixins";
+@use "src/styles/globalVariables.module.scss" as variables;
+@use "src/styles/mixins";
 
 .quizRoot {
   margin: 30px 0;
@@ -13,24 +14,24 @@
       span {
         width: 20px;
         height: 20px;
-        background-color: var(--gray-100);
+        background-color: variables.$gray100;
         display: inline-block;
         border-radius: 4px;
         cursor: pointer;
         margin-right: 7px;
-        border: 1px solid var(--blue);
+        border: 1px solid variables.$blue300;
         transition: background-color 0.1s ease, transform 0.1s ease;
 
         &.answered {
-          background-color: var(--gray-300);
+          background-color: variables.$gray300;
         }
 
         &.active {
-          background-color: var(--blue-muted);
+          background-color: variables.$blue200;
         }
 
         &:hover {
-          box-shadow: 0 0 5px var(--blue);
+          box-shadow: 0 0 5px variables.$blue300;
         }
       }
     }
@@ -66,7 +67,7 @@
   }
 
   button {
-    color: var(--white);
+    color: variables.$white100;
     border: none;
     display: block;
     width: 100%;
@@ -74,15 +75,15 @@
     font-size: 1.1rem;
     font-family: inherit;
     padding: 1.3rem;
-    background-color: var(--blue);
+    background-color: variables.$blue300;
     transition: background-color 0.1s ease, transform 0.1s ease;
 
     &:hover {
-      background-color: var(--blue-dark);
+      background-color: variables.$blue400;
     }
 
     &:active {
-      background-color: var(--blue-darker);
+      background-color: variables.$blue500;
     }
   }
 }

@@ -2,6 +2,7 @@ import { CardContainer } from "../CardContainer/CardContainer";
 import { Container } from "../Container/Container";
 import { LoaderSpinner } from "../LoaderSpinner/LoaderSpinner";
 import * as styles from "./styles.module.scss";
+import globalStyleVariables from "src/styles/globalVariables";
 
 export const SignInContainer = () => {
   return (
@@ -24,7 +25,7 @@ export const SignInContainer = () => {
           </label>
         </div>
         <div className={styles.element}>
-          <span style={{ color: "var(--accent-red)" }}>
+          <span style={{ color: globalStyleVariables.red300 }}>
             *Something went wrong
           </span>
         </div>

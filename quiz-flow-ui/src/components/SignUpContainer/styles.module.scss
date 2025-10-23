@@ -1,6 +1,8 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+
 .rootContainer {
   max-width: 450px;
-  color: var(--dark);
+  color: variables.$dark100;
   position: relative;
 
   .title {

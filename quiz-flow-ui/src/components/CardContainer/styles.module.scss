@@ -1,8 +1,10 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+
 .rootContainer {
-  background-color: var(--white);
+  background-color: variables.$white100;
   border-radius: 12px;
   padding: 1.5rem;
   width: 100%;
   margin: 30px auto;
-  box-shadow: var(--grey-border-box-shadow);
+  box-shadow: variables.$greyBorderBoxShadow;
 }

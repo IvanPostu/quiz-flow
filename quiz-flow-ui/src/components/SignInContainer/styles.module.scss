@@ -1,6 +1,8 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+
 .rootContainer {
   max-width: 450px;
-  color: var(--dark);
+  color: variables.$dark100;
   position: relative;
 
   .overlay {
@@ -42,7 +44,7 @@
       width: 100%;
 
       &:focus {
-        border-color: var(--blue);
+        border-color: variables.$blue300;
         outline: none;
       }
     }
@@ -51,17 +53,17 @@
   button {
     width: 100%;
     padding: 0.75rem;
-    background-color: var(--blue);
-    color: var(--white);
+    background-color: variables.$blue300;
+    color: variables.$white100;
     cursor: pointer;
     border: none;
 
     &:hover {
-      background-color: var(--blue-dark);
+      background-color: variables.$blue400;
     }
 
     &:active {
-      background-color: var(--blue-darker);
+      background-color: variables.$blue500;
     }
   }
 }

@@ -1,3 +1,5 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+
 .toastContainer {
   position: fixed;
   bottom: 20px;
@@ -9,11 +11,11 @@
 }
 
 .toast {
-  background-color: var(--white);
+  background-color: variables.$white100;
   padding: 12px 20px;
   border-radius: 6px;
   border: 2px solid transparent;
-  box-shadow: var(--grey-border-box-shadow);
+  box-shadow: variables.$greyBorderBoxShadow;
   min-width: 250px;
   max-width: 300px;
   opacity: 0;

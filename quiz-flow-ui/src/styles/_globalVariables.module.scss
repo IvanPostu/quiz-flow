@@ -1,0 +1,87 @@
+$gray100: #e0e0e0;
+$gray200: #cccccc;
+$gray300: #999999;
+$gray400: #666666;
+$gray500: #333333;
+
+$whiteBlue100: #f8fbff;
+$whiteBlue200: #f0f8ff;
+$whiteBlue300: #eaf4ff;
+$whiteBlue400: #e0f0ff;
+$whiteBlue500: #d6ebff;
+
+$blue100: #dbeafe;
+$blue200: #93c5fd;
+$blue300: #3b82f6;
+$blue400: #1d4ed8;
+$blue500: #1e3a8a;
+
+$green100: #d1fae5;
+$green200: #6ee7b7;
+$green300: #34d399;
+$green400: #059669;
+$green500: #065f46;
+
+$red100: #fee2e2;
+$red200: #fca5a5;
+$red300: #ef4444;
+$red400: #b91c1c;
+$red500: #7f1d1d;
+
+$yellow100: #fef9c3;
+$yellow200: #fde68a;
+$yellow300: #facc15;
+$yellow400: #ca8a04;
+$yellow500: #713f12;
+
+$white100: #ffffff;
+$white200: #f9f9f9;
+$white300: #f0f0f0;
+
+$dark100: #1a1a1a;
+$dark200: #2c2c2c;
+$dark300: #000000;
+
+$greyBorder: solid rgba(128, 128, 128, 0.3);
+$greyBorderBoxShadow: 0 0 5px 0 rgba(55, 55, 55, 0.2);
+
+:export {
+  gray100: #{$gray100};
+  gray200: #{$gray200};
+  gray300: #{$gray300};
+  gray400: #{$gray400};
+  gray500: #{$gray500};
+  whiteBlue100: #{$whiteBlue100};
+  whiteBlue200: #{$whiteBlue200};
+  whiteBlue300: #{$whiteBlue300};
+  whiteBlue400: #{$whiteBlue400};
+  whiteBlue500: #{$whiteBlue500};
+  blue100: #{$blue100};
+  blue200: #{$blue200};
+  blue300: #{$blue300};
+  blue400: #{$blue400};
+  blue500: #{$blue500};
+  green100: #{$green100};
+  green200: #{$green200};
+  green300: #{$green300};
+  green400: #{$green400};
+  green500: #{$green500};
+  red100: #{$red100};
+  red200: #{$red200};
+  red300: #{$red300};
+  red400: #{$red400};
+  red500: #{$red500};
+  yellow100: #{$yellow100};
+  yellow200: #{$yellow200};
+  yellow300: #{$yellow300};
+  yellow400: #{$yellow400};
+  yellow500: #{$yellow500};
+  white100: #{$white100};
+  white200: #{$white200};
+  white300: #{$white300};
+  dark100: #{$dark100};
+  dark200: #{$dark200};
+  dark300: #{$dark300};
+  greyBorder: #{$greyBorder};
+  greyBorderBoxShadow: #{$greyBorderBoxShadow};
+}

@@ -1,8 +1,9 @@
-@use "src/mixins/mixins";
+@use "src/styles/mixins";
+@use "src/styles/globalVariables.module.scss" as variables;
 
 .layoutRoot {
   display: flex;
-  background-color: var(--white-blue-1);
+  background-color: variables.$whiteBlue100;
   width: 100%;
 
   .main {
@@ -23,8 +24,8 @@
 .quizLayout {
   background-image: linear-gradient(
     315deg,
-    var(--white-blue-4) 0%,
-    var(--white-blue-1) 100%
+    variables.$blue500 0%,
+    variables.$whiteBlue100 100%
   );
   @include mixins.uncopyable;
 }

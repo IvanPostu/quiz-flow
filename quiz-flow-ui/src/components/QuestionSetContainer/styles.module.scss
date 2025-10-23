@@ -1,3 +1,5 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+
 .rootContainer {
   .title {
     margin-bottom: 1.5rem;
@@ -22,8 +24,8 @@
     a {
       display: inline-block;
       padding: 0.5rem 1rem;
-      background-color: var(--blue);
-      color: var(--white);
+      background-color: variables.$blue300;
+      color: variables.$white100;
       text-decoration: none;
       border-radius: 4px;
       font-weight: bold;
@@ -35,7 +37,7 @@
     text-align: left;
 
     a {
-      color: var(--blue);
+      color: variables.$blue300;
       text-decoration: none;
       font-weight: 500;
     }

@@ -1,10 +1,12 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+
 .dashboardNavbar {
   display: flex;
   flex-wrap: nowrap;
   padding: 0.5rem 1.5rem;
-  border-bottom: 1px var(--grey-border);
-  background-color: var(--white);
-  box-shadow: var(--grey-border-box-shadow);
+  border-bottom: 1px variables.$greyBorder;
+  background-color: variables.$white100;
+  box-shadow: variables.$greyBorderBoxShadow;
 }
 
 .toggleBtn {
@@ -14,7 +16,7 @@
   margin-right: 1.5rem;
 
   .icon {
-    color: var(--gray-400);
+    color: variables.$gray400;
     font-size: 2rem;
   }
 }

@@ -1,3 +1,5 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+
 .list {
   display: flex;
   flex-direction: column;
@@ -15,11 +17,11 @@
   transition: background 0.1s ease;
 
   &:hover {
-    background-color: var(--light-gray);
+    background-color: variables.$gray100;
   }
 
   &:active {
-    background-color: var(--gray-100);
+    background-color: variables.$gray200;
   }
 }
 
