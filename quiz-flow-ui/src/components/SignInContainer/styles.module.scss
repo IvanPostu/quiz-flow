@@ -57,6 +57,7 @@
     color: variables.$white100;
     cursor: pointer;
     border: none;
+    border-radius: 5px;
 
     &:hover {
       background-color: variables.$blue400;

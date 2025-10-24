@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import counterReducer from "../counter/counterSlice";
+import authenticationReducer from "../authentication/authenticationSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 export const store = configureStore({
   reducer: {
     counter: counterReducer,
+    authentication: authenticationReducer,
   },
   devTools: process.env.NODE_ENV !== "production",
 });

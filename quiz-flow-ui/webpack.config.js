@@ -136,7 +136,7 @@ module.exports = (env, argv) => {
       proxy: [
         {
           context: ["/api"],
-          target: "http://127.0.0.1:9000",
+          target: "http://127.0.0.1:8080",
           secure: false,
           changeOrigin: true,
           headers: {

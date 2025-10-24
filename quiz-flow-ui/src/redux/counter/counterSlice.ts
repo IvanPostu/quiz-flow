@@ -26,6 +26,11 @@ export const incrementAsync = createAsyncThunk<number, number>(
         }
       }, 3000)
     );
+
+    if (DUMMY_COUNTER % 5 === 0) {
+      return thunkAPI.rejectWithValue("Cannot increment at multiples of 5");
+    }
+
     return amount;
   }
 );
