@@ -3,6 +3,18 @@ import * as styles from "./styles.module.scss";
 import { Sidebar } from "src/components/Sidebar/Sidebar";
 import { useState } from "react";
 import { Navbar } from "src/components/Navbar/Navbar";
+import { useAppSelector } from "src/redux";
+import { selectIsAuthenticated } from "src/redux/authentication/authenticationSlice";
+
+const AUTH_ITEMS_FOR_AUTHENTICATED = [
+  { text: "Details", link: "/authentication-details" },
+  { text: "Sign-Out", link: "/sign-out" },
+];
+
+const AUTH_ITEMS_FOR_UNAUTHENTICATED = [
+  { text: "Sign-In", link: "/sign-in" },
+  { text: "Sign-Up", link: "/sign-up" },
+];
 
 export const DefaultLayout = () => {
   const [state, setState] = useState({
@@ -30,6 +42,7 @@ export const DefaultLayout = () => {
 };
 
 function LayoutSidebar(props: { sidebarIsShown: boolean }) {
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
   return (
     <Sidebar
       sidebarIsShown={props.sidebarIsShown}
@@ -55,10 +68,9 @@ function LayoutSidebar(props: { sidebarIsShown: boolean }) {
                 text: "Auth",
                 icon: "shield",
               },
-              items: [
-                { text: "Sign-In", link: "/sign-in" },
-                { text: "Sign-Up", link: "/sign-up" },
-              ],
+              items: isAuthenticated
+                ? AUTH_ITEMS_FOR_AUTHENTICATED
+                : AUTH_ITEMS_FOR_UNAUTHENTICATED,
             },
           ],
         },

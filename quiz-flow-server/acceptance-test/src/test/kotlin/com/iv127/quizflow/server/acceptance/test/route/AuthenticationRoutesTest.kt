@@ -195,7 +195,7 @@ class AuthenticationRoutesTest {
                 assertThat(it[0].name).isEqualTo("refreshable_token")
                 assertThat(Instant.ofEpochMilli(it[0].expires!!.timestamp))
                     .isCloseTo(Instant.now().plus(2, ChronoUnit.DAYS), within(1, ChronoUnit.MINUTES))
-                assertThat(it[0].path).isEqualTo("/api/authentications/access-token")
+                assertThat(it[0].path).isEqualTo("/")
                 assertThat(it[0].httpOnly).isTrue()
             })
         val accessTokenResponse = signInResult.second

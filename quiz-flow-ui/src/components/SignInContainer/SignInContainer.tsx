@@ -13,6 +13,26 @@ import {
 } from "src/redux/authentication/authenticationSlice";
 import { useToast } from "../ToastNotification/ToastContext";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "src/constants/constants";
+
+async function fetchAccessToken() {
+  try {
+    const res = await fetch(
+      API_BASE_URL + "/api/authentications/access-token",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+      }
+    );
+    const result = await res.json();
+    console.log(result);
+  } catch (e) {
+    console.error(e);
+  }
+}
 
 export const SignInContainer = () => {
   const usernameRef = useRef<HTMLInputElement>(null);
@@ -45,6 +65,10 @@ export const SignInContainer = () => {
   }
 
   const isLoading = isSignInOngoing;
+
+  useEffect(() => {
+    fetchAccessToken();
+  }, []);
 
   return (
     <Container>

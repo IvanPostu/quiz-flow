@@ -50,6 +50,8 @@ cd $PROJECT_ROOT/external/libbcrypt \
 
 # Run executable
 $PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0.1.kexe
+# or jvm target
+java -jar $PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0.1.jar
 
 # Since DEBUG_APPLICATION_ROOT_FOLDER env variable was specified in shell.nix
 # the app can be run directly using Intellij.
@@ -69,8 +71,8 @@ $PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0.1.kexe
 ### Frontend development
 
 ```sh
-npm install --prefix $PROJECT_ROOT/quiz-flow-client/browser
-npm run start --prefix $PROJECT_ROOT/quiz-flow-client/browser
+npm install --prefix $PROJECT_ROOT/quiz-flow-ui
+npm run start --prefix $PROJECT_ROOT/quiz-flow-ui
 ```
 
 ### Release
@@ -86,7 +88,7 @@ npm run start --prefix $PROJECT_ROOT/quiz-flow-client/browser
 ```sh
 # Run native executable 
 $PROJECT_ROOT/quiz-flow-server/entrypoint/build/packaged/quiz-flow-0.0.1.kexe
-# Or
+# May need to set
 LD_LIBRARY_PATH=".:$LD_LIBRARY_PATH" ./quiz-flow-0.0.1.kexe
 
 # Run jvm bundle

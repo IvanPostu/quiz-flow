@@ -185,7 +185,7 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
                 name = REFRESHABLE_TOKEN_NAME,
                 value = authentication.refreshToken(),
                 expires = expiresGMTDate,
-                path = REFRESHABLE_TOKEN_COOKIE_PATH,
+                path = "/",
                 secure = false, // set true if using HTTPS
                 httpOnly = true
             )

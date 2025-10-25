@@ -25,9 +25,6 @@ module.exports = (env, argv) => {
       filename: isProduction ? "[name].[contenthash].css" : "[name].css",
     }),
   ];
-  if (!isProduction) {
-    pluginsArray.push(new webpack.SourceMapDevToolPlugin({}));
-  }
   if (buildAnalyze) {
     pluginsArray.push(
       new BundleAnalyzerPlugin({
@@ -45,7 +42,7 @@ module.exports = (env, argv) => {
       path: path.resolve(__dirname, "dist", "public"),
       filename: isProduction ? "[name].[contenthash].js" : "[name].js",
       assetModuleFilename: isProduction
-        ? "assets/[hash][ext][query]"
+        ? "assets/[name].[contenthash][ext][query]"
         : "[name].[ext]",
       publicPath: isProduction ? "/public/" : "",
       clean: true,
@@ -64,15 +61,8 @@ module.exports = (env, argv) => {
           use: "ts-loader",
         },
         {
-          test: /\.css$/,
-          use: [
-            isProduction ? MiniCssExtractPlugin.loader : "style-loader",
-            "css-loader",
-          ],
-        },
-        {
-          test: /\.scss$/,
-          exclude: /\.module\.scss$/,
+          test: /\.(s?css)$/,
+          exclude: /\.module\.s?css$/,
           use: [
             isProduction ? MiniCssExtractPlugin.loader : "style-loader",
             "css-loader",
@@ -80,7 +70,7 @@ module.exports = (env, argv) => {
           ],
         },
         {
-          test: /\.module\.scss$/,
+          test: /\.module\.s?css$/,
           use: [
             isProduction ? MiniCssExtractPlugin.loader : "style-loader",
             {
@@ -96,19 +86,10 @@ module.exports = (env, argv) => {
             "sass-loader",
           ],
         },
-        {
-          test: /\.(woff|woff2|eot|ttf|otf)$/i,
-          type: "asset/resource",
-        },
       ],
     },
     plugins: pluginsArray,
-    stats: {
-      errorDetails: !isProduction,
-      modules: true,
-      reasons: true,
-      chunkModules: true,
-    },
+    stats: isProduction ? "normal" : "errors-warnings",
     optimization: {
       minimize: true,
       minimizer: [
@@ -117,6 +98,19 @@ module.exports = (env, argv) => {
       ],
       splitChunks: {
         chunks: "all",
+        cacheGroups: {
+          reactVendor: {
+            test: /[\\/]node_modules[\\/](react|react-dom|react-router-dom)[\\/]/,
+            name: "react-vendor",
+            chunks: "all",
+          },
+          otherVendors: {
+            test: /[\\/]node_modules[\\/]/,
+            name: "vendors",
+            chunks: "all",
+            priority: -10,
+          },
+        },
       },
       runtimeChunk: {
         name: "runtime",
@@ -125,7 +119,7 @@ module.exports = (env, argv) => {
     performance: {
       hints: isProduction ? "warning" : false, // Or false to disable
     },
-    devtool: false,
+    devtool: isProduction ? false : "eval-source-map",
     devServer: {
       static: path.join(__dirname, "public"),
       compress: true,

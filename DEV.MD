@@ -28,6 +28,20 @@
 - Add version explicit definition on build
 - KSP (Kotlin Symbolic Processing) - annotations that allows generating classes before compile task
 - Java impl should use the exactly same dynamic libraries that the native target uses
+- Optimize font assets `npx ttf2woff2 LibraSans.ttf` (convert ttf to wof)
+  - Font files shrink by 60–80%, removing the warnings entirely.
+  - Convert .ttf → .woff2 (modern browsers)
+  - Keep .woff as fallback if needed.
+
+    ```sh
+    @font-face {
+    font-family: 'Libra Sans';
+    src: url('./assets/LibraSans.woff2') format('woff2'),
+        url('./assets/LibraSans.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    }
+    ```
 
 ```sh
 git submodule add -b tags/version-3.50.4 git@github.com:sqlite/sqlite.git external/sqlite
