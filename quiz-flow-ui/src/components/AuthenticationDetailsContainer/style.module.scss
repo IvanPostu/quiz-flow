@@ -1,0 +1,30 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+
+.rootContainer {
+  color: variables.$dark100;
+
+  .titleContainer {
+    margin: 10px 0 35px 0;
+  }
+
+  .keyValueContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .keyValueRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .key {
+    font-weight: bold;
+    width: 250px;
+  }
+
+  .value {
+    flex: 1;
+  }
+}

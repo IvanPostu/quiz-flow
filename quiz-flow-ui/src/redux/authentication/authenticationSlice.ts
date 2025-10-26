@@ -4,7 +4,7 @@ import { signIn } from "src/model/authentication/authentication";
 import { ApiClientError } from "src/model/utils/ApiClientError";
 import { SignInResult } from "src/model/authentication/SignInResult";
 
-interface SignInStateType {
+export interface SignInStateType {
   accessTokenId: string;
   refreshTokenId: string;
   accessToken: string;

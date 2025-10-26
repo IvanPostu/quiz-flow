@@ -20,6 +20,7 @@ import { selectIsAuthenticated } from "src/redux/authentication/authenticationSl
 import { useAppSelector } from "src/redux";
 import { JSX } from "react";
 import { SignOutPage } from "src/pages/SignOutPage";
+import { AuthenticationDetailsPage } from "src/pages/AuthenticationDetailsPage";
 
 const SIGN_IN_PATH = "/sign-in";
 const SIGN_OUT_PATH = "/sign-out";
@@ -39,6 +40,10 @@ export const AppRouter = () => {
           <Route path={SIGN_IN_PATH} element={<SignInPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
           <Route path={SIGN_OUT_PATH} element={auth(<SignOutPage />)} />
+          <Route
+            path={"/authentication-details"}
+            element={auth(<AuthenticationDetailsPage />)}
+          />
           <Route path="*" element={auth(<NotFoundPage />)} />
         </Route>
       </Routes>
