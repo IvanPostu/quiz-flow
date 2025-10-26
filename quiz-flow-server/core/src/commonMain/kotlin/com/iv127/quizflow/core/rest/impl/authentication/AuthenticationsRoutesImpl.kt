@@ -1,9 +1,11 @@
 package com.iv127.quizflow.core.rest.impl.authentication
 
 import com.iv127.quizflow.core.model.User
+import com.iv127.quizflow.core.model.authentication.AccessTokenExpiredException
 import com.iv127.quizflow.core.model.authentication.AuthenticationAccessTokenNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshTokenNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
+import com.iv127.quizflow.core.model.authentication.RefreshTokenExpiredException
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.authentication.AccessTokenResponse
 import com.iv127.quizflow.core.rest.api.authentication.AccessTokenSummaryResponse
@@ -27,17 +29,21 @@ import com.iv127.quizflow.core.services.authentication.AuthenticationService
 import com.iv127.quizflow.core.services.user.UserInvalidPasswordException
 import com.iv127.quizflow.core.services.user.UserNotFoundException
 import com.iv127.quizflow.core.services.user.UserService
+import com.iv127.quizflow.core.utils.getClassFullName
 import io.ktor.server.request.receive
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.util.date.GMTDate
-import kotlin.time.Clock
+import io.ktor.util.logging.KtorSimpleLogger
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 import org.koin.core.KoinApplication
 
 @OptIn(ExperimentalTime::class)
 class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoutes, ApiRoute {
+
+    companion object {
+        private val LOG = KtorSimpleLogger(getClassFullName(AuthenticationsRoutesImpl::class))
+    }
 
     private val userService: UserService by koinApp.koin.inject()
     private val authenticationService: AuthenticationService by koinApp.koin.inject()
@@ -123,10 +129,17 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
     }
 
     override suspend fun signOut(cookies: List<CookieRequest>): List<CookieResponse> {
-        val refreshToken = getRefreshTokenValue(cookies)
-        val refreshAuthentication = authenticationService.getAuthenticationRefreshTokenByRefreshTokenValue(refreshToken)
-        authenticationService.markRefreshTokenAsExpired(refreshAuthentication.id)
-        val cookieResponseList = listOf(
+        val refreshToken = getRefreshTokenFromCookies(cookies)
+        try {
+            val refreshAuthentication =
+                authenticationService.getAuthenticationRefreshTokenByRefreshTokenValue(refreshToken)
+            authenticationService.markRefreshTokenAsExpired(refreshAuthentication.id)
+        } catch (e: AuthenticationRefreshTokenNotFoundException) {
+            throw AuthenticationException("Refreshable token is invalid")
+        } catch (e: RefreshTokenExpiredException) {
+            throw AuthenticationException("Refreshable token is expired")
+        }
+        return listOf(
             CookieResponse(
                 name = REFRESHABLE_TOKEN_NAME,
                 value = "",
@@ -134,19 +147,15 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
                 expires = GMTDate.START,
             )
         )
-        return cookieResponseList
     }
 
     override suspend fun createAccessToken(cookies: List<CookieRequest>): AccessTokenResponse {
         try {
             return internalCreateAccessToken(cookies)
-        } catch (e: AuthenticationException) {
-            throw e
-        } catch (e: Exception) {
-            if (e is AuthenticationRefreshTokenNotFoundException) {
-                throw AuthenticationException("Refreshable token is invalid")
-            }
-            throw IllegalStateException(e)
+        } catch (e: AuthenticationRefreshTokenNotFoundException) {
+            throw AuthenticationException("Refreshable token is invalid")
+        } catch (e: RefreshTokenExpiredException) {
+            throw AuthenticationException("Refreshable token is expired")
         }
     }
 
@@ -155,6 +164,10 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
             authenticationService.extendAccessTokenLifetime(accessToken)
         } catch (e: AuthenticationAccessTokenNotFoundException) {
             throw AuthenticationException("Access token is invalid")
+        } catch (e: AccessTokenExpiredException) {
+            throw AuthenticationException("Access token is expired")
+        } catch (e: RefreshTokenExpiredException) {
+            throw AuthenticationException("Refreshable token is expired")
         }
         return AccessTokenResponse(
             authentication.authenticationAccessToken.id,
@@ -170,14 +183,15 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
         accessToken: String,
         markRefreshTokenAsExpiredRequest: MarkRefreshTokenAsExpiredRequest
     ): RefreshTokenSummaryResponse {
-        val auth = authenticationService
-            .markRefreshTokenAsExpired(markRefreshTokenAsExpiredRequest.refreshTokenId)
+        authenticationService.checkAuthorizationScopes(accessToken, setOf(AuthorizationScope.SUPER_ADMIN))
+        val refreshTokenId = markRefreshTokenAsExpiredRequest.refreshTokenId
+        val updatedRefreshToken = authenticationService.markRefreshTokenAsExpired(refreshTokenId)
         return RefreshTokenSummaryResponse(
-            refreshTokenId = auth.id,
-            refreshTokenHash = auth.refreshTokenHash,
-            createdDate = auth.createdDate,
-            expirationDate = auth.expirationDate,
-            authorizationScopes = auth.authorizationScopes.map { mapScope(it) }.toSet()
+            refreshTokenId = updatedRefreshToken.id,
+            refreshTokenHash = updatedRefreshToken.refreshTokenHash,
+            createdDate = updatedRefreshToken.createdDate,
+            expirationDate = updatedRefreshToken.expirationDate,
+            authorizationScopes = updatedRefreshToken.authorizationScopes.map { mapScope(it) }.toSet()
         )
     }
 
@@ -185,13 +199,14 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
         accessToken: String,
         markAccessTokenAsExpiredRequest: MarkAccessTokenAsExpiredRequest
     ): AccessTokenSummaryResponse {
-        val auth = authenticationService
+        authenticationService.checkAuthorizationScopes(accessToken, setOf(AuthorizationScope.SUPER_ADMIN))
+        val updatedAccessToken = authenticationService
             .markAccessTokenAsExpired(markAccessTokenAsExpiredRequest.accessTokenId)
         return AccessTokenSummaryResponse(
-            accessTokenId = auth.id,
-            accessTokenHash = auth.accessTokenHash,
-            createdDate = auth.createdDate,
-            expirationDate = auth.expirationDate,
+            accessTokenId = updatedAccessToken.id,
+            accessTokenHash = updatedAccessToken.accessTokenHash,
+            createdDate = updatedAccessToken.createdDate,
+            expirationDate = updatedAccessToken.expirationDate,
         )
     }
 
@@ -203,12 +218,9 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
     }
 
     private fun internalCreateAccessToken(cookies: List<CookieRequest>): AccessTokenResponse {
-        val refreshToken = getRefreshTokenValue(cookies)
+        val refreshToken = getRefreshTokenFromCookies(cookies)
         val authentication = authenticationService.createAuthenticationAccessToken(refreshToken)
             .authentication()
-        if(authentication.authenticationRefreshToken.expirationDate < Clock.System.now()) {
-            throw AuthenticationException("Refreshable token is expired")
-        }
         return AccessTokenResponse(
             authentication.authenticationAccessToken.id,
             authentication.authenticationRefreshToken.id,
@@ -219,7 +231,7 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
         )
     }
 
-    private fun getRefreshTokenValue(cookies: List<CookieRequest>): String {
+    private fun getRefreshTokenFromCookies(cookies: List<CookieRequest>): String {
         val refreshTokenCookies = cookies
             .filter { it.name == REFRESHABLE_TOKEN_NAME }
 

@@ -26,15 +26,16 @@ import org.junit.jupiter.params.provider.CsvSource
 @OptIn(ExperimentalTime::class)
 class AuthenticationRoutesTest {
 
+    private val authenticationsRoutes = AuthenticationsRoutesTestImpl()
+
     @Test
     fun testMarkRefreshTokenExpired() = runTest {
-        val authenticationsRoutesTestImpl = AuthenticationsRoutesTestImpl()
         val superUserAuth = AuthenticationAcceptance.authenticateSuperUser()
 
         val username = "testUsername1${System.currentTimeMillis()}"
         val password = "test1Password${System.currentTimeMillis()}"
         UserAcceptance.createUser(username, password)
-        val (cookies, response) = authenticationsRoutesTestImpl.signIn(
+        val (cookies, response) = authenticationsRoutes.signIn(
             UsernamePasswordAuthenticationRequest(
                 username,
                 password
@@ -42,7 +43,7 @@ class AuthenticationRoutesTest {
         )
         assertThat(cookies).hasSize(1)
 
-        val expiredRefreshTokenResponse = authenticationsRoutesTestImpl
+        val expiredRefreshTokenResponse = authenticationsRoutes
             .markRefreshTokenAsExpired(
                 superUserAuth.accessToken,
                 MarkRefreshTokenAsExpiredRequest(response.refreshTokenId)
@@ -55,13 +56,12 @@ class AuthenticationRoutesTest {
 
     @Test
     fun testMarkAccessTokenExpired() = runTest {
-        val authenticationsRoutesTestImpl = AuthenticationsRoutesTestImpl()
         val superUserAuth = AuthenticationAcceptance.authenticateSuperUser()
 
         val username = "testUsername1${System.currentTimeMillis()}"
         val password = "test1Password${System.currentTimeMillis()}"
         UserAcceptance.createUser(username, password)
-        val (cookies, response) = authenticationsRoutesTestImpl.signIn(
+        val (cookies, response) = authenticationsRoutes.signIn(
             UsernamePasswordAuthenticationRequest(
                 username,
                 password
@@ -69,7 +69,7 @@ class AuthenticationRoutesTest {
         )
         assertThat(cookies).hasSize(1)
 
-        val expiredAccessTokenResponse = authenticationsRoutesTestImpl
+        val expiredAccessTokenResponse = authenticationsRoutes
             .markAccessTokenAsExpired(
                 superUserAuth.accessToken,
                 MarkAccessTokenAsExpiredRequest(response.accessTokenId)
@@ -83,8 +83,7 @@ class AuthenticationRoutesTest {
     @Test
     fun testExtendAccessTokenLifetime() = runTest {
         val delayMillis = 1000L
-        val authenticationsRoutesTestImpl = AuthenticationsRoutesTestImpl()
-        val signInResult = authenticationsRoutesTestImpl.signIn(
+        val signInResult = authenticationsRoutes.signIn(
             UsernamePasswordAuthenticationRequest(
                 "super_admin",
                 "super_admin"
@@ -95,7 +94,7 @@ class AuthenticationRoutesTest {
 
         realDelayFunction(delayMillis)
 
-        val updatedAccessToken = authenticationsRoutesTestImpl
+        val updatedAccessToken = authenticationsRoutes
             .extendAccessTokenLifetime(accessTokenAuthentication.accessToken)
 
 
@@ -113,10 +112,9 @@ class AuthenticationRoutesTest {
 
     @Test
     fun testExtendLifetimeOfInvalidAccessToken() = runTest {
-        val authenticationsRoutesTestImpl = AuthenticationsRoutesTestImpl()
 
         val e = assertThrows<RestErrorException> {
-            authenticationsRoutesTestImpl.extendAccessTokenLifetime(
+            authenticationsRoutes.extendAccessTokenLifetime(
                 "whatever"
             )
         }
@@ -124,23 +122,46 @@ class AuthenticationRoutesTest {
     }
 
     @Test
-    fun testCreateAccessTokenWithoutRefreshableToken() = runTest {
-        val authenticationsRoutesTestImpl = AuthenticationsRoutesTestImpl()
+    fun testExtendLifetimeOfExpiredAccessToken() = runTest {
+        val superUserAuthentication = AuthenticationAcceptance.authenticateSuperUser()
+
+        val username = "testUsername1${System.currentTimeMillis()}"
+        val password = "test1Password${System.currentTimeMillis()}"
+        UserAcceptance.createUser(username, password)
+        val (_, response) = authenticationsRoutes.signIn(
+            UsernamePasswordAuthenticationRequest(
+                username,
+                password
+            )
+        )
+
+        authenticationsRoutes.markAccessTokenAsExpired(
+            superUserAuthentication.accessToken,
+            MarkAccessTokenAsExpiredRequest(response.accessTokenId)
+        )
 
         val e = assertThrows<RestErrorException> {
-            authenticationsRoutesTestImpl.createAccessToken(
+            authenticationsRoutes.extendAccessTokenLifetime(response.accessToken)
+        }
+        assertAuthenticationFailed(e, "Access token is expired")
+    }
+
+    @Test
+    fun testCreateAccessTokenWithoutRefreshableToken() = runTest {
+
+        val e = assertThrows<RestErrorException> {
+            authenticationsRoutes.createAccessToken(
                 listOf()
             )
         }
-        assertAuthenticationFailed(e,  "Refresh token is not found in the cookie")
+        assertAuthenticationFailed(e, "Refresh token is not found in the cookie")
     }
 
     @Test
     fun testCreateAccessTokenWithInvalidRefreshableToken() = runTest {
-        val authenticationsRoutesTestImpl = AuthenticationsRoutesTestImpl()
 
         val e = assertThrows<RestErrorException> {
-            authenticationsRoutesTestImpl.createAccessToken(
+            authenticationsRoutes.createAccessToken(
                 listOf(
                     CookieRequest("refreshable_token", "whatever")
                 )
@@ -192,8 +213,7 @@ class AuthenticationRoutesTest {
 
     @Test
     fun testAuthenticateAsSuperAdmin() = runTest {
-        val authenticationsRoutesTestImpl = AuthenticationsRoutesTestImpl()
-        val signInResult = authenticationsRoutesTestImpl.signIn(
+        val signInResult = authenticationsRoutes.signIn(
             UsernamePasswordAuthenticationRequest(
                 "super_admin",
                 "super_admin"
@@ -222,7 +242,7 @@ class AuthenticationRoutesTest {
             )
         )
 
-        val refreshedAccessToken = authenticationsRoutesTestImpl.createAccessToken(
+        val refreshedAccessToken = authenticationsRoutes.createAccessToken(
             listOf(CookieRequest(signInResult.first[0].name, signInResult.first[0].value))
         )
         assertThat(refreshedAccessToken.refreshTokenExpirationDate.epochSeconds)
@@ -252,9 +272,8 @@ class AuthenticationRoutesTest {
     )
     @ParameterizedTest
     fun testAuthenticateWithInvalidUsernameOrPassword(username: String, password: String) = runTest {
-        val authenticationsRoutesTestImpl = AuthenticationsRoutesTestImpl()
         val e = assertThrows<RestErrorException> {
-            authenticationsRoutesTestImpl.signIn(
+            authenticationsRoutes.signIn(
                 UsernamePasswordAuthenticationRequest(
                     username,
                     password

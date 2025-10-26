@@ -3,12 +3,14 @@ package com.iv127.quizflow.core.services.authentication.impl
 import com.iv127.quizflow.core.lang.Sha256
 import com.iv127.quizflow.core.lang.UUIDv4
 import com.iv127.quizflow.core.model.User
+import com.iv127.quizflow.core.model.authentication.AccessTokenExpiredException
 import com.iv127.quizflow.core.model.authentication.Authentication
 import com.iv127.quizflow.core.model.authentication.AuthenticationAccessToken
 import com.iv127.quizflow.core.model.authentication.AuthenticationAccessTokenNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshToken
 import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshTokenNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
+import com.iv127.quizflow.core.model.authentication.RefreshTokenExpiredException
 import com.iv127.quizflow.core.security.AuthenticationException
 import com.iv127.quizflow.core.services.authentication.AuthenticationService
 import com.iv127.quizflow.core.services.utils.DatabaseRecord
@@ -97,21 +99,25 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
     override fun checkAuthorizationScopes(accessToken: String, requiredScopes: Set<AuthorizationScope>) {
         val authentication = try {
             getAuthenticationByAccessToken(accessToken)
-        } catch (e: AuthenticationAccessTokenNotFoundException) {
+        }  catch (e: AuthenticationAccessTokenNotFoundException) {
             throw AuthenticationException("Access token is invalid")
+        } catch (e: RefreshTokenExpiredException) {
+            throw AuthenticationException("Refreshable token is expired")
+        } catch (e: AccessTokenExpiredException) {
+            throw AuthenticationException("Access token is expired")
         }
         checkAuthorizationScopes(authentication, requiredScopes)
     }
 
     override fun checkAuthorizationScopes(authentication: Authentication, requiredScopes: Set<AuthorizationScope>) {
         if (requiredScopes.isEmpty()) {
-            throw IllegalArgumentException("requiredScopes should not be empty")
+            throw IllegalArgumentException("Required authorization scopes should not be empty")
         }
         val accessAllowed = requiredScopes.all { scope ->
             authentication.authenticationRefreshToken.authorizationScopes.contains(scope)
         }
         if (!accessAllowed) {
-            throw AuthenticationException("required authorization scopes are missing")
+            throw AuthenticationException("Required authorization scopes are missing")
         }
     }
 
@@ -121,6 +127,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             "refresh_token_hash",
             hashedRefreshToken
         )
+        validateRefreshTokenExpiration(authenticationRefreshTokenByColumn.result)
         return authenticationRefreshTokenByColumn.result
     }
 
@@ -130,10 +137,12 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             "access_token_hash",
             hashedAccessToken
         )
+        validateAccessTokenExpiration(authenticationAccessToken)
         val authenticationRefreshTokenByColumn = selectAuthenticationRefreshTokenByColumn(
             "id",
             authenticationAccessToken.refreshTokenId
         )
+        validateRefreshTokenExpiration(authenticationRefreshTokenByColumn.result)
         return Authentication(authenticationAccessToken, accessToken, authenticationRefreshTokenByColumn.result)
     }
 
@@ -142,6 +151,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             "id",
             refreshTokenId
         )
+        validateRefreshTokenExpiration(authenticationRefreshTokenByColumn.result)
         return authenticationRefreshTokenByColumn.result
     }
 
@@ -150,11 +160,13 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             "id",
             accessTokenId
         )
+        validateAccessTokenExpiration(authenticationAccessToken)
         return authenticationAccessToken
     }
 
     override fun markRefreshTokenAsExpired(refreshTokenId: String): AuthenticationRefreshToken {
         val refreshTokenRecord = selectAuthenticationRefreshTokenByColumn("id", refreshTokenId)
+        validateRefreshTokenExpiration(refreshTokenRecord.result)
         val authenticationRefreshToken = refreshTokenRecord.result
         dbSupplier().use { db ->
             db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
@@ -174,6 +186,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
 
     override fun markAccessTokenAsExpired(accessTokenId: String): AuthenticationAccessToken {
         val authenticationAccessToken = selectAuthenticationAccessTokenByColumn("id", accessTokenId)
+        validateAccessTokenExpiration(authenticationAccessToken)
         val newExpiresAt = authenticationAccessToken.createdDate
         val updatedAuthenticationAccessToken = setAccessTokenExpiration(authenticationAccessToken, newExpiresAt)
         return updatedAuthenticationAccessToken
@@ -185,12 +198,14 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             "access_token_hash",
             hashedAccessToken
         )
+        validateAccessTokenExpiration(authenticationAccessToken)
         val newExpiresAt = Clock.System.now().plus(ACCESS_TOKEN_TIME_TO_LIVE)
         val updatedAuthenticationAccessToken = setAccessTokenExpiration(authenticationAccessToken, newExpiresAt)
         val authenticationRefreshTokenByColumn = selectAuthenticationRefreshTokenByColumn(
             "id",
             updatedAuthenticationAccessToken.refreshTokenId
         )
+        validateRefreshTokenExpiration(authenticationRefreshTokenByColumn.result)
         return Authentication(updatedAuthenticationAccessToken, accessToken, authenticationRefreshTokenByColumn.result)
     }
 
@@ -201,6 +216,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
     private fun internalCreateAuthenticationAccessToken(refreshToken: String): Authentication {
         val hashedToken = Sha256.hashToHex(refreshToken.encodeToByteArray())
         val refreshTokenRecord = selectAuthenticationRefreshTokenByColumn("refresh_token_hash", hashedToken)
+        validateRefreshTokenExpiration(refreshTokenRecord.result)
         val authenticationRefreshToken = refreshTokenRecord.result
         dbSupplier().use { db ->
             db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
@@ -416,6 +432,18 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             authenticationAccessToken.id
         )
         return updatedAuthenticationAccessToken
+    }
+
+    private fun validateAccessTokenExpiration(authenticationAccessToken: AuthenticationAccessToken) {
+        if(authenticationAccessToken.expirationDate < Clock.System.now()) {
+            throw AccessTokenExpiredException()
+        }
+    }
+
+    private fun validateRefreshTokenExpiration(authenticationRefreshToken: AuthenticationRefreshToken) {
+        if(authenticationRefreshToken.expirationDate < Clock.System.now()) {
+            throw RefreshTokenExpiredException()
+        }
     }
 
 }
