@@ -1,6 +1,7 @@
 import { API_BASE_URL } from "src/constants/constants";
 import { parsePreciseISO } from "../utils/parsePreciseISO";
-import { ApiClientError } from "../utils/ApiClientError";
+import { handleAndThrowIfNeeded } from "../utils/requestErrorHandler";
+import { SignInResult } from "./SignInResult";
 
 export async function signIn(
   username: string,
@@ -17,45 +18,51 @@ export async function signIn(
     }),
   });
 
-  if (!res.ok) {
-    let errorMessage: string = "";
-    try {
-      const json = await res.json();
-      errorMessage = JSON.stringify(json);
-      throw ApiClientError.fromJson(json);
-    } catch (err) {
-      if (err instanceof ApiClientError) {
-        throw err;
-      }
-      throw new Error(
-        `HTTP ${res.status}: ${errorMessage || (await res.text())}`
-      );
-    }
-  }
-
+  await handleAndThrowIfNeeded(res);
   const data: SignInResponse = (await res.json()) as SignInResponse;
-
-  return {
-    accessTokenId: data.access_token_id,
-    refreshTokenId: data.refresh_token_id,
-    accessToken: data.access_token,
-    authorizationScopes: data.authorization_scopes,
-    accessTokenExpirationDate: parsePreciseISO(
-      data.access_token_expiration_date
-    ),
-    refreshTokenExpirationDate: parsePreciseISO(
-      data.refresh_token_expiration_date
-    ),
-  };
+  return mapSignInResponseToSignInResult(data);
 }
 
-export interface SignInResult {
-  accessTokenId: string;
-  refreshTokenId: string;
-  accessToken: string;
-  authorizationScopes: string[];
-  accessTokenExpirationDate: Date;
-  refreshTokenExpirationDate: Date;
+export async function signOut(): Promise<void> {
+  const res = await fetch(API_BASE_URL + "/api/authentications/sign-out", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  await handleAndThrowIfNeeded(res);
+}
+
+export async function createAccessToken(): Promise<SignInResult> {
+  const res = await fetch(API_BASE_URL + "/api/authentications/access-token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({}),
+  });
+
+  await handleAndThrowIfNeeded(res);
+  const data: SignInResponse = (await res.json()) as SignInResponse;
+  return mapSignInResponseToSignInResult(data);
+}
+
+function mapSignInResponseToSignInResult(
+  signInResponse: SignInResponse
+): SignInResult {
+  return {
+    accessTokenId: signInResponse.access_token_id,
+    refreshTokenId: signInResponse.refresh_token_id,
+    accessToken: signInResponse.access_token,
+    authorizationScopes: signInResponse.authorization_scopes,
+    accessTokenExpirationDate: parsePreciseISO(
+      signInResponse.access_token_expiration_date
+    ),
+    refreshTokenExpirationDate: parsePreciseISO(
+      signInResponse.refresh_token_expiration_date
+    ),
+  };
 }
 
 interface SignInResponse {

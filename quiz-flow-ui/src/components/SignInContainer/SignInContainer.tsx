@@ -4,105 +4,153 @@ import { Container } from "../Container/Container";
 import { LoaderSpinner } from "../LoaderSpinner/LoaderSpinner";
 import * as styles from "./styles.module.scss";
 import globalStyleVariables from "src/styles/globalVariables";
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import {
+  mapSignInResultToSignInState,
   selectErrorMessage,
   selectIsAuthenticated,
   selectIsSignInRequestOngoing,
+  setSignInResult,
   signInAsync,
 } from "src/redux/authentication/authenticationSlice";
 import { useToast } from "../ToastNotification/ToastContext";
-import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "src/constants/constants";
+import { useLocation, useNavigate } from "react-router-dom";
+import { createAccessToken } from "src/model/authentication/authentication";
+import { SignInResult } from "src/model/authentication/SignInResult";
 
-async function fetchAccessToken() {
-  try {
-    const res = await fetch(
-      API_BASE_URL + "/api/authentications/access-token",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({}),
-      }
-    );
-    const result = await res.json();
-    console.log(result);
-  } catch (e) {
-    console.error(e);
-  }
+interface SignInContainerState {
+  isAccessTokenCreationOngoing: boolean;
+  pathnameRedirectTo: string;
+  signInResult: SignInResult | null;
 }
 
 export const SignInContainer = () => {
-  const usernameRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-
   const dispatch = useAppDispatch();
-  const isSignInOngoing = useAppSelector(selectIsSignInRequestOngoing);
-  const errorMessage = useAppSelector(selectErrorMessage);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-
   const { addToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  function submitHandler(username: string, password: string) {
+    dispatch(
+      signInAsync({
+        username: username,
+        password: password,
+      })
+    );
+  }
+  const [state, setState] = useState<SignInContainerState>(() => {
+    const queryParams = new URLSearchParams(location.search);
+    return {
+      isAccessTokenCreationOngoing: true,
+      pathnameRedirectTo: queryParams.get("pathname") || "/",
+      signInResult: null,
+    };
+  });
 
   useEffect(() => {
+    const accessTokenWasCreatedBasedOnRefreshToken =
+      state.signInResult !== null;
     if (isAuthenticated) {
-      addToast("Authentication was successful", "success");
-      navigate("/");
+      if (!accessTokenWasCreatedBasedOnRefreshToken) {
+        addToast("Authentication was successful", "success");
+      }
+      navigate(state.pathnameRedirectTo);
     }
-  }, [isAuthenticated]);
-
-  function submitHandler() {
-    if (usernameRef.current && passwordRef.current) {
+  }, [isAuthenticated, state.signInResult]);
+  useEffect(() => {
+    fetchAccessToken((signInResult) => {
+      if (signInResult === "error") {
+        setState((prevState) => ({
+          ...prevState,
+          isAccessTokenCreationOngoing: false,
+        }));
+      } else {
+        setState((prevState) => ({
+          ...prevState,
+          isAccessTokenCreationOngoing: false,
+          signInResult: signInResult,
+        }));
+      }
+    });
+  }, []);
+  useEffect(() => {
+    if (state.signInResult) {
       dispatch(
-        signInAsync({
-          username: usernameRef.current.value,
-          password: passwordRef.current.value,
-        })
+        setSignInResult(mapSignInResultToSignInState(state.signInResult))
       );
     }
-  }
-
-  const isLoading = isSignInOngoing;
-
-  useEffect(() => {
-    fetchAccessToken();
-  }, []);
+  }, [state.signInResult]);
 
   return (
     <Container>
       <CardContainer className={styles.rootContainer}>
-        {isLoading && (
-          <div className={styles.overlay}>
-            <LoaderSpinner />
-          </div>
+        {state.isAccessTokenCreationOngoing ? (
+          <LoaderSpinner />
+        ) : (
+          <SignInCardContent submitHandler={submitHandler} />
         )}
-        <h2 className={styles.title}>Sign-In</h2>
-        <div className={styles.element}>
-          <label>
-            <span>Username:</span>
-            <input ref={usernameRef} type="text" required />
-          </label>
-        </div>
-        <div className={styles.element}>
-          <label>
-            <span>Password:</span>
-            <input ref={passwordRef} type="password" required />
-          </label>
-        </div>
-        {errorMessage && (
-          <div className={styles.element}>
-            <span style={{ color: globalStyleVariables.red300 }}>
-              {errorMessage}
-            </span>
-          </div>
-        )}
-
-        <div className={styles.element}>
-          <button onClick={submitHandler}>Sign In</button>
-        </div>
       </CardContainer>
     </Container>
   );
 };
+
+async function fetchAccessToken(
+  onComplete: (signInResult: SignInResult | "error") => void
+) {
+  try {
+    const result = await createAccessToken();
+    onComplete(result);
+  } catch (e) {
+    onComplete("error");
+  }
+}
+
+function SignInCardContent(props: {
+  submitHandler: (username: string, password: string) => void;
+}) {
+  const isSignInOngoing = useAppSelector(selectIsSignInRequestOngoing);
+  const errorMessage = useAppSelector(selectErrorMessage);
+
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  function internalSubmitHandler() {
+    if (usernameRef.current && passwordRef.current) {
+      props.submitHandler(usernameRef.current.value, passwordRef.current.value);
+    }
+  }
+
+  return (
+    <Fragment>
+      {isSignInOngoing && (
+        <div className={styles.overlay}>
+          <LoaderSpinner />
+        </div>
+      )}
+      <h2 className={styles.title}>Sign-In</h2>
+      <div className={styles.element}>
+        <label>
+          <span>Username:</span>
+          <input ref={usernameRef} type="text" required />
+        </label>
+      </div>
+      <div className={styles.element}>
+        <label>
+          <span>Password:</span>
+          <input ref={passwordRef} type="password" required />
+        </label>
+      </div>
+      {errorMessage && (
+        <div className={styles.element}>
+          <span style={{ color: globalStyleVariables.red300 }}>
+            {errorMessage}
+          </span>
+        </div>
+      )}
+
+      <div className={styles.element}>
+        <button onClick={internalSubmitHandler}>Sign In</button>
+      </div>
+    </Fragment>
+  );
+}

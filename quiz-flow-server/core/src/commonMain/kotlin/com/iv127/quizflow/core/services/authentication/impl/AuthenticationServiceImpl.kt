@@ -115,6 +115,15 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
         }
     }
 
+    override fun getAuthenticationRefreshTokenByRefreshTokenValue(refreshToken: String): AuthenticationRefreshToken {
+        val hashedRefreshToken = Sha256.hashToHex(refreshToken.encodeToByteArray())
+        val authenticationRefreshTokenByColumn = selectAuthenticationRefreshTokenByColumn(
+            "refresh_token_hash",
+            hashedRefreshToken
+        )
+        return authenticationRefreshTokenByColumn.result
+    }
+
     override fun getAuthenticationByAccessToken(accessToken: String): Authentication {
         val hashedAccessToken = Sha256.hashToHex(accessToken.encodeToByteArray())
         val authenticationAccessToken = selectAuthenticationAccessTokenByColumn(

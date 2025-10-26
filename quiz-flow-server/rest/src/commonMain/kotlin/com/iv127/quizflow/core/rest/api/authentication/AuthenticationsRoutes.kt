@@ -13,6 +13,8 @@ interface AuthenticationsRoutes {
 
     suspend fun signIn(request: UsernamePasswordAuthenticationRequest): Pair<List<CookieResponse>, AccessTokenResponse>
 
+    suspend fun signOut(cookies: List<CookieRequest>): List<CookieResponse>
+
     suspend fun createAccessToken(cookies: List<CookieRequest>): AccessTokenResponse
 
     suspend fun extendAccessTokenLifetime(accessToken: String): AccessTokenResponse

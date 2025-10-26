@@ -16,6 +16,8 @@ interface AuthenticationService {
 
     fun checkAuthorizationScopes(authentication: Authentication, requiredScopes: Set<AuthorizationScope>)
 
+    fun getAuthenticationRefreshTokenByRefreshTokenValue(refreshToken: String): AuthenticationRefreshToken
+
     fun getAuthenticationByAccessToken(accessToken: String): Authentication
 
     fun getAuthenticationByRefreshTokenId(refreshTokenId: String): AuthenticationRefreshToken

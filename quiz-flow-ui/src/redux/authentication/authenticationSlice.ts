@@ -1,7 +1,8 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "..";
-import { signIn, SignInResult } from "src/model/authentication/authentication";
+import { signIn } from "src/model/authentication/authentication";
 import { ApiClientError } from "src/model/utils/ApiClientError";
+import { SignInResult } from "src/model/authentication/SignInResult";
 
 interface SignInStateType {
   accessTokenId: string;
@@ -34,16 +35,7 @@ export const signInAsync = createAsyncThunk<
   const { password, username } = data;
   try {
     const signInResult = await signIn(username, password);
-    return {
-      accessTokenId: signInResult.accessTokenId,
-      refreshTokenId: signInResult.refreshTokenId,
-      accessToken: signInResult.accessToken,
-      authorizationScopes: signInResult.authorizationScopes,
-      accessTokenExpirationIsoDate:
-        signInResult.accessTokenExpirationDate.toISOString(),
-      refreshTokenExpirationIsoDate:
-        signInResult.refreshTokenExpirationDate.toISOString(),
-    };
+    return mapSignInResultToSignInState(signInResult);
   } catch (e) {
     if (e instanceof ApiClientError) {
       let message = e.message;
@@ -76,7 +68,14 @@ export const clearErrorMessage = createAsyncThunk<
 export const authenticationSlice = createSlice({
   name: NAME,
   initialState,
-  reducers: {},
+  reducers: {
+    setSignInResult: (state, action: PayloadAction<SignInStateType>) => {
+      state.signInResult = action.payload;
+    },
+    clearAuthentication: (state) => {
+      state.signInResult = null;
+    },
+  },
   extraReducers: (builder) => {
     builder.addCase(
       clearErrorMessage.fulfilled,
@@ -107,6 +106,9 @@ export const authenticationSlice = createSlice({
   },
 });
 
+export const { setSignInResult, clearAuthentication } =
+  authenticationSlice.actions;
+
 export const selectIsAuthenticated = (state: RootState) =>
   state.authentication.signInResult !== null;
 export const selectIsSignInRequestOngoing = (state: RootState) =>
@@ -115,3 +117,18 @@ export const selectErrorMessage = (state: RootState) =>
   state.authentication.errorMessage;
 
 export default authenticationSlice.reducer;
+
+export function mapSignInResultToSignInState(
+  signInResult: SignInResult
+): SignInStateType {
+  return {
+    accessTokenId: signInResult.accessTokenId,
+    refreshTokenId: signInResult.refreshTokenId,
+    accessToken: signInResult.accessToken,
+    authorizationScopes: signInResult.authorizationScopes,
+    accessTokenExpirationIsoDate:
+      signInResult.accessTokenExpirationDate.toISOString(),
+    refreshTokenExpirationIsoDate:
+      signInResult.refreshTokenExpirationDate.toISOString(),
+  };
+}

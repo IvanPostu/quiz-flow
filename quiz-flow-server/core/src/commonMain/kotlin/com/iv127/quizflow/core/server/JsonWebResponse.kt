@@ -18,6 +18,14 @@ data class JsonWebResponse(
             val serialized = Json.encodeToString(body)
             return JsonWebResponse(serialized, status.value, headers)
         }
+
+        inline fun empty(
+            status: HttpStatusCode = HttpStatusCode.OK,
+            headers: Map<String, List<String>> = mapOf()
+        ): JsonWebResponse {
+            val serialized = Json.encodeToString(mapOf<String, String>())
+            return JsonWebResponse(serialized, status.value, headers)
+        }
     }
 
     override fun copyResponse(

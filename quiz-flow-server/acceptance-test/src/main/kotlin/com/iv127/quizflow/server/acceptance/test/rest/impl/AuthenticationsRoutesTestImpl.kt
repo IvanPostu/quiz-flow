@@ -13,8 +13,10 @@ import com.iv127.quizflow.core.rest.api.cookie.CookieRequest
 import com.iv127.quizflow.core.rest.api.cookie.CookieResponse
 import com.iv127.quizflow.server.acceptance.test.GlobalConfig
 import io.ktor.client.call.body
+import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.cookies.addCookie
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -25,7 +27,7 @@ import io.ktor.http.Cookie
 import io.ktor.http.Url
 import io.ktor.http.contentType
 
-class CookieAwareAuthenticationsRoutesTestImpl(
+class AuthenticationsRoutesTestImpl(
     private val config: GlobalConfig = GlobalConfig.INSTANCE
 ) : AuthenticationsRoutes {
 
@@ -51,23 +53,43 @@ class CookieAwareAuthenticationsRoutesTestImpl(
         }
     }
 
-    private val customCookieStorage = CustomCookieStorage()
-    private val cookieAwareHttpClient = GlobalConfig.createConfiguredHttpClient({
-        install(HttpCookies) {
-            storage = customCookieStorage
-        }
-    })
 
     override suspend fun signIn(request: UsernamePasswordAuthenticationRequest): Pair<List<CookieResponse>, AccessTokenResponse> {
-        val response: HttpResponse = config.performRequest(cookieAwareHttpClient) { client ->
-            client.post("${config.baseUrl}/api${ROUTE_PATH}/sign-in") {
-                contentType(ContentType.Application.Json)
-                setBody(request)
+        val customCookieStorage = CustomCookieStorage()
+        GlobalConfig.createConfiguredHttpClient({
+            install(HttpCookies) {
+                storage = customCookieStorage
             }
+        }).use { cookieAwareHttpClient ->
+            val response: HttpResponse = config.performRequest(cookieAwareHttpClient) { client ->
+                client.post("${config.baseUrl}/api${ROUTE_PATH}/sign-in") {
+                    contentType(ContentType.Application.Json)
+                    setBody(request)
+                }
+            }
+            val responseData: AccessTokenResponse = response.body<AccessTokenResponse>()
+            val cookies = customCookieStorage.getCookies()
+            return Pair(cookies.map { mapToCookieResponse(it) }, responseData)
         }
-        val responseData: AccessTokenResponse = response.body<AccessTokenResponse>()
-        val cookies = getCookies()
-        return Pair(cookies.map { mapToCookieResponse(it) }, responseData)
+    }
+
+    override suspend fun signOut(cookies: List<CookieRequest>): List<CookieResponse> {
+        val cookieStorage = AcceptAllCookiesStorage()
+        cookies.forEach {
+            cookieStorage.addCookie(config.baseUrl, Cookie(it.name, it.value))
+        }
+        GlobalConfig.createConfiguredHttpClient({
+            install(HttpCookies) {
+                storage = cookieStorage
+            }
+        }).use { cookieAwareHttpClient ->
+            config.performRequest(cookieAwareHttpClient) { client ->
+                client.post("${config.baseUrl}/api${ROUTE_PATH}/sign-out") {
+                    contentType(ContentType.Application.Json)
+                }
+            }
+            return cookieStorage.get(Url(config.baseUrl)).map { mapToCookieResponse(it) }
+        }
     }
 
     override suspend fun createAccessToken(cookies: List<CookieRequest>): AccessTokenResponse {
@@ -133,8 +155,6 @@ class CookieAwareAuthenticationsRoutesTestImpl(
     ): TokenSummaryResponse {
         TODO("Not yet implemented")
     }
-
-    fun getCookies(): List<Cookie> = customCookieStorage.getCookies()
 
     private fun mapToCookieResponse(cookie: Cookie): CookieResponse {
         return CookieResponse(
