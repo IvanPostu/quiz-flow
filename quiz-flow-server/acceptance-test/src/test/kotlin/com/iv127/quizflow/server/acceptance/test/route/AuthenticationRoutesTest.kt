@@ -120,17 +120,7 @@ class AuthenticationRoutesTest {
                 "whatever"
             )
         }
-        assertThat(e.httpStatusCode).isEqualTo(401)
-        assertThat(e.restErrorResponse).satisfies({
-            assertThat(it.uniqueId).isNotBlank()
-            assertThat(it.errorCode).isEqualTo("authentication_error")
-            assertThat(it.message).isEqualTo("Authentication failed")
-            assertThat(it.data).isEqualTo(
-                mapOf(
-                    "reason" to "Access token is invalid"
-                )
-            )
-        })
+        assertAuthenticationFailed(e, "Access token is invalid")
     }
 
     @Test
@@ -142,17 +132,7 @@ class AuthenticationRoutesTest {
                 listOf()
             )
         }
-        assertThat(e.httpStatusCode).isEqualTo(401)
-        assertThat(e.restErrorResponse).satisfies({
-            assertThat(it.uniqueId).isNotBlank()
-            assertThat(it.errorCode).isEqualTo("authentication_error")
-            assertThat(it.message).isEqualTo("Authentication failed")
-            assertThat(it.data).isEqualTo(
-                mapOf(
-                    "reason" to "Refresh token is not found in the cookie"
-                )
-            )
-        })
+        assertAuthenticationFailed(e,  "Refresh token is not found in the cookie")
     }
 
     @Test
@@ -166,17 +146,7 @@ class AuthenticationRoutesTest {
                 )
             )
         }
-        assertThat(e.httpStatusCode).isEqualTo(401)
-        assertThat(e.restErrorResponse).satisfies({
-            assertThat(it.uniqueId).isNotBlank()
-            assertThat(it.errorCode).isEqualTo("authentication_error")
-            assertThat(it.message).isEqualTo("Authentication failed")
-            assertThat(it.data).isEqualTo(
-                mapOf(
-                    "reason" to "Refreshable token is invalid"
-                )
-            )
-        })
+        assertAuthenticationFailed(e, "Refreshable token is invalid")
     }
 
     @Test

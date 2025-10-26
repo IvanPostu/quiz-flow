@@ -40,9 +40,17 @@ export const SignInContainer = () => {
   }
   const [state, setState] = useState<SignInContainerState>(() => {
     const queryParams = new URLSearchParams(location.search);
+    let pathnameRedirectTo: string = "/";
+    if (
+      queryParams.get("pathname") !== null &&
+      queryParams.get("pathname") !== "/sign-out"
+    ) {
+      pathnameRedirectTo = queryParams.get("pathname")!!;
+    }
+
     return {
       isAccessTokenCreationOngoing: true,
-      pathnameRedirectTo: queryParams.get("pathname") || "/",
+      pathnameRedirectTo: pathnameRedirectTo,
       signInResult: null,
     };
   });
