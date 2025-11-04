@@ -5,6 +5,7 @@
   display: flex;
   background-color: variables.$whiteBlue100;
   width: 100%;
+  overflow-x: hidden;
 
   .main {
     display: flex;
