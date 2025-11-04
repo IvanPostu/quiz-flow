@@ -1,0 +1,66 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+@use "src/styles/mixins";
+
+.rootContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  padding: 2rem;
+  flex-direction: column;
+
+  .card {
+    background-color: variables.$white100;
+    border-radius: 12px;
+    border: 1px variables.$greyBorder;
+    box-shadow: variables.$greyBorderBoxShadow;
+    width: 300px;
+    padding: 2rem;
+    text-align: center;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    @include mixins.uncopyable;
+    cursor: pointer;
+
+    &:hover {
+      transform: none;
+      box-shadow: 0 0 5px 0 rgba(55, 55, 55, 0.2);
+      @include mixins.mq-up(sm) {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+      }
+    }
+
+    &:active {
+      transform: translateY(2px);
+      box-shadow: 0 0 5px 0 rgba(55, 55, 55, 0.2);
+      @include mixins.mq-up(sm) {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+
+  .icon {
+    font-size: 60px;
+    color: variables.$blue300;
+    margin-bottom: 1rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    color: variables.$gray500;
+    margin-bottom: 0.95rem;
+  }
+
+  .description {
+    font-size: 1rem;
+    color: variables.$gray400;
+    margin-bottom: 1rem;
+  }
+}
+
+@include mixins.mq-up(md) {
+  .rootContainer {
+    flex-direction: row;
+  }
+}
