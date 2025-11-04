@@ -15,7 +15,7 @@
     transition: all 0.35s ease-in-out;
 
     .content {
-      max-height: 100vh;
+      max-height: calc(100vh - variables.$navbarHeight);
       overflow-y: auto;
       flex: 1;
     }

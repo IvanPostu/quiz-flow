@@ -5,12 +5,33 @@ import {
 } from "react-icons/io5";
 import * as styles from "./styles.module.scss";
 import { Fragment } from "react/jsx-runtime";
+import { useState } from "react";
+import { Modal } from "../Modal/Modal";
 
 export const MainPageContainer = () => {
+  const [state, setState] = useState<{ takeQuizModalIsActive: boolean }>({
+    takeQuizModalIsActive: false,
+  });
+  const closeModal = () =>
+    setState((prevState) => ({ ...prevState, takeQuizModalIsActive: false }));
+
   return (
-    <div className={styles.rootContainer}>
-      <CardContainer />
-    </div>
+    <Fragment>
+      <div className={styles.rootContainer}>
+        <CardContainer />
+      </div>
+      <button
+        onClick={() => {
+          setState((prevState) => ({
+            ...prevState,
+            takeQuizModalIsActive: true,
+          }));
+        }}
+      >
+        Open Modal
+      </button>
+      <Modal isOpen={state.takeQuizModalIsActive} closeModal={closeModal} />
+    </Fragment>
   );
 };
 
