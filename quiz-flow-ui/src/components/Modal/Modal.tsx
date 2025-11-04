@@ -1,4 +1,4 @@
-import { MouseEventHandler } from "react";
+import { MouseEventHandler, PropsWithChildren } from "react";
 import * as styles from "./styles.module.scss";
 import { IoCloseOutline } from "react-icons/io5";
 
@@ -7,8 +7,8 @@ interface PropsType {
   closeModal: () => void;
 }
 
-const Modal = (props: PropsType) => {
-  const { closeModal, isOpen } = props;
+const Modal: React.FC<PropsWithChildren<PropsType>> = (props) => {
+  const { closeModal, isOpen, children } = props;
   if (!isOpen) return null;
 
   const handleBackgroundClick: MouseEventHandler<HTMLDivElement> = (e) => {
@@ -21,11 +21,7 @@ const Modal = (props: PropsType) => {
     <div className={styles.modalBackdrop} onClick={handleBackgroundClick}>
       <div className={styles.modalContent}>
         <IoCloseOutline className={styles.closeButton} onClick={closeModal} />
-
-        <div className={styles.modalBody}>
-          <h2>Modal Content</h2>
-          <p>This is the content inside the modal.</p>
-        </div>
+        {children}
       </div>
     </div>
   );

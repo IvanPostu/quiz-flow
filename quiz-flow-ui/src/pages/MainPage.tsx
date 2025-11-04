@@ -9,11 +9,6 @@ export const MainPage = () => {
       <MainPageContainer />
       <CardContainer>
         <LatestQuestionSets />
-        <LatestQuestionSets />
-        <LatestQuestionSets />
-        <LatestQuestionSets />
-        <LatestQuestionSets />
-        <LatestQuestionSets />
       </CardContainer>
     </Container>
   );
