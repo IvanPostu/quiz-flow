@@ -1,5 +1,6 @@
 package com.iv127.quizflow.core.rest.impl.questionset
 
+import com.iv127.quizflow.core.model.authentication.AuthorizationScope
 import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.SortOrder
@@ -8,8 +9,10 @@ import com.iv127.quizflow.core.rest.api.questionset.QuestionSetResponse
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetUpdateRequest
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetsRoutes
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetsRoutes.Companion.ROUTE_PATH
+import com.iv127.quizflow.core.security.AccessTokenProvider
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.routingContextWebResponse
+import com.iv127.quizflow.core.services.authentication.AuthenticationService
 import com.iv127.quizflow.core.services.questionset.QuestionSetService
 import io.ktor.server.request.receive
 import io.ktor.server.routing.Route
@@ -23,54 +26,72 @@ import org.koin.core.KoinApplication
 class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, ApiRoute {
 
     private val questionSetService: QuestionSetService by koinApp.koin.inject()
+    private val authenticationService: AuthenticationService by koinApp.koin.inject()
 
     override fun setup(parent: Route) {
         parent.get("$ROUTE_PATH/{id}", routingContextWebResponse {
+            val accessToken = AccessTokenProvider.provide(call)
             val id = call.parameters["id"] ?: throw IllegalArgumentException("id pathParam is empty")
-            JsonWebResponse.create(get(id))
+            JsonWebResponse.create(get(accessToken, id))
         })
         parent.get(ROUTE_PATH, routingContextWebResponse {
+            val accessToken = AccessTokenProvider.provide(call)
             val limit: Int = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
             val offset: Int = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
             val sortOrder: SortOrder = SortOrder.valueOf(call.request.queryParameters["sortOrder"] ?: "ASC")
-            JsonWebResponse.create(list(offset, limit, sortOrder))
+            JsonWebResponse.create(list(accessToken, offset, limit, sortOrder))
         })
         parent.post(ROUTE_PATH, routingContextWebResponse {
+            val accessToken = AccessTokenProvider.provide(call)
             val request = call.receive<QuestionSetCreateRequest>()
-            JsonWebResponse.create(create(request))
+            JsonWebResponse.create(create(accessToken, request))
         })
         parent.delete("$ROUTE_PATH/{id}", routingContextWebResponse {
+            val accessToken = AccessTokenProvider.provide(call)
             val id = call.parameters["id"] ?: throw IllegalArgumentException("id pathParam is empty")
-            JsonWebResponse.create(archive(id))
+            JsonWebResponse.create(archive(accessToken, id))
         })
         parent.put("$ROUTE_PATH/{id}", routingContextWebResponse {
+            val accessToken = AccessTokenProvider.provide(call)
             val id = call.parameters["id"] ?: throw IllegalArgumentException("id pathParam is empty")
             val request = call.receive<QuestionSetUpdateRequest>()
-            JsonWebResponse.create(update(id, request))
+            JsonWebResponse.create(update(accessToken, id, request))
         })
     }
 
-    override suspend fun get(id: String): QuestionSetResponse {
+    override suspend fun get(accessToken: String, id: String): QuestionSetResponse {
         return mapQuestionSetResponse(questionSetService.getQuestionSetWithVersionOrElseLatest(id, null).first)
     }
 
-    override suspend fun list(offset: Int, limit: Int, sortOrder: SortOrder): List<QuestionSetResponse> {
+    override suspend fun list(
+        accessToken: String,
+        offset: Int,
+        limit: Int,
+        sortOrder: SortOrder
+    ): List<QuestionSetResponse> {
         return questionSetService.getQuestionSetList(limit, offset, sortOrder)
             .map { mapQuestionSetResponse(it) }
     }
 
-    override suspend fun create(request: QuestionSetCreateRequest): QuestionSetResponse {
+    override suspend fun create(accessToken: String, request: QuestionSetCreateRequest): QuestionSetResponse {
+        val authentication = authenticationService.getAuthenticationByAccessToken(accessToken)
+        authenticationService.checkAuthorizationScopes(authentication, setOf(AuthorizationScope.REGULAR_USER))
+
         if (request.name.isBlank()) {
             throw IllegalArgumentException("name field shouldn't be blank")
         }
-        val questionSet = questionSetService.createQuestionSet { builder ->
+        val questionSet = questionSetService.createQuestionSet(authentication) { builder ->
             builder.name = request.name
             builder.description = request.description
         }.first
         return mapQuestionSetResponse(questionSet)
     }
 
-    override suspend fun update(id: String, request: QuestionSetUpdateRequest): QuestionSetResponse {
+    override suspend fun update(
+        accessToken: String,
+        id: String,
+        request: QuestionSetUpdateRequest
+    ): QuestionSetResponse {
         val questionSet = questionSetService.updateQuestionSet(id) { builder ->
             builder.name = request.name
             builder.description = request.description
@@ -78,7 +99,7 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
         return mapQuestionSetResponse(questionSet)
     }
 
-    override suspend fun archive(id: String): QuestionSetResponse {
+    override suspend fun archive(accessToken: String, id: String): QuestionSetResponse {
         val questionSet = questionSetService.archive(id)
         return mapQuestionSetResponse(questionSet)
     }

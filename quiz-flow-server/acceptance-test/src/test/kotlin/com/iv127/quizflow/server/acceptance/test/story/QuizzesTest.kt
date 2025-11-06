@@ -1,6 +1,7 @@
 package com.iv127.quizflow.server.acceptance.test.story
 
 import com.iv127.quizflow.core.rest.api.MultipartData
+import com.iv127.quizflow.core.rest.api.authentication.AccessTokenResponse
 import com.iv127.quizflow.core.rest.api.question.QuestionSetVersionResponse
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
@@ -12,19 +13,17 @@ import com.iv127.quizflow.core.rest.api.quiz.QuizQuestionResponse
 import com.iv127.quizflow.core.rest.api.quiz.QuizUpdateRequest
 import com.iv127.quizflow.core.rest.api.quiz.QuizzesRoutes
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutes
-import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
-import com.iv127.quizflow.core.rest.api.user.UserResponse
-import com.iv127.quizflow.core.rest.api.user.UsersRoutes
 import com.iv127.quizflow.server.acceptance.test.acceptance.AuthenticationAcceptance
+import com.iv127.quizflow.server.acceptance.test.acceptance.UserAcceptance
 import com.iv127.quizflow.server.acceptance.test.rest.RestErrorException
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionSetsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuizResultsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuizzesRoutesTestImpl
-import com.iv127.quizflow.server.acceptance.test.rest.impl.UsersRoutesTestImpl
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -33,7 +32,6 @@ class QuizzesTest {
 
     private val questionSetsRoutes: QuestionSetsRoutes = QuestionSetsRoutesTestImpl()
     private val questionsRoutes: QuestionsRoutes = QuestionsRoutesTestImpl()
-    private val usersRoutes: UsersRoutes = UsersRoutesTestImpl()
     private val quizzesRoutes: QuizzesRoutes = QuizzesRoutesTestImpl()
     private val quizResultsRoutes: QuizResultsRoutes = QuizResultsRoutesTestImpl()
 
@@ -67,12 +65,23 @@ class QuizzesTest {
             ```
         """.trimIndent().encodeToByteArray()
 
+    private lateinit var auth: AccessTokenResponse
+
+    @BeforeEach
+    fun setup() = runTest {
+        val username = "testUsername1${System.currentTimeMillis()}"
+        val password = "test1Password${System.currentTimeMillis()}"
+        val user = UserAcceptance.createUser(username, password)
+        auth = AuthenticationAcceptance.authenticateUser(user.username, password)
+    }
+
     @Test
     fun testQuizResultCanBeProvidedOnlyForFinalizedQuizzes() = runTest {
-        val (user, password) = createUser()
-        val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
         val questionSet =
-            questionSetsRoutes.create(QuestionSetCreateRequest("Example of questionnaire", "Example of description"))
+            questionSetsRoutes.create(
+                auth.accessToken,
+                QuestionSetCreateRequest("Example of questionnaire", "Example of description")
+            )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
@@ -134,10 +143,11 @@ class QuizzesTest {
 
     @Test
     fun `test take a quiz and get result`() = runTest {
-        val (user, password) = createUser()
-        val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
         val questionSet =
-            questionSetsRoutes.create(QuestionSetCreateRequest("Example of questionnaire", "Example of description"))
+            questionSetsRoutes.create(
+                auth.accessToken,
+                QuestionSetCreateRequest("Example of questionnaire", "Example of description")
+            )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
@@ -187,10 +197,11 @@ class QuizzesTest {
 
     @Test
     fun testAttemptToSelectInvalidAnswer() = runTest {
-        val (user, password) = createUser()
-        val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
         val questionSet =
-            questionSetsRoutes.create(QuestionSetCreateRequest("Example of questionnaire", "Example of description"))
+            questionSetsRoutes.create(
+                auth.accessToken,
+                QuestionSetCreateRequest("Example of questionnaire", "Example of description")
+            )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
@@ -248,10 +259,6 @@ class QuizzesTest {
 
     @Test
     fun testUpdateQuizByRandomId() = runTest {
-        val (user, password) = createUser()
-        val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
-
-
         val e = assertThrows<RestErrorException> {
             quizzesRoutes.update(
                 auth.accessToken,
@@ -267,10 +274,6 @@ class QuizzesTest {
 
     @Test
     fun testGetQuizByRandomId() = runTest {
-        val (user, password) = createUser()
-        val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
-
-
         val e = assertThrows<RestErrorException> {
             quizzesRoutes.get(auth.accessToken, quizId = "randomString123")
         }
@@ -282,10 +285,11 @@ class QuizzesTest {
 
     @Test
     fun testAttemptToUpdateFinalizedQuiz() = runTest {
-        val (user, password) = createUser()
-        val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
         val questionSet =
-            questionSetsRoutes.create(QuestionSetCreateRequest("Example of questionnaire", "Example of description"))
+            questionSetsRoutes.create(
+                auth.accessToken,
+                QuestionSetCreateRequest("Example of questionnaire", "Example of description")
+            )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
@@ -333,10 +337,11 @@ class QuizzesTest {
 
     @Test
     fun testFinalizeQuiz() = runTest {
-        val (user, password) = createUser()
-        val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
         val questionSet =
-            questionSetsRoutes.create(QuestionSetCreateRequest("Example of questionnaire", "Example of description"))
+            questionSetsRoutes.create(
+                auth.accessToken,
+                QuestionSetCreateRequest("Example of questionnaire", "Example of description")
+            )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
@@ -409,10 +414,11 @@ class QuizzesTest {
 
     @Test
     fun testCreateAndUpdateQuiz() = runTest {
-        val (user, password) = createUser()
-        val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
         val questionSet =
-            questionSetsRoutes.create(QuestionSetCreateRequest("Example of questionnaire", "Example of description"))
+            questionSetsRoutes.create(
+                auth.accessToken,
+                QuestionSetCreateRequest("Example of questionnaire", "Example of description")
+            )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
@@ -510,13 +516,4 @@ class QuizzesTest {
                 )
         })
     }
-
-    private suspend fun createUser(): Pair<UserResponse, String> {
-        val auth = AuthenticationAcceptance.authenticateSuperUser()
-        val username = "testUsername1${System.currentTimeMillis()}"
-        val password = "test1Password${System.currentTimeMillis()}"
-        val createdUser = usersRoutes.create(auth.accessToken, UserCreateRequest(username, password))
-        return Pair(createdUser, password)
-    }
-
 }

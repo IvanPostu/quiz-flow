@@ -9,16 +9,20 @@ class QuestionSetBuilder {
     private val id: String;
     private val _questions: MutableList<Question> = mutableListOf()
     private var latestVersion: Int = 0
+    private val userId: String
+
     var name: String = ""
     var description: String = ""
     var createdDate = Clock.System.now()
 
-    constructor() {
+    constructor(userId: String) {
         this.id = UUIDv4.generate()
+        this.userId = userId
     }
 
     constructor(questionSet: QuestionSet, questionSetVersion: QuestionSetVersion) {
         this.id = questionSet.id
+        this.userId = questionSet.userId
         this.name = questionSet.name
         this.description = questionSet.description
         this.latestVersion = questionSet.latestVersion
@@ -35,6 +39,7 @@ class QuestionSetBuilder {
         latestVersion++
         val questionSet = QuestionSet(
             id = id,
+            userId = userId,
             name = name,
             description = description,
             latestVersion = latestVersion,

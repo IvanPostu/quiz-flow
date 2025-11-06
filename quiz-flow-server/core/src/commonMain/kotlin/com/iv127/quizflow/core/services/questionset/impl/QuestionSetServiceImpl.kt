@@ -1,5 +1,6 @@
 package com.iv127.quizflow.core.services.questionset.impl
 
+import com.iv127.quizflow.core.model.authentication.Authentication
 import com.iv127.quizflow.core.model.question.InvalidQuestionSetVersionException
 import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.model.question.QuestionSetBuilder
@@ -15,8 +16,11 @@ import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalTime::class)
 class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuestionSetService {
-    override fun createQuestionSet(createFunc: (questionSetBuilder: QuestionSetBuilder) -> Unit): Pair<QuestionSet, QuestionSetVersion> {
-        val (questionSet, questionSetVersion) = QuestionSetBuilder()
+    override fun createQuestionSet(
+        authentication: Authentication,
+        createFunc: (questionSetBuilder: QuestionSetBuilder) -> Unit
+    ): Pair<QuestionSet, QuestionSetVersion> {
+        val (questionSet, questionSetVersion) = QuestionSetBuilder(authentication.authenticationRefreshToken.userId)
             .apply(createFunc)
             .buildAndIncrement()
         dbSupplier().use { db ->
@@ -25,15 +29,17 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
                 """
                     INSERT INTO question_sets (
                         id,
+                        user_id,
                         latest_version,
                         created_at,
                         archived_at,
                         json) VALUES (
-                        ?, ?, ?, ?, ?);
+                        ?, ?, ?, ?, ?, ?);
                 """.trimIndent(),
                 listOf<Any?>
                     (
                     questionSet.id,
+                    questionSet.userId,
                     questionSet.latestVersion,
                     SqliteTimestampUtils.toValue(questionSet.createdDate),
                     null,

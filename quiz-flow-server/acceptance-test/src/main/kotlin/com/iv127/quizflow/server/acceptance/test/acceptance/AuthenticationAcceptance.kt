@@ -6,8 +6,9 @@ import com.iv127.quizflow.server.acceptance.test.rest.impl.AuthenticationsRoutes
 
 object AuthenticationAcceptance {
 
+    private val authenticationsRoutesTestImpl = AuthenticationsRoutesTestImpl()
+
     suspend fun authenticateSuperUser(): AccessTokenResponse {
-        val authenticationsRoutesTestImpl = AuthenticationsRoutesTestImpl()
         val signInResult = authenticationsRoutesTestImpl.signIn(
             UsernamePasswordAuthenticationRequest(
                 "super_admin",
@@ -18,7 +19,6 @@ object AuthenticationAcceptance {
     }
 
     suspend fun authenticateUser(username: String, password: String): AccessTokenResponse {
-        val authenticationsRoutesTestImpl = AuthenticationsRoutesTestImpl()
         val signInResult = authenticationsRoutesTestImpl.signIn(
             UsernamePasswordAuthenticationRequest(
                 username,

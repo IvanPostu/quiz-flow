@@ -1,6 +1,7 @@
 CREATE TABLE question_sets (
     primary_key INTEGER ,
     id VARCHAR(64) NOT NULL,
+    user_id VARCHAR(64) NOT NULL,
     latest_version INTEGER NOT NULL,
     created_at TIMESTAMP,
     archived_at TIMESTAMP,
@@ -10,3 +11,4 @@ CREATE TABLE question_sets (
 );
 
 CREATE UNIQUE INDEX uidx_question_sets_id ON question_sets(id);
+CREATE UNIQUE INDEX idx_question_sets_user_id ON question_sets(user_id);

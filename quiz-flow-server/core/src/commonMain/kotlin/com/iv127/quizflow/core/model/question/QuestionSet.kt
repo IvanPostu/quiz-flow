@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class QuestionSet(
     @SerialName("id") val id: String,
+    @SerialName("user_id") val userId: String,
     @SerialName("name") val name: String,
     @SerialName("description") val description: String,
     @SerialName("latest_version") val latestVersion: Int,

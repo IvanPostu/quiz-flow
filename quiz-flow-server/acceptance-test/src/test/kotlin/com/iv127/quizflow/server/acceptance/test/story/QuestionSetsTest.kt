@@ -1,16 +1,20 @@
 package com.iv127.quizflow.server.acceptance.test.story
 
 import com.iv127.quizflow.core.rest.api.MultipartData
+import com.iv127.quizflow.core.rest.api.authentication.AccessTokenResponse
 import com.iv127.quizflow.core.rest.api.question.QuestionResponse
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetsRoutes
 import com.iv127.quizflow.server.acceptance.test.GlobalConfig
+import com.iv127.quizflow.server.acceptance.test.acceptance.AuthenticationAcceptance
+import com.iv127.quizflow.server.acceptance.test.acceptance.UserAcceptance
 import com.iv127.quizflow.server.acceptance.test.rest.RestErrorException
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionSetsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionsRoutesTestImpl
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -20,10 +24,20 @@ class QuestionSetsTest {
     private val questionSetsRoutes: QuestionSetsRoutes = QuestionSetsRoutesTestImpl()
     private val questionsRoutes: QuestionsRoutes = QuestionsRoutesTestImpl()
 
+    private lateinit var auth: AccessTokenResponse
+
+    @BeforeEach
+    fun setup() = runTest {
+        val username = "testUsername1${System.currentTimeMillis()}"
+        val password = "test1Password${System.currentTimeMillis()}"
+        val user = UserAcceptance.createUser(username, password)
+        auth = AuthenticationAcceptance.authenticateUser(user.username, password)
+    }
+
     @Test
     fun testGetQuestionSetVersionByInvalidId() = runTest {
         val createRequest = QuestionSetCreateRequest("Example of questionnaire", "Example of description")
-        val created = questionSetsRoutes.create(createRequest)
+        val created = questionSetsRoutes.create(auth.accessToken, createRequest)
         val invalidId = created.id + "aaa"
 
         questionsRoutes.getQuestionSetVersion(created.id)
@@ -54,7 +68,7 @@ class QuestionSetsTest {
     @Test
     fun testQuestionSetInvalidVersions() = runTest {
         val createRequest = QuestionSetCreateRequest("Example of questionnaire", "Example of description")
-        val created = questionSetsRoutes.create(createRequest)
+        val created = questionSetsRoutes.create(auth.accessToken, createRequest)
 
         questionsRoutes.getQuestionSetVersion(created.id)
         val e = assertThrows<RestErrorException> {
@@ -77,7 +91,7 @@ class QuestionSetsTest {
     @Test
     fun testQuestionSetVersions() = runTest {
         val createRequest = QuestionSetCreateRequest("Example of questionnaire", "Example of description")
-        val created = questionSetsRoutes.create(createRequest)
+        val created = questionSetsRoutes.create(auth.accessToken, createRequest)
 
         assertThat(
             listOf(
@@ -231,7 +245,7 @@ class QuestionSetsTest {
     @Test
     fun testCreateQuestionSetAndUploadQuestionsIntoIt() = runTest {
         val createRequest = QuestionSetCreateRequest("Example of questionnaire", "Example of description")
-        val created = questionSetsRoutes.create(createRequest)
+        val created = questionSetsRoutes.create(auth.accessToken, createRequest)
 
         val questionsContent = config.readResourceAsByteArray("question_sets/validQuestions1.MD")
         val uploadedQuestions = questionsRoutes.upload(
