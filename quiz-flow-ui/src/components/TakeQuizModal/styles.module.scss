@@ -1,0 +1,35 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+
+.rootContainer {
+  .title {
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .paginationSection {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    padding: 10px;
+  }
+
+  .simplePaginationButton {
+    width: 100px;
+    padding: 0.75rem;
+    background-color: variables.$blue300;
+    color: variables.$white100;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+
+    &:hover {
+      background-color: variables.$blue400;
+    }
+
+    &:active {
+      background-color: variables.$blue500;
+    }
+  }
+}

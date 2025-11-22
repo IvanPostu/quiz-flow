@@ -12,6 +12,7 @@ import com.iv127.quizflow.server.acceptance.test.acceptance.UserAcceptance
 import com.iv127.quizflow.server.acceptance.test.rest.RestErrorException
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionSetsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionsRoutesTestImpl
+import kotlin.random.Random
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -244,10 +245,13 @@ class QuestionSetsTest {
 
     @Test
     fun testCreateQuestionSetAndUploadQuestionsIntoIt() = runTest {
-        val createRequest = QuestionSetCreateRequest("Example of questionnaire", "Example of description")
+        val questionsContent = config.readResourceAsByteArray("question_sets/validQuestions1.MD")
+
+        val randomInt = Random.nextInt()
+        val createRequest =
+            QuestionSetCreateRequest("Example of questionnaire $randomInt", "Example of description $randomInt")
         val created = questionSetsRoutes.create(auth.accessToken, createRequest)
 
-        val questionsContent = config.readResourceAsByteArray("question_sets/validQuestions1.MD")
         val uploadedQuestions = questionsRoutes.upload(
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             created.id

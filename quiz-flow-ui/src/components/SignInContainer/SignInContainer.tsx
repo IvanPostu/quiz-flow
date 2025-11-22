@@ -15,8 +15,8 @@ import {
 } from "src/redux/authentication/authenticationSlice";
 import { useToast } from "../ToastNotification/ToastContext";
 import { useLocation, useNavigate } from "react-router-dom";
-import { createAccessToken } from "src/model/authentication/authentication";
-import { SignInResult } from "src/model/authentication/SignInResult";
+import { createAccessToken } from "src/model/authentications/authentications";
+import { SignInResult } from "src/model/authentications/SignInResult";
 
 interface SignInContainerState {
   isAccessTokenCreationOngoing: boolean;

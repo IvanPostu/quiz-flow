@@ -6,7 +6,7 @@ import {
 import * as styles from "./styles.module.scss";
 import { Fragment } from "react/jsx-runtime";
 import { useState } from "react";
-import { Modal } from "../Modal/Modal";
+import { TakeQuizModal } from "../TakeQuizModal/TakeQuizModal";
 
 export const MainPageContainer = () => {
   const [state, setState] = useState<{ takeQuizModalIsActive: boolean }>({
@@ -27,22 +27,10 @@ export const MainPageContainer = () => {
           }
         />
       </div>
-      <button
-        onClick={() => {
-          setState((prevState) => ({
-            ...prevState,
-            takeQuizModalIsActive: true,
-          }));
-        }}
-      >
-        Open Modal
-      </button>
-      <Modal isOpen={state.takeQuizModalIsActive} closeModal={closeModal}>
-        <div>
-          <h2>Take a Quiz</h2>
-          <p>This is the content inside the modal.</p>
-        </div>
-      </Modal>
+      <TakeQuizModal
+        closeModal={closeModal}
+        takeQuizModalIsActive={state.takeQuizModalIsActive}
+      />
     </Fragment>
   );
 };

@@ -11,4 +11,4 @@ CREATE TABLE question_sets (
 );
 
 CREATE UNIQUE INDEX uidx_question_sets_id ON question_sets(id);
-CREATE UNIQUE INDEX idx_question_sets_user_id ON question_sets(user_id);
+CREATE INDEX idx_question_sets_user_id ON question_sets(user_id);

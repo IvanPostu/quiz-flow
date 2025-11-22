@@ -4,15 +4,16 @@ import { IoCloseOutline } from "react-icons/io5";
 
 interface PropsType {
   isOpen: boolean;
+  dismissOnClickOutside: boolean;
   closeModal: () => void;
 }
 
 const Modal: React.FC<PropsWithChildren<PropsType>> = (props) => {
-  const { closeModal, isOpen, children } = props;
+  const { closeModal, isOpen, dismissOnClickOutside, children } = props;
   if (!isOpen) return null;
 
   const handleBackgroundClick: MouseEventHandler<HTMLDivElement> = (e) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && dismissOnClickOutside) {
       closeModal();
     }
   };

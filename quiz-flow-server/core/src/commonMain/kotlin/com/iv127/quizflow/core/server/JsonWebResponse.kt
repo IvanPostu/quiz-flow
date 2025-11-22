@@ -19,7 +19,7 @@ data class JsonWebResponse(
             return JsonWebResponse(serialized, status.value, headers)
         }
 
-        inline fun empty(
+        fun empty(
             status: HttpStatusCode = HttpStatusCode.OK,
             headers: Map<String, List<String>> = mapOf()
         ): JsonWebResponse {

@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "..";
-import { signIn } from "src/model/authentication/authentication";
+import { signIn } from "src/model/authentications/authentications";
 import { ApiClientError } from "src/model/utils/ApiClientError";
-import { SignInResult } from "src/model/authentication/SignInResult";
+import { SignInResult } from "src/model/authentications/SignInResult";
 
 export interface SignInStateType {
   accessTokenId: string;
@@ -111,6 +111,8 @@ export const { setSignInResult, clearAuthentication } =
 
 export const selectIsAuthenticated = (state: RootState) =>
   state.authentication.signInResult !== null;
+export const selectAccessToken = (state: RootState) =>
+  state.authentication.signInResult?.accessToken;
 export const selectIsSignInRequestOngoing = (state: RootState) =>
   state.authentication.signInRequestStatus === "pending";
 export const selectErrorMessage = (state: RootState) =>

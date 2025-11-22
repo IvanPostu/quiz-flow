@@ -1,3 +1,4 @@
+import { CSSProperties } from "react";
 import * as styles from "./styles.module.scss";
 import { IoSadOutline } from "react-icons/io5";
 
@@ -5,13 +6,14 @@ type ItemType = {
   id: string;
   title: string;
   descriptionItems: string[];
-  left: React.ReactElement;
-  right: React.ReactElement;
+  left?: React.ReactElement;
+  right?: React.ReactElement;
 };
 
 type ListOfItemsPropsType = {
   items: ItemType[];
   onItemClick: (id: string) => void;
+  listContainerStyle?: CSSProperties;
 };
 
 export const ListOfItems = (props: ListOfItemsPropsType) => {
@@ -25,15 +27,18 @@ const InternalListOfItems = (props: ListOfItemsPropsType) => {
     items.length === 0 ? (
       <NoElementsWereFound />
     ) : (
-      items.map((item, index) => (
+      items.map((item) => (
         <div
           key={item.id}
           className={styles.itemRow}
           onClick={() => onItemClick && onItemClick(item.id)}
         >
-          <div className={styles.left}>
-            <span>{item.left}</span>
-          </div>
+          {item.left && (
+            <div className={styles.left}>
+              <span>{item.left}</span>
+            </div>
+          )}
+
           <div className={styles.middle}>
             <div className={styles.title}>{item.title}</div>
             {item.descriptionItems.map((value) => (
@@ -42,12 +47,20 @@ const InternalListOfItems = (props: ListOfItemsPropsType) => {
               </div>
             ))}
           </div>
-          <div className={styles.right}>{item.right}</div>
+          {item.right && (
+            <div className={styles.right}>
+              <span>{item.right}</span>
+            </div>
+          )}
         </div>
       ))
     );
 
-  return <div className={styles.list}>{children}</div>;
+  return (
+    <div style={props.listContainerStyle} className={styles.list}>
+      {children}
+    </div>
+  );
 };
 
 function NoElementsWereFound() {

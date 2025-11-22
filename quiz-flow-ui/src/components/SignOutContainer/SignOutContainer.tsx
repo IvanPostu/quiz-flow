@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { signOut } from "src/model/authentication/authentication";
+import { signOut } from "src/model/authentications/authentications";
 import { useAppDispatch } from "src/redux";
 import { clearAuthentication } from "src/redux/authentication/authenticationSlice";
 import { CardContainer } from "../CardContainer/CardContainer";
