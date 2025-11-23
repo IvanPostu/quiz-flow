@@ -101,7 +101,7 @@ class QuestionsResolverFactoryTest() {
     }
 
     @Test
-    fun testQuestionWrappedInMarkdownSectionHappyPath() {
+    fun testResolveQuestionWrappedInMarkdown() {
         val factory = QuestionsResolverFactory()
         val questionsResolver = factory.create(QuestionsResolverType.QUESTION_WRAPPED_IN_MARKDOWN_CODE_SECTION)
 
@@ -125,7 +125,7 @@ class QuestionsResolverFactoryTest() {
                     listOf(
                         "A. 1 test1",
                         "B. 2 test 2",
-                        "C. 3 test 3 ",
+                        "C. 3 test 3",
                         "D. 4 test 4",
                         "E. 5 test 5"
                     ),
@@ -157,6 +157,100 @@ class QuestionsResolverFactoryTest() {
                 )
             })
     }
+
+    @Test
+    fun testResolveQuestionWrappedInMarkdownThatDoNotHaveLettersForAnswers() {
+        val factory = QuestionsResolverFactory()
+        val questionsResolver = factory.create(QuestionsResolverType.QUESTION_WRAPPED_IN_MARKDOWN_CODE_SECTION)
+
+        val input = """
+            ```
+            13. Example of question ???
+            
+            blah blah blah
+            1. answer
+            2. answer
+            3. answer
+            4. answer
+            5. answer
+            6. answer
+            7. answer
+            8. answer
+            9. answer
+            10. answer
+
+            A, B, C. Answers explanation
+            ```
+        """.trimIndent()
+
+
+        val result = questionsResolver.resolve(input).asResult()
+        val exception: QuestionsResolveException = result.exceptionOrNull() as QuestionsResolveException
+
+        assertThat(exception.reason).isEqualTo(QuestionsResolveException.Reason.MISSING_ANSWERS)
+        assertThat(exception.rawSource).isEqualTo(input)
+        assertThat(exception.message).isEqualTo("Missing answers for correct answer letters: [A, B, C]")
+    }
+
+
+    @Test
+    fun testResolveQuestionWrappedInMarkdownWithMultilineAnswers() {
+        val factory = QuestionsResolverFactory()
+        val questionsResolver = factory.create(QuestionsResolverType.QUESTION_WRAPPED_IN_MARKDOWN_CODE_SECTION)
+
+        val fileContent = """
+            ```
+            13. Example of question 
+            qwe ???
+
+            A. Abc der
+            cde.
+            B. Abc qwe
+            x.
+            C. Abc
+            cde
+            method.
+
+            A, C. Answers explanation
+            ```
+        """.trimIndent()
+
+
+        val result = questionsResolver.resolve(fileContent).asResult()
+        val questions = result.getOrThrow()
+
+        assertThat(questions)
+            .hasSize(1)
+            .anySatisfy({ question ->
+                assertQuestion(
+                    question,
+                    """
+                        13. Example of question 
+                        qwe ???
+                    """.trimIndent(),
+                    listOf(
+                        """
+                        A. Abc der
+                        cde.
+                    """.trimIndent(),
+                        """
+                        B. Abc qwe
+                        x.
+                    """.trimIndent(),
+                        """
+                        C. Abc
+                        cde
+                        method.
+                    """.trimIndent(),
+                    ),
+                    listOf(0, 2),
+                    """
+                       A, C. Answers explanation
+                    """.trimIndent()
+                )
+            })
+    }
+
 
     private fun assertQuestion(
         questionToBeAsserted: Question,

@@ -146,6 +146,17 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
             return Result.failure(answerOptionsByLettersResult.exceptionOrNull()!!)
         }
         val answerOptionsByLetters = answerOptionsByLettersResult.getOrThrow()
+        if (!correctAnswerLetters.all { answerOptionsByLetters.containsKey(it) }) {
+            val missingAnswerLetters = correctAnswerLetters.filter { !answerOptionsByLetters.containsKey(it) }
+            return Result.failure(
+                QuestionsResolveException(
+                    QuestionsResolveException.Reason.MISSING_ANSWERS,
+                    fenceNode.getTextInNode(rawMarkdown).toString(),
+                    "Missing answers for correct answer letters: $missingAnswerLetters"
+                )
+            )
+        }
+
         val correctAnswerIndexes = answerOptionsByLetters.entries.fold(Pair(0, mutableListOf<Int>())) { acc, entry ->
             if (correctAnswerLetters.contains(entry.key)) {
                 acc.second.add(acc.first)
@@ -182,23 +193,43 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
     ): Result<Map<Char, String>> {
         val regex = """^([A-Z])(\.\s).*""".toRegex()
         val result = LinkedHashMap<Char, String>()
+        var activeLetter: Char? = null
+        val answerParts: MutableList<String> = mutableListOf()
+
         for (answerNode in astNodesOfAnswers) {
             val answerText = answerNode.getTextInNode(rawMarkdown).toString()
             val matcher = regex.find(answerText)
             if (matcher != null) {
-                val letter = matcher.groupValues[1].elementAt(0)
-                val previousValue = result.put(letter, answerText)
-                if (previousValue != null) {
-                    return Result.failure(
-                        QuestionsResolveException(
-                            QuestionsResolveException.Reason.DUPLICATED_ANSWERS,
-                            answerText,
-                            """Duplicated letter: $letter"""
+                if (activeLetter != null) {
+                    val previousValue = result.put(activeLetter, answerParts.joinToString(separator = "").trimEnd())
+                    if (previousValue != null) {
+                        return Result.failure(
+                            QuestionsResolveException(
+                                QuestionsResolveException.Reason.DUPLICATED_ANSWERS,
+                                answerText,
+                                """Duplicated letter: $activeLetter"""
+                            )
                         )
-                    )
+                    }
                 }
+                activeLetter = matcher.groupValues[1].elementAt(0)
+                answerParts.clear()
+            }
+            answerParts.add(answerText)
+        }
+        if (answerParts.isNotEmpty() && activeLetter != null) {
+            val previousValue = result.put(activeLetter, answerParts.joinToString(separator = "").trimEnd())
+            if (previousValue != null) {
+                return Result.failure(
+                    QuestionsResolveException(
+                        QuestionsResolveException.Reason.DUPLICATED_ANSWERS,
+                        answerParts.joinToString(separator = ""),
+                        """Duplicated letter: $activeLetter"""
+                    )
+                )
             }
         }
+
         return Result.success(result)
     }
 

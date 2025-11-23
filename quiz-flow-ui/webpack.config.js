@@ -44,7 +44,7 @@ module.exports = (env, argv) => {
       assetModuleFilename: isProduction
         ? "assets/[name].[contenthash][ext][query]"
         : "[name].[ext]",
-      publicPath: isProduction ? "/public/" : "",
+      publicPath: isProduction ? "/public/" : "/",
       clean: true,
     },
     resolve: {
@@ -123,7 +123,7 @@ module.exports = (env, argv) => {
     devServer: {
       static: path.join(__dirname, "public"),
       compress: true,
-      host: '0.0.0.0', 
+      host: "0.0.0.0",
       port: 3000,
       historyApiFallback: true,
       hot: true,

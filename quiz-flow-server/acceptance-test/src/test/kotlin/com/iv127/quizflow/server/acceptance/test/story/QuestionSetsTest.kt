@@ -282,7 +282,7 @@ class QuestionSetsTest {
                     listOf(
                         "A. 1 test1",
                         "B. 2 test 2",
-                        "C. 3 test 3 ",
+                        "C. 3 test 3",
                         "D. 4 test 4",
                         "E. 5 test 5"
                     ),
