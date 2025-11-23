@@ -4,6 +4,7 @@ import com.iv127.quizflow.core.ktor.Multipart
 import com.iv127.quizflow.core.model.question.InvalidQuestionSetVersionException
 import com.iv127.quizflow.core.model.question.QuestionSetNotFoundException
 import com.iv127.quizflow.core.model.question.QuestionSetVersion
+import com.iv127.quizflow.core.model.question.resolver.QuestionsResolveException
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolver
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolverFactory
 import com.iv127.quizflow.core.model.question.resolver.QuestionsResolverType
@@ -94,9 +95,16 @@ class QuestionsRoutesImpl(koinApp: KoinApplication) : QuestionsRoutes, ApiRoute 
             it is MultipartData.FilePart && it.name == "file"
         } as MultipartData.FilePart
 
-        val questions = questionResolver.resolve(filePart.content.decodeToString())
-            .asResult()
-            .getOrThrow()
+        val questions = try {
+            questionResolver.resolve(filePart.content.decodeToString())
+                .asResult()
+                .getOrThrow()
+        } catch (e: QuestionsResolveException) {
+            throw IllegalStateException(
+                "Can't resolve questions, reason: ${e.reason}, message: ${e.message}, source: ${e.rawSource}"
+            )
+        }
+
 
         val questionSetVersion: QuestionSetVersion = questionSetService.updateQuestionSet(questionSetId) {
             it.setQuestions(questions)
