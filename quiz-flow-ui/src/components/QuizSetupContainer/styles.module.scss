@@ -2,6 +2,7 @@
 
 .rootContainer {
   color: variables.$dark100;
+  position: relative;
 
   .titleContainer {
     margin: 10px 0 35px 0;
@@ -32,6 +33,10 @@
   .setupSection {
     color: black;
     margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
 
     .btn {
       padding: 0.95rem;

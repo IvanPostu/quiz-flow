@@ -30,7 +30,7 @@ export const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/quiz" element={<QuizLayout />}>
+        <Route path="/quiz/:quizId" element={<QuizLayout />}>
           <Route index element={auth(<QuizPage />)} />
         </Route>
         <Route path="/" element={<DefaultLayout />}>

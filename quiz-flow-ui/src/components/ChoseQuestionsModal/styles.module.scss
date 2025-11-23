@@ -1,0 +1,57 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+@use "src/styles/mixins";
+.rootContainer {
+  .title {
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .checkboxesContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+    @include mixins.uncopyable;
+  }
+
+  .selectRandomlySection {
+    width: 100%;
+
+    input[type="number"] {
+      padding: 0.4rem;
+      margin-left: 5px;
+      width: 80px;
+    }
+  }
+
+  .btn {
+    padding: 0.45rem;
+    background-color: variables.$blue300;
+    color: variables.$white100;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+
+    &:hover {
+      background-color: variables.$blue400;
+    }
+
+    &:active {
+      background-color: variables.$blue500;
+    }
+
+    &:disabled,
+    &.disabled {
+      background-color: variables.$blue200;
+      color: variables.$white200;
+      cursor: not-allowed;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  }
+}

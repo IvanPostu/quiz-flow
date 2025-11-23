@@ -17,6 +17,7 @@ import { useToast } from "../ToastNotification/ToastContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { createAccessToken } from "src/model/authentications/authentications";
 import { SignInResult } from "src/model/authentications/SignInResult";
+import { BlurOverlay } from "../BlurOverlay/BlurOverlay";
 
 interface SignInContainerState {
   isAccessTokenCreationOngoing: boolean;
@@ -130,11 +131,7 @@ function SignInCardContent(props: {
 
   return (
     <Fragment>
-      {isSignInOngoing && (
-        <div className={styles.overlay}>
-          <LoaderSpinner />
-        </div>
-      )}
+      {isSignInOngoing && <Loader />}
       <h2 className={styles.title}>Sign-In</h2>
       <div className={styles.element}>
         <label>
@@ -160,5 +157,13 @@ function SignInCardContent(props: {
         <button onClick={internalSubmitHandler}>Sign In</button>
       </div>
     </Fragment>
+  );
+}
+
+function Loader() {
+  return (
+    <BlurOverlay>
+      <LoaderSpinner />
+    </BlurOverlay>
   );
 }
