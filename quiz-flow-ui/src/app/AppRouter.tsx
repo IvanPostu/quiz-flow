@@ -21,6 +21,7 @@ import { useAppSelector } from "src/redux";
 import { JSX } from "react";
 import { SignOutPage } from "src/pages/SignOutPage";
 import { AuthenticationDetailsPage } from "src/pages/AuthenticationDetailsPage";
+import { QuizSetupPage } from "src/pages/QuizSetupPage";
 
 const SIGN_IN_PATH = "/sign-in";
 const SIGN_OUT_PATH = "/sign-out";
@@ -36,6 +37,7 @@ export const AppRouter = () => {
           <Route index element={auth(<MainPage />)} />
           <Route path="/about" element={auth(<AboutPage />)} />
           <Route path="/sandbox" element={auth(<SandboxPage />)} />
+          <Route path="/setup-quiz" element={auth(<QuizSetupPage />)} />
 
           <Route path={SIGN_IN_PATH} element={<SignInPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
@@ -58,6 +60,7 @@ function auth(element: JSX.Element): JSX.Element {
   }
 
   const pathname = window.location.pathname;
+  const search = window.location.search;
 
   if (
     pathname === SIGN_IN_PATH ||
@@ -67,7 +70,7 @@ function auth(element: JSX.Element): JSX.Element {
     return <Navigate to={SIGN_IN_PATH} />;
   }
   const params = new URLSearchParams({
-    pathname: pathname,
+    redirectTo: pathname + search,
   });
   return <Navigate to={`${SIGN_IN_PATH}?${params.toString()}`} />;
 }

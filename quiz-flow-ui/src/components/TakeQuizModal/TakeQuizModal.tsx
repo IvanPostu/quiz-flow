@@ -8,6 +8,7 @@ import { useAppSelector } from "src/redux";
 import { selectAccessToken } from "src/redux/authentication/authenticationSlice";
 import * as styles from "./styles.module.scss";
 import { ListOfItems } from "../ListOfItems/ListOfItems";
+import { useNavigate } from "react-router-dom";
 
 const DEFAULT_LIMIT_OF_QUESTION_SETS = 10;
 
@@ -33,6 +34,7 @@ export const TakeQuizModal = ({
   });
   const accessToken = useAppSelector(selectAccessToken) || "";
   const isMounted = useIsMounted();
+  const navigate = useNavigate();
   const internalFetchQuestionSets = (offset: number) => {
     fetchQuestionSets(
       accessToken,
@@ -95,7 +97,9 @@ export const TakeQuizModal = ({
         ) : (
           <QuestionSetsList
             questionSets={state.questionSets}
-            onItemClick={(id) => console.log(id)}
+            onItemClick={(id) => {
+              navigate(`/setup-quiz?questionSetId=${id}`);
+            }}
             onNextClick={() => fetchQuestionSetsList("next")}
             onPrevClick={() => fetchQuestionSetsList("prev")}
           />

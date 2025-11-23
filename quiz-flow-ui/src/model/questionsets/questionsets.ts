@@ -12,7 +12,7 @@ export async function list(
   const queryParameters = new URLSearchParams({
     offset: "" + offset,
     limit: "" + limit,
-    order: sortOrder,
+    sortOrder: sortOrder,
   });
 
   const res = await fetch(
@@ -30,6 +30,23 @@ export async function list(
   const data: QuestionSetResponse[] =
     (await res.json()) as QuestionSetResponse[];
   return data.map((value) => mapQuestionSetResponseToQuestionSet(value));
+}
+
+export async function getQuestionSet(
+  accessToken: string,
+  id: string
+): Promise<QuestionSet> {
+  const res = await fetch(`${API_BASE_URL}/api/question-sets/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + accessToken,
+    },
+  });
+
+  await handleAndThrowIfNeeded(res);
+  const data: QuestionSetResponse = (await res.json()) as QuestionSetResponse;
+  return mapQuestionSetResponseToQuestionSet(data);
 }
 
 function mapQuestionSetResponseToQuestionSet(

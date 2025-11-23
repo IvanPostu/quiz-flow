@@ -20,7 +20,7 @@ import { SignInResult } from "src/model/authentications/SignInResult";
 
 interface SignInContainerState {
   isAccessTokenCreationOngoing: boolean;
-  pathnameRedirectTo: string;
+  redirectTo: string;
   signInResult: SignInResult | null;
 }
 
@@ -40,17 +40,17 @@ export const SignInContainer = () => {
   }
   const [state, setState] = useState<SignInContainerState>(() => {
     const queryParams = new URLSearchParams(location.search);
-    let pathnameRedirectTo: string = "/";
+    let redirectTo: string = "/";
     if (
-      queryParams.get("pathname") !== null &&
-      queryParams.get("pathname") !== "/sign-out"
+      queryParams.get("redirectTo") !== null &&
+      queryParams.get("redirectTo") !== "/sign-out"
     ) {
-      pathnameRedirectTo = queryParams.get("pathname")!!;
+      redirectTo = queryParams.get("redirectTo")!!;
     }
 
     return {
       isAccessTokenCreationOngoing: true,
-      pathnameRedirectTo: pathnameRedirectTo,
+      redirectTo: redirectTo,
       signInResult: null,
     };
   });
@@ -62,7 +62,7 @@ export const SignInContainer = () => {
       if (!accessTokenWasCreatedBasedOnRefreshToken) {
         addToast("Authentication was successful", "success");
       }
-      navigate(state.pathnameRedirectTo);
+      navigate(state.redirectTo);
     }
   }, [isAuthenticated, state.signInResult]);
   useEffect(() => {

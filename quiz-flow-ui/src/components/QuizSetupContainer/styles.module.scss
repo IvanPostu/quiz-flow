@@ -1,0 +1,62 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+
+.rootContainer {
+  color: variables.$dark100;
+
+  .titleContainer {
+    margin: 10px 0 35px 0;
+  }
+
+  .keyValueContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+
+    .keyValueRow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .key {
+      font-weight: bold;
+      width: 250px;
+    }
+
+    .value {
+      flex: 1;
+    }
+  }
+
+  .setupSection {
+    color: black;
+    margin-bottom: 15px;
+
+    .btn {
+      padding: 0.95rem;
+      background-color: variables.$blue300;
+      color: variables.$white100;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    
+      &:hover {
+        background-color: variables.$blue400;
+      }
+    
+      &:active {
+        background-color: variables.$blue500;
+      }
+    
+      &:disabled,
+      &.disabled {
+        background-color: variables.$blue200;
+        color: variables.$white200;
+        cursor: not-allowed;
+        opacity: 0.6;
+        pointer-events: none;
+      }
+    }
+  }
+}
