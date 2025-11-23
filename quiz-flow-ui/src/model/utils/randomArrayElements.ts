@@ -6,7 +6,7 @@ export function randomArrayElements<T>(
   if (randomItemsCount >= array.length) {
     return [...array];
   }
-  if (randomItemsCount === 0) {
+  if (randomItemsCount <= 0) {
     return [];
   }
 

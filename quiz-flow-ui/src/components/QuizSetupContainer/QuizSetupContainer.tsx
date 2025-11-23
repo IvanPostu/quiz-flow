@@ -17,7 +17,7 @@ import {
 } from "src/model/questions/QuestionSetVersion";
 import { ListOfItems } from "../ListOfItems/ListOfItems";
 import { ChoseQuestionsModal } from "../ChoseQuestionsModal/ChoseQuestionsModal";
-import { randomArrayElements } from "src/utils/randomArrayElements";
+import { randomArrayElements } from "src/model/utils/randomArrayElements";
 import { BlurOverlay } from "../BlurOverlay/BlurOverlay";
 import { Quiz } from "src/model/quizzes/Quiz";
 
