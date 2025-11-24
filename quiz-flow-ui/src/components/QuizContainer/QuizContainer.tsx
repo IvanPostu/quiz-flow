@@ -4,7 +4,7 @@ import { Container } from "../Container/Container";
 import { CardContainer } from "../CardContainer/CardContainer";
 import { useParams } from "react-router-dom";
 import * as quizzes from "src/model/quizzes/quizzes";
-import { Quiz, QuizAnswer } from "src/model/quizzes/Quiz";
+import { Quiz, QuizAnswer, QuizQuestion } from "src/model/quizzes/Quiz";
 import { useAppSelector } from "src/redux";
 import { selectAccessToken } from "src/redux/authentication/authenticationSlice";
 import { useIsMounted } from "src/hooks/useIsMounted";
@@ -16,7 +16,6 @@ type QuizContainerStateType = {
   quizItems: Array<QuizItemType> | null;
   isQuizSubmitOngoing: boolean;
   isFinalized: boolean;
-  finalizedAnswers: QuizAnswer[];
 };
 
 const INITIAL_STATE: QuizContainerStateType = {
@@ -24,7 +23,6 @@ const INITIAL_STATE: QuizContainerStateType = {
   quizItems: null,
   isQuizSubmitOngoing: false,
   isFinalized: false,
-  finalizedAnswers: [],
 };
 
 interface QuizItemType {
@@ -32,6 +30,7 @@ interface QuizItemType {
   question: string;
   answerOptions: Array<string>;
   selectedAnswerIndexes: Set<number>;
+  correctAnswerIndexes: Set<number>;
 }
 
 export const QuizContainer = () => {
@@ -42,6 +41,32 @@ export const QuizContainer = () => {
     () => INITIAL_STATE
   );
 
+  function handleQuizResultIfFinalized(quizResult: Quiz) {
+    if (!quizResult.finalizedDate) {
+      return;
+    }
+    const questionsById = quizResult.questions.reduce((acc, value) => {
+      acc[value.questionId] = value;
+      return acc;
+    }, {} as Record<string, QuizQuestion>);
+
+    const quizItems: QuizItemType[] = quizResult.answers.map((value) => {
+      return {
+        question: questionsById[value.questionId].question,
+        questionId: value.questionId,
+        selectedAnswerIndexes: new Set([...value.chosenAnswerIndexes]),
+        answerOptions: questionsById[value.questionId].answerOptions,
+        correctAnswerIndexes: new Set(),
+      };
+    });
+    setState((prevState) => ({
+      ...prevState,
+      quizItems: quizItems,
+      currentQuizItemIndex: 0,
+      isFinalized: true,
+      finalizedAnswers: [],
+    }));
+  }
   useEffect(() => {
     fetchQuiz(accessToken, quizId || "", (quizResult) => {
       if (!isMounted()) {
@@ -56,6 +81,7 @@ export const QuizContainer = () => {
           questionId: value.questionId,
           answerOptions: value.answerOptions,
           selectedAnswerIndexes: new Set(),
+          correctAnswerIndexes: new Set(),
         };
       });
 
@@ -63,9 +89,8 @@ export const QuizContainer = () => {
         ...prevState,
         quizItems: quizItems,
         currentQuizItemIndex: 0,
-        finalizedAnswers: quizResult.answers,
-        isFinalized: Boolean(quizResult.finalizedDate),
       }));
+      handleQuizResultIfFinalized(quizResult);
     });
   }, []);
 
@@ -143,7 +168,7 @@ export const QuizContainer = () => {
         if (quizResult === "error") {
           return;
         }
-        console.log(quizResult);
+        handleQuizResultIfFinalized(quizResult);
       }
     );
   }

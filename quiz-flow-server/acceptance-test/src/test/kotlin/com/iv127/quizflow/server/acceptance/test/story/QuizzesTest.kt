@@ -385,12 +385,16 @@ class QuizzesTest {
                         QuizQuestionResponse(
                             questionsSetVersion.questions[0].id,
                             questionsSetVersion.questions[0].question,
-                            questionsSetVersion.questions[0].answerOptions
+                            questionsSetVersion.questions[0].answerOptions,
+                            questionsSetVersion.questions[0].correctAnswerIndexes,
+                            questionsSetVersion.questions[0].correctAnswerExplanation,
                         ),
                         QuizQuestionResponse(
                             questionsSetVersion.questions[1].id,
                             questionsSetVersion.questions[1].question,
-                            questionsSetVersion.questions[1].answerOptions
+                            questionsSetVersion.questions[1].answerOptions,
+                            questionsSetVersion.questions[1].correctAnswerIndexes,
+                            questionsSetVersion.questions[1].correctAnswerExplanation,
                         )
                     )
                 )
@@ -457,12 +461,16 @@ class QuizzesTest {
                         QuizQuestionResponse(
                             questionsSetVersion.questions[0].id,
                             questionsSetVersion.questions[0].question,
-                            questionsSetVersion.questions[0].answerOptions
+                            questionsSetVersion.questions[0].answerOptions,
+                            listOf(),
+                            "",
                         ),
                         QuizQuestionResponse(
                             questionsSetVersion.questions[1].id,
                             questionsSetVersion.questions[1].question,
-                            questionsSetVersion.questions[1].answerOptions
+                            questionsSetVersion.questions[1].answerOptions,
+                            listOf(),
+                            "",
                         )
                     )
                 )
@@ -493,12 +501,16 @@ class QuizzesTest {
                         QuizQuestionResponse(
                             questionsSetVersion.questions[0].id,
                             questionsSetVersion.questions[0].question,
-                            questionsSetVersion.questions[0].answerOptions
+                            questionsSetVersion.questions[0].answerOptions,
+                            listOf(),
+                            "",
                         ),
                         QuizQuestionResponse(
                             questionsSetVersion.questions[1].id,
                             questionsSetVersion.questions[1].question,
-                            questionsSetVersion.questions[1].answerOptions
+                            questionsSetVersion.questions[1].answerOptions,
+                            listOf(),
+                            "",
                         )
                     )
                 )
@@ -567,12 +579,16 @@ class QuizzesTest {
                         QuizQuestionResponse(
                             questionsSetVersion.questions[0].id,
                             questionsSetVersion.questions[0].question,
-                            questionsSetVersion.questions[0].answerOptions
+                            questionsSetVersion.questions[0].answerOptions,
+                            listOf(),
+                            "",
                         ),
                         QuizQuestionResponse(
                             questionsSetVersion.questions[1].id,
                             questionsSetVersion.questions[1].question,
-                            questionsSetVersion.questions[1].answerOptions
+                            questionsSetVersion.questions[1].answerOptions,
+                            listOf(),
+                            "",
                         )
                     )
                 )
@@ -603,12 +619,16 @@ class QuizzesTest {
                         QuizQuestionResponse(
                             questionsSetVersion.questions[0].id,
                             questionsSetVersion.questions[0].question,
-                            questionsSetVersion.questions[0].answerOptions
+                            questionsSetVersion.questions[0].answerOptions,
+                            questionsSetVersion.questions[0].correctAnswerIndexes,
+                            questionsSetVersion.questions[0].correctAnswerExplanation,
                         ),
                         QuizQuestionResponse(
                             questionsSetVersion.questions[1].id,
                             questionsSetVersion.questions[1].question,
-                            questionsSetVersion.questions[1].answerOptions
+                            questionsSetVersion.questions[1].answerOptions,
+                            questionsSetVersion.questions[1].correctAnswerIndexes,
+                            questionsSetVersion.questions[1].correctAnswerExplanation,
                         )
                     )
                 )
