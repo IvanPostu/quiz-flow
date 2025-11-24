@@ -7,5 +7,6 @@ class QuestionsResolveException(val reason: Reason, val rawSource: String, messa
         DUPLICATED_ANSWERS,
         REQUIRED_SECTIONS_MISSED,
         MISSING_ANSWERS,
+        REQUIRES_ALPHABET_SEQUENCE_FROM_A,
     }
 }

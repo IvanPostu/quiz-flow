@@ -251,6 +251,37 @@ class QuestionsResolverFactoryTest() {
             })
     }
 
+    @Test
+    fun testResolveQuestionWrappedInMarkdownWithUnorderedAnswers() {
+        val factory = QuestionsResolverFactory()
+        val questionsResolver = factory.create(QuestionsResolverType.QUESTION_WRAPPED_IN_MARKDOWN_CODE_SECTION)
+
+        val fileContent = """
+            ```
+            13. Example of question 
+            qwe ???
+
+            A. Abc der
+            cde.
+            C. Abc qwe
+            x.
+            B. Abc
+            cde
+            method.
+
+            A, C. Answers explanation
+            ```
+        """.trimIndent()
+
+        val result = questionsResolver.resolve(fileContent).asResult()
+        val exception: QuestionsResolveException = result.exceptionOrNull() as QuestionsResolveException
+
+        assertThat(exception.reason).isEqualTo(QuestionsResolveException.Reason.REQUIRES_ALPHABET_SEQUENCE_FROM_A)
+        assertThat(exception.rawSource).isEqualTo(fileContent)
+        assertThat(exception.message)
+            .isEqualTo("Characters must start with 'A' and be a consecutive alphabetical sequence, characters: [A, C, B]")
+    }
+
 
     private fun assertQuestion(
         questionToBeAsserted: Question,

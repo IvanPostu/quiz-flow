@@ -124,7 +124,7 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
                 )
             )
         }
-        val correctAnswerLetters: Set<Char> =
+        val correctAnswerLetters: LinkedHashSet<Char> =
             extractCorrectAnswerLetters(astNodesOfAnswersExplanation.first(), rawMarkdown)
         val correctAnswerExplanation = astNodesOfAnswersExplanation.fold(StringBuilder()) { acc, node ->
             acc.append(node.getTextInNode(rawMarkdown))
@@ -153,6 +153,15 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
                     QuestionsResolveException.Reason.MISSING_ANSWERS,
                     fenceNode.getTextInNode(rawMarkdown).toString(),
                     "Missing answers for correct answer letters: $missingAnswerLetters"
+                )
+            )
+        }
+        if (!setOfCharactersIsSequentialAndStartsFromA(answerOptionsByLetters.keys)) {
+            return Result.failure(
+                QuestionsResolveException(
+                    QuestionsResolveException.Reason.REQUIRES_ALPHABET_SEQUENCE_FROM_A,
+                    fenceNode.getTextInNode(rawMarkdown).toString(),
+                    "Characters must start with 'A' and be a consecutive alphabetical sequence, characters: " + answerOptionsByLetters.keys
                 )
             )
         }
@@ -185,6 +194,17 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
                 correctAnswerExplanation
             )
         )
+    }
+
+    private fun setOfCharactersIsSequentialAndStartsFromA(letters: Set<Char>): Boolean {
+        var currentLetter = 'A';
+        for (letter in letters) {
+            if (letter != currentLetter) {
+                return false
+            }
+            currentLetter++
+        }
+        return true
     }
 
     private fun extractAnswerOptionsByLetters(
@@ -233,7 +253,7 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
         return Result.success(result)
     }
 
-    private fun extractCorrectAnswerLetters(node: ASTNode, rawMarkdown: CharSequence): Set<Char> {
+    private fun extractCorrectAnswerLetters(node: ASTNode, rawMarkdown: CharSequence): LinkedHashSet<Char> {
         val regex = """([A-Z])(,?\.?\s*)""".toRegex()
         val resultSet = LinkedHashSet<Char>()
 
