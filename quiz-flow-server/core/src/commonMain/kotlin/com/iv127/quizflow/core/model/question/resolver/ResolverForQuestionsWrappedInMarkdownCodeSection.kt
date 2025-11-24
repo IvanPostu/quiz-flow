@@ -211,7 +211,7 @@ internal class ResolverForQuestionsWrappedInMarkdownCodeSection : QuestionsResol
         astNodesOfAnswers: List<ASTNode>,
         rawMarkdown: CharSequence
     ): Result<Map<Char, String>> {
-        val regex = """^([A-Z])(\.\s).*""".toRegex()
+        val regex = Regex("""^([A-Z])\.(?:\s|$)""")
         val result = LinkedHashMap<Char, String>()
         var activeLetter: Char? = null
         val answerParts: MutableList<String> = mutableListOf()

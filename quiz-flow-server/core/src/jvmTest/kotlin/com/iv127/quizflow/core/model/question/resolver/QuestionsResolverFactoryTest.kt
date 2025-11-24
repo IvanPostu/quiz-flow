@@ -192,7 +192,6 @@ class QuestionsResolverFactoryTest() {
         assertThat(exception.message).isEqualTo("Missing answers for correct answer letters: [A, B, C]")
     }
 
-
     @Test
     fun testResolveQuestionWrappedInMarkdownWithMultilineAnswers() {
         val factory = QuestionsResolverFactory()
@@ -251,6 +250,65 @@ class QuestionsResolverFactoryTest() {
             })
     }
 
+
+    @Test
+    fun testResolveQuestionWrappedInMarkdownWithNewlineAnswers() {
+        val fileContent = """
+            ```
+            13. Example of question 
+            qwe ???
+
+            A.
+            Abc der
+            cde.
+            B.
+            Abc qwe
+            x.
+            C. Abc
+            cde
+            method.
+
+            A, C. Answers explanation
+            ```
+        """.trimIndent()
+
+
+        val questions = resolve(fileContent)
+
+        assertThat(questions)
+            .hasSize(1)
+            .anySatisfy({ question ->
+                assertQuestion(
+                    question,
+                    """
+                        13. Example of question 
+                        qwe ???
+                    """.trimIndent(),
+                    listOf(
+                        """
+                        A.
+                        Abc der
+                        cde.
+                    """.trimIndent(),
+                        """
+                        B.
+                        Abc qwe
+                        x.
+                    """.trimIndent(),
+                        """
+                        C. Abc
+                        cde
+                        method.
+                    """.trimIndent(),
+                    ),
+                    listOf(0, 2),
+                    """
+                       A, C. Answers explanation
+                    """.trimIndent()
+                )
+            })
+    }
+
     @Test
     fun testResolveQuestionWrappedInMarkdownWithUnorderedAnswers() {
         val factory = QuestionsResolverFactory()
@@ -280,6 +338,20 @@ class QuestionsResolverFactoryTest() {
         assertThat(exception.rawSource).isEqualTo(fileContent)
         assertThat(exception.message)
             .isEqualTo("Characters must start with 'A' and be a consecutive alphabetical sequence, characters: [A, C, B]")
+    }
+
+    private fun resolve(content: String): List<Question> {
+        val factory = QuestionsResolverFactory()
+        val questionsResolver = factory.create(QuestionsResolverType.QUESTION_WRAPPED_IN_MARKDOWN_CODE_SECTION)
+        return try {
+            questionsResolver.resolve(content)
+                .asResult()
+                .getOrThrow()
+        } catch (e: QuestionsResolveException) {
+            throw IllegalStateException(
+                "Can't resolve questions, reason: ${e.reason}, message: ${e.message}, source: ${e.rawSource}"
+            )
+        }
     }
 
 
