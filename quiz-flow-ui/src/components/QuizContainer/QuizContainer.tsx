@@ -4,12 +4,13 @@ import { Container } from "../Container/Container";
 import { CardContainer } from "../CardContainer/CardContainer";
 import { useParams } from "react-router-dom";
 import * as quizzes from "src/model/quizzes/quizzes";
-import { Quiz, QuizAnswer, QuizQuestion } from "src/model/quizzes/Quiz";
+import { Quiz, QuizQuestion } from "src/model/quizzes/Quiz";
 import { useAppSelector } from "src/redux";
 import { selectAccessToken } from "src/redux/authentication/authenticationSlice";
 import { useIsMounted } from "src/hooks/useIsMounted";
 import { LoaderSpinner } from "../LoaderSpinner/LoaderSpinner";
 import { BlurOverlay } from "../BlurOverlay/BlurOverlay";
+import globals from "src/styles/globalVariables";
 
 type QuizContainerStateType = {
   currentQuizItemIndex: number;
@@ -31,6 +32,7 @@ interface QuizItemType {
   answerOptions: Array<string>;
   selectedAnswerIndexes: Set<number>;
   correctAnswerIndexes: Set<number>;
+  correctAnswerExplanation: string;
 }
 
 export const QuizContainer = () => {
@@ -51,12 +53,14 @@ export const QuizContainer = () => {
     }, {} as Record<string, QuizQuestion>);
 
     const quizItems: QuizItemType[] = quizResult.answers.map((value) => {
+      const question: QuizQuestion = questionsById[value.questionId];
       return {
-        question: questionsById[value.questionId].question,
+        question: question.question,
         questionId: value.questionId,
         selectedAnswerIndexes: new Set([...value.chosenAnswerIndexes]),
-        answerOptions: questionsById[value.questionId].answerOptions,
-        correctAnswerIndexes: new Set(),
+        answerOptions: question.answerOptions,
+        correctAnswerIndexes: new Set([...question.correctAnswerIndexes]),
+        correctAnswerExplanation: question.correctAnswerExplanation,
       };
     });
     setState((prevState) => ({
@@ -82,6 +86,7 @@ export const QuizContainer = () => {
           answerOptions: value.answerOptions,
           selectedAnswerIndexes: new Set(),
           correctAnswerIndexes: new Set(),
+          correctAnswerExplanation: "",
         };
       });
 
@@ -202,18 +207,35 @@ export const QuizContainer = () => {
         </div>
         <div className={styles.quizBody}>
           <ul>
-            {quizItem.answerOptions.map((value, index) => (
-              <li key={value}>
-                <label className={styles.answerOptionLabel}>
-                  <input
-                    type="checkbox"
-                    checked={quizItem.selectedAnswerIndexes.has(index)}
-                    onChange={() => selectAnswer(index)}
-                  />
-                  <span>{value}</span>
-                </label>
-              </li>
-            ))}
+            {quizItem.answerOptions.map((value, index) => {
+              const isChecked = quizItem.selectedAnswerIndexes.has(index);
+
+              let borderStyle = "";
+              if (state.isFinalized) {
+                const isRight = quizItem.correctAnswerIndexes.has(index);
+                if (!isRight && isChecked) {
+                  borderStyle = `1px solid ${globals.red300}`;
+                } else if (isRight) {
+                  borderStyle = `1px solid ${globals.green300}`;
+                }
+              }
+
+              return (
+                <li key={value}>
+                  <label
+                    style={{ border: borderStyle }}
+                    className={styles.answerOptionLabel}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => selectAnswer(index)}
+                    />
+                    <span>{value}</span>
+                  </label>
+                </li>
+              );
+            })}
           </ul>
         </div>
         <button

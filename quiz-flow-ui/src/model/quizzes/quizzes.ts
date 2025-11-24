@@ -65,6 +65,8 @@ function mapQuizResponseToQuiz(response: QuizResponse): Quiz {
     question: value.question,
     questionId: value.question_id,
     answerOptions: value.answer_options,
+    correctAnswerExplanation: value.correct_answer_explanation,
+    correctAnswerIndexes: value.correct_answer_indexes,
   }));
   const answers: QuizAnswer[] = response.answers.map((value) => ({
     questionId: value.question_id,
@@ -84,38 +86,40 @@ function mapQuizResponseToQuiz(response: QuizResponse): Quiz {
 }
 
 export interface QuizUpdateRequest {
-  finalize: boolean;
-  answers: QuizAnswerRequest[];
+  readonly finalize: boolean;
+  readonly answers: QuizAnswerRequest[];
 }
 
 export interface QuizAnswerRequest {
-  question_id: string;
-  chosen_answer_indexes: number[];
+  readonly question_id: string;
+  readonly chosen_answer_indexes: number[];
 }
 
 interface QuizCreateRequest {
-  question_set_id: string;
-  question_set_version: number;
-  question_ids: string[];
+  readonly question_set_id: string;
+  readonly question_set_version: number;
+  readonly question_ids: string[];
 }
 
 interface QuizResponse {
-  id: string;
-  question_set_id: string;
-  question_set_version: number;
-  created_date: string;
-  finalized_date?: string;
-  questions: QuizQuestionResponse[];
-  answers: QuizAnswerResponse[];
+  readonly id: string;
+  readonly question_set_id: string;
+  readonly question_set_version: number;
+  readonly created_date: string;
+  readonly finalized_date?: string;
+  readonly questions: QuizQuestionResponse[];
+  readonly answers: QuizAnswerResponse[];
 }
 
 interface QuizQuestionResponse {
-  question_id: string;
-  question: string;
-  answer_options: string[];
+  readonly question_id: string;
+  readonly question: string;
+  readonly answer_options: string[];
+  readonly correct_answer_indexes: number[];
+  readonly correct_answer_explanation: string;
 }
 
 interface QuizAnswerResponse {
-  question_id: string;
-  chosen_answer_indexes: number[];
+  readonly question_id: string;
+  readonly chosen_answer_indexes: number[];
 }
