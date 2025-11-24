@@ -9,10 +9,12 @@ import { useAppSelector } from "src/redux";
 import { selectAccessToken } from "src/redux/authentication/authenticationSlice";
 import { useIsMounted } from "src/hooks/useIsMounted";
 import { LoaderSpinner } from "../LoaderSpinner/LoaderSpinner";
+import { BlurOverlay } from "../BlurOverlay/BlurOverlay";
 
 type QuizContainerStateType = {
   currentQuizItemIndex: number;
   quizItems: Array<QuizItemType> | null;
+  isQuizSubmitOngoing: boolean;
 };
 
 interface QuizItemType {
@@ -22,49 +24,6 @@ interface QuizItemType {
   selectedAnswerIndexes: Set<number>;
 }
 
-const QUIZZES = [
-  {
-    question:
-      "test1\ntest2\ntest3\ntest4\ntest5\ntest6\ntest7\ntest8\n1 Lorem ipsum dolor sit amet consectetur, adipisicing elit. Esse dolore sed magni vero, neque vitae repudiandae laboriosam qui ullam laborum iure atque quasi consequatur debitis modi! Quae nam ipsa magni eaque eius maiores laudantium mollitia ad delectus qui. Odit neque labore reprehenderit voluptatum ullam harum magni quisquam sequi fugit perferendis, odio quae aut at atque debitis dolorum reiciendis laboriosam delectus deserunt voluptate eligendi molestiae ipsa dolores totam. Maxime consequatur soluta esse ipsam illum alias enim fuga quae? Consectetur veritatis a delectus illum, modi ipsa necessitatibus. Expedita assumenda eos alias optio harum quasi recusandae accusamus quaerat modi laudantium iure, nobis fugiat! Aut veniam, assumenda nam eligendi reiciendis sed nesciunt laborum nobis tenetur. Non praesentium maxime dolore illum a et voluptate quasi amet nam eligendi id rem, ratione minima adipisci commodi eveniet facilis eaque doloremque ad nostrum. Cupiditate labore ducimus distinctio delectus quod tempora, debitis dolore totam? Nemo neque optio dicta rerum ad totam officiis dignissimos? Odio, nobis quibusdam! Aperiam nemo totam esse quisquam veniam labore officia iusto, ipsa ullam officiis quia ducimus commodi maxime sunt veritatis in natus tempora rem, inventore impedit facere? Fugit id distinctio labore reprehenderit velit? Quidem a laboriosam rerum quasi ullam harum, commodi optio possimus veritatis sequi!",
-    answers: [
-      "1Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.1Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.1Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.1Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.1Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.1Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-      "2Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-      "test1\ntest2\ntest3\ntest4\ntest5\ntest6\ntest7\ntest8\n",
-      "test 123",
-    ],
-  },
-  {
-    question:
-      "2 Lorem ipsum dolor sit amet consectetur, adipisicing elit. Esse dolore sed magni vero, neque vitae repudiandae laboriosam qui ullam laborum iure atque quasi consequatur debitis modi! Quae nam ipsa magni eaque eius maiores laudantium mollitia ad delectus qui. Odit neque labore reprehenderit voluptatum ullam harum magni quisquam sequi fugit perferendis, odio quae aut at atque debitis dolorum reiciendis laboriosam delectus deserunt voluptate eligendi molestiae ipsa dolores totam. Maxime consequatur soluta esse ipsam illum alias enim fuga quae? Consectetur veritatis a delectus illum, modi ipsa necessitatibus. Expedita assumenda eos alias optio harum quasi recusandae accusamus quaerat modi laudantium iure, nobis fugiat! Aut veniam, assumenda nam eligendi reiciendis sed nesciunt laborum nobis tenetur. Non praesentium maxime dolore illum a et voluptate quasi amet nam eligendi id rem, ratione minima adipisci commodi eveniet facilis eaque doloremque ad nostrum. Cupiditate labore ducimus distinctio delectus quod tempora, debitis dolore totam? Nemo neque optio dicta rerum ad totam officiis dignissimos? Odio, nobis quibusdam! Aperiam nemo totam esse quisquam veniam labore officia iusto, ipsa ullam officiis quia ducimus commodi maxime sunt veritatis in natus tempora rem, inventore impedit facere? Fugit id distinctio labore reprehenderit velit? Quidem a laboriosam rerum quasi ullam harum, commodi optio possimus veritatis sequi!",
-    answers: [
-      "1Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-      "2Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-      "3Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-      "4Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-    ],
-  },
-  {
-    question:
-      "3 Lorem ipsum dolor sit amet consectetur, adipisicing elit. Esse dolore sed magni vero, neque vitae repudiandae laboriosam qui ullam laborum iure atque quasi consequatur debitis modi! Quae nam ipsa magni eaque eius maiores laudantium mollitia ad delectus qui. Odit neque labore reprehenderit voluptatum ullam harum magni quisquam sequi fugit perferendis, odio quae aut at atque debitis dolorum reiciendis laboriosam delectus deserunt voluptate eligendi molestiae ipsa dolores totam. Maxime consequatur soluta esse ipsam illum alias enim fuga quae? Consectetur veritatis a delectus illum, modi ipsa necessitatibus. Expedita assumenda eos alias optio harum quasi recusandae accusamus quaerat modi laudantium iure, nobis fugiat! Aut veniam, assumenda nam eligendi reiciendis sed nesciunt laborum nobis tenetur. Non praesentium maxime dolore illum a et voluptate quasi amet nam eligendi id rem, ratione minima adipisci commodi eveniet facilis eaque doloremque ad nostrum. Cupiditate labore ducimus distinctio delectus quod tempora, debitis dolore totam? Nemo neque optio dicta rerum ad totam officiis dignissimos? Odio, nobis quibusdam! Aperiam nemo totam esse quisquam veniam labore officia iusto, ipsa ullam officiis quia ducimus commodi maxime sunt veritatis in natus tempora rem, inventore impedit facere? Fugit id distinctio labore reprehenderit velit? Quidem a laboriosam rerum quasi ullam harum, commodi optio possimus veritatis sequi!",
-    answers: [
-      "1Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-      "2Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-      "3Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-      "4Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-    ],
-  },
-  {
-    question:
-      "4 Lorem ipsum dolor sit amet consectetur, adipisicing elit. Esse dolore sed magni vero, neque vitae repudiandae laboriosam qui ullam laborum iure atque quasi consequatur debitis modi! Quae nam ipsa magni eaque eius maiores laudantium mollitia ad delectus qui. Odit neque labore reprehenderit voluptatum ullam harum magni quisquam sequi fugit perferendis, odio quae aut at atque debitis dolorum reiciendis laboriosam delectus deserunt voluptate eligendi molestiae ipsa dolores totam. Maxime consequatur soluta esse ipsam illum alias enim fuga quae? Consectetur veritatis a delectus illum, modi ipsa necessitatibus. Expedita assumenda eos alias optio harum quasi recusandae accusamus quaerat modi laudantium iure, nobis fugiat! Aut veniam, assumenda nam eligendi reiciendis sed nesciunt laborum nobis tenetur. Non praesentium maxime dolore illum a et voluptate quasi amet nam eligendi id rem, ratione minima adipisci commodi eveniet facilis eaque doloremque ad nostrum. Cupiditate labore ducimus distinctio delectus quod tempora, debitis dolore totam? Nemo neque optio dicta rerum ad totam officiis dignissimos? Odio, nobis quibusdam! Aperiam nemo totam esse quisquam veniam labore officia iusto, ipsa ullam officiis quia ducimus commodi maxime sunt veritatis in natus tempora rem, inventore impedit facere? Fugit id distinctio labore reprehenderit velit? Quidem a laboriosam rerum quasi ullam harum, commodi optio possimus veritatis sequi!",
-    answers: [
-      "1Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-      "2Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-      "3Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-      "4Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate dolorum nesciunt, mollitia adipisci molestias dolore officiis, officia ea aliquam provident, earum maiores.",
-    ],
-  },
-];
-
 export const QuizContainer = () => {
   const { quizId } = useParams();
   const accessToken = useAppSelector(selectAccessToken) || "";
@@ -72,12 +31,8 @@ export const QuizContainer = () => {
   const [state, setState] = useState<QuizContainerStateType>(() => {
     return {
       currentQuizItemIndex: 0,
-      quizItems: QUIZZES.map((quiz) => ({
-        questionId: quiz.question,
-        question: quiz.question,
-        answerOptions: quiz.answers,
-        selectedAnswerIndexes: new Set(),
-      })),
+      quizItems: null,
+      isQuizSubmitOngoing: false,
     };
   });
 
@@ -103,7 +58,6 @@ export const QuizContainer = () => {
         quizItems: quizItems,
         currentQuizItemIndex: 0,
       }));
-      console.log(quizItems);
     });
   }, []);
 
@@ -150,15 +104,52 @@ export const QuizContainer = () => {
     );
   }
 
+  function submitQuiz() {
+    const answers: quizzes.QuizAnswerRequest[] = (state.quizItems || []).map(
+      (value) => {
+        return {
+          question_id: value.questionId,
+          chosen_answer_indexes: Array.from(value.selectedAnswerIndexes),
+        };
+      }
+    );
+    setState((prevState) => ({
+      ...prevState,
+      isQuizSubmitOngoing: true,
+    }));
+    submitQuizToTheServer(
+      accessToken,
+      quizId || "",
+      {
+        finalize: true,
+        answers: answers,
+      },
+      (quizResult) => {
+        if (!isMounted()) {
+          return;
+        }
+        setState((prevState) => ({
+          ...prevState,
+          isQuizSubmitOngoing: false,
+        }));
+        if (quizResult === "error") {
+          return;
+        }
+        console.log(quizResult);
+      }
+    );
+  }
+
   const quizItem = state.quizItems[state.currentQuizItemIndex];
   const quizItemsLength = state.quizItems.length;
   return (
     <Container>
       <CardContainer className={styles.quizRoot}>
+        {state.isQuizSubmitOngoing && <SubmitQuizLoader />}
         <div className={styles.quizHeader}>
           <div className={styles.questionsNavItems}>
             {state.quizItems.map((item, index) => {
-              let className = "";
+              let className = `${styles.questionNavItem} `;
               if (index === state.currentQuizItemIndex) {
                 className += " " + styles.active;
               }
@@ -166,11 +157,11 @@ export const QuizContainer = () => {
                 className += " " + styles.answered;
               }
               return (
-                <span
+                <div
                   className={className}
                   onClick={() => goToTheNextQuizItem(index)}
                   key={item.question}
-                ></span>
+                ></div>
               );
             })}
           </div>
@@ -198,7 +189,9 @@ export const QuizContainer = () => {
             if (nextItemIndex < quizItemsLength) {
               goToTheNextQuizItem(nextItemIndex);
             } else {
-              confirm("Do you want to submit the current quiz?");
+              if (confirm("Do you want to submit the current quiz?")) {
+                submitQuiz();
+              }
             }
           }}
         >
@@ -209,6 +202,14 @@ export const QuizContainer = () => {
   );
 };
 
+function SubmitQuizLoader() {
+  return (
+    <BlurOverlay>
+      <LoaderSpinner />
+    </BlurOverlay>
+  );
+}
+
 async function fetchQuiz(
   accessToken: string,
   quizId: string,
@@ -216,6 +217,25 @@ async function fetchQuiz(
 ) {
   try {
     const result = await quizzes.getQuiz(accessToken, quizId);
+    onComplete(result);
+  } catch (e) {
+    console.error(e);
+    onComplete("error");
+  }
+}
+
+async function submitQuizToTheServer(
+  accessToken: string,
+  quizId: string,
+  quizUpdateRequest: quizzes.QuizUpdateRequest,
+  onComplete: (quiz: Quiz | "error") => void
+) {
+  try {
+    const result = await quizzes.updateQuiz(
+      accessToken,
+      quizId,
+      quizUpdateRequest
+    );
     onComplete(result);
   } catch (e) {
     console.error(e);

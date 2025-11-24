@@ -63,7 +63,7 @@ class OCPQuizTest {
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent.encodeToByteArray(), null)),
             questionSet.id
         )
-        assertThat(questionsSetVersion.questions).hasSize(366)
+        assertThat(questionsSetVersion.questions).hasSize(365)
     }
 
 }

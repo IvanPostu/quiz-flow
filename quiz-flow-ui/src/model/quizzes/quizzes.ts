@@ -84,12 +84,12 @@ function mapQuizResponseToQuiz(response: QuizResponse): Quiz {
   };
 }
 
-interface QuizUpdateRequest {
+export interface QuizUpdateRequest {
   finalize: boolean;
   answers: QuizAnswerRequest[];
 }
 
-interface QuizAnswerRequest {
+export interface QuizAnswerRequest {
   question_id: string;
   chosen_answer_indexes: number[];
 }

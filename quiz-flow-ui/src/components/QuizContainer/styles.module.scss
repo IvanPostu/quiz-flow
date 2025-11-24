@@ -3,6 +3,7 @@
 
 .quizRoot {
   margin: 30px 0;
+  position: relative;
 
   .quizHeader {
     padding: 1rem 1rem 0rem 1rem;
@@ -10,15 +11,16 @@
     .questionsNavItems {
       margin: 15px 0;
       display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      align-items: center;
 
-      span {
-        width: 20px;
-        height: 20px;
+      .questionNavItem {
+        width: 15px;
+        height: 15px;
         background-color: variables.$gray100;
-        display: inline-block;
         border-radius: 4px;
         cursor: pointer;
-        margin-right: 7px;
         border: 1px solid variables.$blue300;
         transition: background-color 0.1s ease, transform 0.1s ease;
 
@@ -66,6 +68,7 @@
   .quizQuestion {
     margin: 0;
     white-space: pre-line;
+    font-size: 1.15rem;
   }
 
   button {
@@ -85,6 +88,15 @@
 
     &:active {
       background-color: variables.$blue500;
+    }
+
+    &:disabled,
+    &.disabled {
+      background-color: variables.$blue200;
+      color: variables.$white200;
+      cursor: not-allowed;
+      opacity: 0.6;
+      pointer-events: none;
     }
   }
 }
