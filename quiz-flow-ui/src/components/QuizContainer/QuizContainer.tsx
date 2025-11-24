@@ -11,6 +11,10 @@ import { useIsMounted } from "src/hooks/useIsMounted";
 import { LoaderSpinner } from "../LoaderSpinner/LoaderSpinner";
 import { BlurOverlay } from "../BlurOverlay/BlurOverlay";
 import globals from "src/styles/globalVariables";
+import { areSetsEqual } from "src/model/utils/areSetsEqual";
+
+const RED_BORDER = `2px solid ${globals.red300}`;
+const GREEN_BORDER = `2px solid ${globals.green300}`;
 
 type QuizContainerStateType = {
   currentQuizItemIndex: number;
@@ -194,11 +198,26 @@ export const QuizContainer = () => {
               if (item.selectedAnswerIndexes.size > 0) {
                 className += " " + styles.answered;
               }
+
+              let borderStyle = "";
+              if (state.isFinalized) {
+                const isRight = areSetsEqual(
+                  item.selectedAnswerIndexes,
+                  item.correctAnswerIndexes
+                );
+                if (isRight) {
+                  borderStyle = GREEN_BORDER;
+                } else {
+                  borderStyle = RED_BORDER;
+                }
+              }
+
               return (
                 <div
+                  style={{ border: borderStyle }}
                   className={className}
                   onClick={() => goToTheNextQuizItem(index)}
-                  key={item.question}
+                  key={item.questionId}
                 ></div>
               );
             })}
@@ -214,9 +233,9 @@ export const QuizContainer = () => {
               if (state.isFinalized) {
                 const isRight = quizItem.correctAnswerIndexes.has(index);
                 if (!isRight && isChecked) {
-                  borderStyle = `1px solid ${globals.red300}`;
+                  borderStyle = RED_BORDER;
                 } else if (isRight) {
-                  borderStyle = `1px solid ${globals.green300}`;
+                  borderStyle = GREEN_BORDER;
                 }
               }
 
