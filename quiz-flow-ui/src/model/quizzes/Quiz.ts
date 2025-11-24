@@ -4,7 +4,6 @@ export interface Quiz {
   questionSetVersion: number;
   createdDate: Date;
   finalizedDate?: Date;
-  isFinalized: boolean;
   questions: QuizQuestion[];
   answers: QuizAnswer[];
 }

@@ -190,7 +190,7 @@ class QuizzesTest {
                 assertThat(result.quizCreatedDate).isEqualTo(finalizedQuiz.createdDate)
                 assertThat(result.quizFinalizedDate).isEqualTo(finalizedQuiz.finalizedDate)
                 assertThat(result.questionsCount).isEqualTo(3)
-                assertThat(result.answersCount).isEqualTo(2)
+                assertThat(result.answersCount).isEqualTo(3)
                 assertThat(result.correctAnswersCount).isEqualTo(1)
             })
     }
@@ -378,7 +378,6 @@ class QuizzesTest {
         ).allSatisfy({
             assertThat(it.questionSetId).isEqualTo(questionSet.id)
             assertThat(it.questionSetVersion).isEqualTo(questionsSetVersion.version)
-            assertThat(it.isFinalized).isTrue()
             assertThat(it.questions)
                 .hasSize(2)
                 .isEqualTo(
@@ -445,8 +444,12 @@ class QuizzesTest {
         ).allSatisfy({
             assertThat(it.questionSetId).isEqualTo(questionSet.id)
             assertThat(it.questionSetVersion).isEqualTo(questionsSetVersion.version)
-            assertThat(it.answers).isEmpty()
-            assertThat(it.isFinalized).isFalse()
+            assertThat(it.answers)
+                .hasSize(2)
+                .allSatisfy({
+                    assertThat(it.questionId).isNotBlank()
+                    assertThat(it.chosenAnswerIndexes).isEmpty()
+                })
             assertThat(it.questions)
                 .hasSize(2)
                 .isEqualTo(
@@ -483,7 +486,6 @@ class QuizzesTest {
         ).allSatisfy({
             assertThat(it.questionSetId).isEqualTo(questionSet.id)
             assertThat(it.questionSetVersion).isEqualTo(questionsSetVersion.version)
-            assertThat(it.isFinalized).isFalse()
             assertThat(it.questions)
                 .hasSize(2)
                 .isEqualTo(
@@ -507,6 +509,116 @@ class QuizzesTest {
                         QuizAnswerResponse(
                             questionsSetVersion.questions[0].id,
                             listOf(0)
+                        ),
+                        QuizAnswerResponse(
+                            questionsSetVersion.questions[1].id,
+                            listOf(1)
+                        ),
+                    )
+                )
+        })
+    }
+
+
+    @Test
+    fun testFinalizedQuizAnswersSizeIsEqualToQuestionsSize() = runTest {
+        val questionSet =
+            questionSetsRoutes.create(
+                auth.accessToken,
+                QuestionSetCreateRequest("Example of questionnaire", "Example of description")
+            )
+
+        val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+            listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
+            questionSet.id
+        )
+        assertThat(questionsSetVersion.questions).hasSize(3)
+
+        val createdQuiz = quizzesRoutes.create(
+            auth.accessToken,
+            QuizCreateRequest(
+                questionSet.id, questionsSetVersion.version,
+                listOf(
+                    questionsSetVersion.questions[0].id,
+                    questionsSetVersion.questions[1].id,
+                )
+            )
+        )
+
+        assertThat(
+            listOf(
+                createdQuiz,
+                quizzesRoutes.get(auth.accessToken, createdQuiz.id)
+            )
+        ).allSatisfy({
+            assertThat(it.questionSetId).isEqualTo(questionSet.id)
+            assertThat(it.questionSetVersion).isEqualTo(questionsSetVersion.version)
+            assertThat(it.finalizedDate).isNull()
+            assertThat(it.answers)
+                .hasSize(2)
+                .allSatisfy({
+                    assertThat(it.questionId).isNotBlank()
+                    assertThat(it.chosenAnswerIndexes).isEmpty()
+                })
+            assertThat(it.questions)
+                .hasSize(2)
+                .isEqualTo(
+                    listOf<QuizQuestionResponse>(
+                        QuizQuestionResponse(
+                            questionsSetVersion.questions[0].id,
+                            questionsSetVersion.questions[0].question,
+                            questionsSetVersion.questions[0].answerOptions
+                        ),
+                        QuizQuestionResponse(
+                            questionsSetVersion.questions[1].id,
+                            questionsSetVersion.questions[1].question,
+                            questionsSetVersion.questions[1].answerOptions
+                        )
+                    )
+                )
+        })
+
+        val finalizedQuiz = quizzesRoutes.update(
+            auth.accessToken, createdQuiz.id, QuizUpdateRequest(
+                true,
+                listOf(
+                    QuizAnswerRequest(questionsSetVersion.questions[1].id, listOf(1))
+                )
+            )
+        )
+
+        assertThat(
+            listOf(
+                finalizedQuiz,
+                quizzesRoutes.get(auth.accessToken, finalizedQuiz.id)
+            )
+        ).allSatisfy({
+            assertThat(it.questionSetId).isEqualTo(questionSet.id)
+            assertThat(it.questionSetVersion).isEqualTo(questionsSetVersion.version)
+            assertThat(it.finalizedDate).isNotNull()
+            assertThat(it.questions)
+                .hasSize(2)
+                .isEqualTo(
+                    listOf<QuizQuestionResponse>(
+                        QuizQuestionResponse(
+                            questionsSetVersion.questions[0].id,
+                            questionsSetVersion.questions[0].question,
+                            questionsSetVersion.questions[0].answerOptions
+                        ),
+                        QuizQuestionResponse(
+                            questionsSetVersion.questions[1].id,
+                            questionsSetVersion.questions[1].question,
+                            questionsSetVersion.questions[1].answerOptions
+                        )
+                    )
+                )
+            assertThat(it.answers)
+                .hasSize(2)
+                .isEqualTo(
+                    listOf<QuizAnswerResponse>(
+                        QuizAnswerResponse(
+                            questionsSetVersion.questions[0].id,
+                            emptyList()
                         ),
                         QuizAnswerResponse(
                             questionsSetVersion.questions[1].id,

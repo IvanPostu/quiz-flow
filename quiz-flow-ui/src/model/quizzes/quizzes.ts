@@ -78,7 +78,6 @@ function mapQuizResponseToQuiz(response: QuizResponse): Quiz {
     finalizedDate: response.finalized_date
       ? parsePreciseISO(response.finalized_date)
       : undefined,
-    isFinalized: response.is_finalized,
     questions: questions,
     answers: answers,
   };
@@ -106,7 +105,6 @@ interface QuizResponse {
   question_set_version: number;
   created_date: string;
   finalized_date?: string;
-  is_finalized: boolean;
   questions: QuizQuestionResponse[];
   answers: QuizAnswerResponse[];
 }

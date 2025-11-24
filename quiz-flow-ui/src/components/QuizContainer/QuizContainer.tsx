@@ -4,7 +4,7 @@ import { Container } from "../Container/Container";
 import { CardContainer } from "../CardContainer/CardContainer";
 import { useParams } from "react-router-dom";
 import * as quizzes from "src/model/quizzes/quizzes";
-import { Quiz } from "src/model/quizzes/Quiz";
+import { Quiz, QuizAnswer } from "src/model/quizzes/Quiz";
 import { useAppSelector } from "src/redux";
 import { selectAccessToken } from "src/redux/authentication/authenticationSlice";
 import { useIsMounted } from "src/hooks/useIsMounted";
@@ -15,6 +15,16 @@ type QuizContainerStateType = {
   currentQuizItemIndex: number;
   quizItems: Array<QuizItemType> | null;
   isQuizSubmitOngoing: boolean;
+  isFinalized: boolean;
+  finalizedAnswers: QuizAnswer[];
+};
+
+const INITIAL_STATE: QuizContainerStateType = {
+  currentQuizItemIndex: 0,
+  quizItems: null,
+  isQuizSubmitOngoing: false,
+  isFinalized: false,
+  finalizedAnswers: [],
 };
 
 interface QuizItemType {
@@ -28,13 +38,9 @@ export const QuizContainer = () => {
   const { quizId } = useParams();
   const accessToken = useAppSelector(selectAccessToken) || "";
   const isMounted = useIsMounted();
-  const [state, setState] = useState<QuizContainerStateType>(() => {
-    return {
-      currentQuizItemIndex: 0,
-      quizItems: null,
-      isQuizSubmitOngoing: false,
-    };
-  });
+  const [state, setState] = useState<QuizContainerStateType>(
+    () => INITIAL_STATE
+  );
 
   useEffect(() => {
     fetchQuiz(accessToken, quizId || "", (quizResult) => {
@@ -57,6 +63,8 @@ export const QuizContainer = () => {
         ...prevState,
         quizItems: quizItems,
         currentQuizItemIndex: 0,
+        finalizedAnswers: quizResult.answers,
+        isFinalized: Boolean(quizResult.finalizedDate),
       }));
     });
   }, []);
@@ -73,7 +81,7 @@ export const QuizContainer = () => {
   const selectAnswer = useCallback(
     (answerIndex: number) => {
       setState((prevState) => {
-        if (!prevState.quizItems) {
+        if (!prevState.quizItems || state.isFinalized) {
           return prevState;
         }
         const quizItemIndex = prevState.currentQuizItemIndex;
@@ -184,6 +192,7 @@ export const QuizContainer = () => {
           </ul>
         </div>
         <button
+          disabled={state.isFinalized}
           onClick={() => {
             const nextItemIndex = state.currentQuizItemIndex + 1;
             if (nextItemIndex < quizItemsLength) {

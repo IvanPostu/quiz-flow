@@ -1,10 +1,11 @@
+import { differenceInSeconds } from "date-fns";
+import { useEffect, useState } from "react";
 import { useAppSelector } from "src/redux";
+import { SignInStateType } from "src/redux/authentication/authenticationSlice";
 import { CardContainer } from "../CardContainer/CardContainer";
 import { Container } from "../Container/Container";
 import * as styles from "./style.module.scss";
-import { useEffect, useMemo, useState } from "react";
-import { differenceInMinutes, differenceInSeconds } from "date-fns";
-import { SignInStateType } from "src/redux/authentication/authenticationSlice";
+import { KeyValueContainer } from "../KeyValueContainer/KeyValueContainer";
 
 export const AuthenticationDetailsContainer = () => {
   const [seconds, setSeconds] = useState<number>(0);
@@ -27,26 +28,9 @@ export const AuthenticationDetailsContainer = () => {
         <div className={styles.titleContainer}>
           <h2>Authentication Details</h2>
         </div>
-        <KeyValueDisplay data={data} />
+        <KeyValueContainer data={data} />
       </CardContainer>
     </Container>
-  );
-};
-
-interface KeyValueDisplayProps {
-  data: Record<string, string>;
-}
-
-const KeyValueDisplay: React.FC<KeyValueDisplayProps> = ({ data }) => {
-  return (
-    <div className={styles.keyValueContainer}>
-      {Object.entries(data).map(([key, value]) => (
-        <div className={styles.keyValueRow} key={key}>
-          <div className={styles.key}>{key}</div>
-          <div className={styles.value}>{value}</div>
-        </div>
-      ))}
-    </div>
   );
 };
 

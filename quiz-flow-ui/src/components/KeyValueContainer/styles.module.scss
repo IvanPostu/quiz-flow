@@ -1,0 +1,21 @@
+.keyValueContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+
+  .keyValueRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .key {
+    font-weight: bold;
+    width: 250px;
+  }
+
+  .value {
+    flex: 1;
+  }
+}

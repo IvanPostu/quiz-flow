@@ -19,6 +19,7 @@ class QuizBuilder {
 
     private val quizAnswers: MutableList<QuizAnswer> = mutableListOf()
     private var finalizedDate: Instant? = null
+    private var isFinalizeOperation = false
 
     constructor(userId: String, questionSetVersion: QuestionSetVersion, questions: List<Question>) {
         this.id = UUIDv4.generate()
@@ -30,6 +31,9 @@ class QuizBuilder {
     }
 
     constructor(quiz: Quiz, questionSetVersion: QuestionSetVersion) {
+        if (quiz.isFinalized()) {
+            throw IllegalArgumentException("Finalized quiz can't be updated")
+        }
         val questionsById = questionSetVersion.questions.associateBy { item -> item.id }
         this.id = quiz.id
         this.userId = quiz.userId
@@ -48,6 +52,7 @@ class QuizBuilder {
 
     fun withFinalized() {
         this.finalizedDate = Clock.System.now()
+        this.isFinalizeOperation = true
     }
 
     fun build(): Quiz {
@@ -59,8 +64,21 @@ class QuizBuilder {
             createdDate = createdDate,
             finalizedDate = finalizedDate,
             quizQuestions = quizQuestionsById.values.map { QuizQuestion(it.id, it.correctAnswerIndexes) },
-            quizAnswers = quizAnswers.toList()
+            quizAnswers = populateUnspecifiedAnswersWithEmpty(quizAnswers)
         )
+    }
+
+    private fun populateUnspecifiedAnswersWithEmpty(answers: List<QuizAnswer>): List<QuizAnswer> {
+        val answersById = answers.associateByTo(mutableMapOf()) { it.questionId }
+        val result: MutableList<QuizAnswer> = mutableListOf()
+        quizQuestionsById.forEach { entry ->
+            if (answersById.containsKey(entry.key)) {
+                result.add(answersById[entry.key]!!)
+            } else {
+                result.add(QuizAnswer(entry.value.id, emptyList()))
+            }
+        }
+        return result
     }
 
     private fun checkValidAnswers(answers: List<QuizAnswer>) {

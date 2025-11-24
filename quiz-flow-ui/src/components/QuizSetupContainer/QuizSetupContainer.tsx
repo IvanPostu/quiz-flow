@@ -20,6 +20,10 @@ import { ChoseQuestionsModal } from "../ChoseQuestionsModal/ChoseQuestionsModal"
 import { randomArrayElements } from "src/model/utils/randomArrayElements";
 import { BlurOverlay } from "../BlurOverlay/BlurOverlay";
 import { Quiz } from "src/model/quizzes/Quiz";
+import {
+  calculateData,
+  KeyValueContainer,
+} from "../KeyValueContainer/KeyValueContainer";
 
 interface QuizSetupContainerStateType {
   questionSet: QuestionSet | null;
@@ -87,7 +91,7 @@ export const QuizSetupContainer = () => {
         {state.questionSet === null ? (
           <LoaderSpinner />
         ) : (
-          <KeyValueDisplay data={calculateData(state.questionSet)} />
+          <KeyValueContainer data={calculateData(state.questionSet)} />
         )}
         {state.questionSetVersion === null ? null : (
           <Fragment>
@@ -228,34 +232,6 @@ const ListOfQuestions: FC<{
     </div>
   );
 };
-
-interface KeyValueDisplayProps {
-  data: Record<string, string>;
-}
-
-const KeyValueDisplay: React.FC<KeyValueDisplayProps> = ({ data }) => {
-  return (
-    <div className={styles.keyValueContainer}>
-      {Object.entries(data).map(([key, value]) => (
-        <div className={styles.keyValueRow} key={key}>
-          <div className={styles.key}>{key}</div>
-          <div className={styles.value}>{value}</div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-function calculateData(signInResult: QuestionSet) {
-  const result = Object.entries(signInResult || {}).reduce<
-    Record<string, string>
-  >((acc, [key, value]) => {
-    acc[key] = "" + value;
-    return acc;
-  }, {});
-
-  return result;
-}
 
 async function fetchQuestionSet(
   accessToken: string,

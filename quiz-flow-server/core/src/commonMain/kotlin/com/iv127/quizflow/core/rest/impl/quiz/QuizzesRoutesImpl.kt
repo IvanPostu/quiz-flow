@@ -150,14 +150,12 @@ class QuizzesRoutesImpl(koinApp: KoinApplication) : QuizzesRoutes, ApiRoute {
     }
 
     private fun mapToQuizResponse(quiz: Quiz, questionsById: Map<String, Question>): QuizResponse {
-        val isFinalized = quiz.finalizedDate != null
         return QuizResponse(
             quiz.id,
             quiz.questionSetId,
             quiz.questionSetVersion,
             quiz.createdDate,
             quiz.finalizedDate,
-            isFinalized,
             quiz.quizQuestions.map { mapQuestionToResponse(questionsById[it.questionId]!!) },
             quiz.quizAnswers.map { mapAnswerToResponse(it) }
         )
