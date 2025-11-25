@@ -17,7 +17,7 @@ object CustomStatusPagesConfig {
         return {
             exception<Throwable> { call, exception ->
                 if (exception is AuthenticationException) {
-                    val clientError = RestErrorFactory.createAuthenticationClientError(exception.reason)
+                    val clientError = RestErrorFactory.createAuthenticationClientError(exception.publicMessage)
                     LOG.warn("Client error was caught, uniqueId:${clientError.uniqueId}", exception)
                     webResponse(call) {
                         JsonWebResponse.create(

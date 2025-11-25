@@ -1,4 +1,3 @@
 package com.iv127.quizflow.core.security
 
-class AuthenticationException(val reason: String? = null) : Exception() {
-}
+open class AuthenticationException(val publicMessage: String) : Exception(publicMessage)

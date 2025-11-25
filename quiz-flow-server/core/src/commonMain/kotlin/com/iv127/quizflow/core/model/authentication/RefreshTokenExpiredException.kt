@@ -1,3 +1,5 @@
 package com.iv127.quizflow.core.model.authentication
 
-class RefreshTokenExpiredException : Exception()
+import com.iv127.quizflow.core.security.AuthenticationException
+
+class RefreshTokenExpiredException : AuthenticationException("Refreshable token is expired")

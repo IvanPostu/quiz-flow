@@ -6,7 +6,7 @@ import com.iv127.quizflow.core.model.User
 import com.iv127.quizflow.core.model.authentication.AccessTokenExpiredException
 import com.iv127.quizflow.core.model.authentication.Authentication
 import com.iv127.quizflow.core.model.authentication.AuthenticationAccessToken
-import com.iv127.quizflow.core.model.authentication.AuthenticationAccessTokenNotFoundException
+import com.iv127.quizflow.core.model.authentication.AuthenticationAccessTokenIsInvalidException
 import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshToken
 import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshTokenNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
@@ -97,15 +97,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
     }
 
     override fun checkAuthorizationScopes(accessToken: String, requiredScopes: Set<AuthorizationScope>) {
-        val authentication = try {
-            getAuthenticationByAccessToken(accessToken)
-        }  catch (e: AuthenticationAccessTokenNotFoundException) {
-            throw AuthenticationException("Access token is invalid")
-        } catch (e: RefreshTokenExpiredException) {
-            throw AuthenticationException("Refreshable token is expired")
-        } catch (e: AccessTokenExpiredException) {
-            throw AuthenticationException("Access token is expired")
-        }
+        val authentication = getAuthenticationByAccessToken(accessToken)
         checkAuthorizationScopes(authentication, requiredScopes)
     }
 
@@ -323,7 +315,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
         }
     }
 
-    @Throws(AuthenticationAccessTokenNotFoundException::class)
+    @Throws(AuthenticationAccessTokenIsInvalidException::class)
     private fun selectAuthenticationAccessTokenByColumn(
         column: String,
         columnValue: String
@@ -347,9 +339,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
                 )
             )
             if (result.isEmpty()) {
-                throw AuthenticationAccessTokenNotFoundException(
-                    "Authentication access token by $column with value $columnValue was not found"
-                )
+                throw AuthenticationAccessTokenIsInvalidException()
             }
             return AuthenticationAccessToken(
                 id = result[0]["id"].toString(),
@@ -435,13 +425,13 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
     }
 
     private fun validateAccessTokenExpiration(authenticationAccessToken: AuthenticationAccessToken) {
-        if(authenticationAccessToken.expirationDate < Clock.System.now()) {
+        if (authenticationAccessToken.expirationDate < Clock.System.now()) {
             throw AccessTokenExpiredException()
         }
     }
 
     private fun validateRefreshTokenExpiration(authenticationRefreshToken: AuthenticationRefreshToken) {
-        if(authenticationRefreshToken.expirationDate < Clock.System.now()) {
+        if (authenticationRefreshToken.expirationDate < Clock.System.now()) {
             throw RefreshTokenExpiredException()
         }
     }

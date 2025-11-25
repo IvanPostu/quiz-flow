@@ -2,4 +2,4 @@ package com.iv127.quizflow.core.model.authentication
 
 import com.iv127.quizflow.core.security.AuthenticationException
 
-class AccessTokenExpiredException : AuthenticationException("Access token is expired")
+class AuthenticationAccessTokenIsInvalidException : AuthenticationException("Access token is invalid")

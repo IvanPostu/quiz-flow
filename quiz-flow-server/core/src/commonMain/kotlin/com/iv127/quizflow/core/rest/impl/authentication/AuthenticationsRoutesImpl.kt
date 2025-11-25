@@ -1,8 +1,6 @@
 package com.iv127.quizflow.core.rest.impl.authentication
 
 import com.iv127.quizflow.core.model.User
-import com.iv127.quizflow.core.model.authentication.AccessTokenExpiredException
-import com.iv127.quizflow.core.model.authentication.AuthenticationAccessTokenNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshTokenNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
 import com.iv127.quizflow.core.model.authentication.RefreshTokenExpiredException
@@ -160,15 +158,7 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
     }
 
     override suspend fun extendAccessTokenLifetime(accessToken: String): AccessTokenResponse {
-        val authentication = try {
-            authenticationService.extendAccessTokenLifetime(accessToken)
-        } catch (e: AuthenticationAccessTokenNotFoundException) {
-            throw AuthenticationException("Access token is invalid")
-        } catch (e: AccessTokenExpiredException) {
-            throw AuthenticationException("Access token is expired")
-        } catch (e: RefreshTokenExpiredException) {
-            throw AuthenticationException("Refreshable token is expired")
-        }
+        val authentication = authenticationService.extendAccessTokenLifetime(accessToken)
         return AccessTokenResponse(
             authentication.authenticationAccessToken.id,
             authentication.authenticationRefreshToken.id,
