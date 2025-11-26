@@ -3,15 +3,15 @@ package com.iv127.quizflow.core.services.authentication.impl
 import com.iv127.quizflow.core.lang.Sha256
 import com.iv127.quizflow.core.lang.UUIDv4
 import com.iv127.quizflow.core.model.User
-import com.iv127.quizflow.core.model.authentication.AccessTokenExpiredException
 import com.iv127.quizflow.core.model.authentication.Authentication
 import com.iv127.quizflow.core.model.authentication.AuthenticationAccessToken
-import com.iv127.quizflow.core.model.authentication.AuthenticationAccessTokenIsInvalidException
 import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshToken
-import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshTokenNotFoundException
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
-import com.iv127.quizflow.core.model.authentication.RefreshTokenExpiredException
-import com.iv127.quizflow.core.security.AuthenticationException
+import com.iv127.quizflow.core.model.authentication.exceptions.AccessTokenExpiredException
+import com.iv127.quizflow.core.model.authentication.exceptions.AuthenticationAccessTokenIsInvalidException
+import com.iv127.quizflow.core.model.authentication.exceptions.AuthorizationScopesMissingException
+import com.iv127.quizflow.core.model.authentication.exceptions.RefreshTokenExpiredException
+import com.iv127.quizflow.core.model.authentication.exceptions.RefreshTokenIsInvalidException
 import com.iv127.quizflow.core.services.authentication.AuthenticationService
 import com.iv127.quizflow.core.services.utils.DatabaseRecord
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
@@ -109,7 +109,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
             authentication.authenticationRefreshToken.authorizationScopes.contains(scope)
         }
         if (!accessAllowed) {
-            throw AuthenticationException("Required authorization scopes are missing")
+            throw AuthorizationScopesMissingException()
         }
     }
 
@@ -276,7 +276,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
         return authorizationScopes.toSet()
     }
 
-    @Throws(AuthenticationRefreshTokenNotFoundException::class)
+    @Throws(RefreshTokenIsInvalidException::class)
     private fun selectAuthenticationRefreshTokenByColumn(
         column: String,
         columnValue: String
@@ -298,9 +298,7 @@ class AuthenticationServiceImpl(private val dbSupplier: () -> SqliteDatabase) : 
                 listOf(columnValue)
             )
             if (result.isEmpty()) {
-                throw AuthenticationRefreshTokenNotFoundException(
-                    "Authentication refresh token by $column with value $columnValue was not found"
-                )
+                throw RefreshTokenIsInvalidException()
             }
             val primaryKey = result[0]["primary_key"]!!.toInt()
             val authenticationRefreshToken = AuthenticationRefreshToken(

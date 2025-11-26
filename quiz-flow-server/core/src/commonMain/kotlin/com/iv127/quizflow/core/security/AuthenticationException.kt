@@ -1,3 +1,3 @@
 package com.iv127.quizflow.core.security
 
-open class AuthenticationException(val publicMessage: String) : Exception(publicMessage)
+open class AuthenticationException protected constructor(val publicMessage: String) : Exception(publicMessage)

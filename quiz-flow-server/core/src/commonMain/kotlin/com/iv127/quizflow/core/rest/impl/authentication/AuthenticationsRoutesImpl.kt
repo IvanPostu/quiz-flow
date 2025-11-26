@@ -1,9 +1,9 @@
 package com.iv127.quizflow.core.rest.impl.authentication
 
 import com.iv127.quizflow.core.model.User
-import com.iv127.quizflow.core.model.authentication.AuthenticationRefreshTokenNotFoundException
+import com.iv127.quizflow.core.model.authentication.exceptions.AuthenticationInvalidCredentialsException
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
-import com.iv127.quizflow.core.model.authentication.RefreshTokenExpiredException
+import com.iv127.quizflow.core.model.authentication.exceptions.RefreshTokenIsInvalidException
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.authentication.AccessTokenResponse
 import com.iv127.quizflow.core.rest.api.authentication.AccessTokenSummaryResponse
@@ -20,7 +20,6 @@ import com.iv127.quizflow.core.rest.api.cookie.CookieRequest
 import com.iv127.quizflow.core.rest.api.cookie.CookieResponse
 import com.iv127.quizflow.core.rest.cookie.CookieMapper
 import com.iv127.quizflow.core.security.AccessTokenProvider
-import com.iv127.quizflow.core.security.AuthenticationException
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.routingContextWebResponse
 import com.iv127.quizflow.core.services.authentication.AuthenticationService
@@ -128,15 +127,10 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
 
     override suspend fun signOut(cookies: List<CookieRequest>): List<CookieResponse> {
         val refreshToken = getRefreshTokenFromCookies(cookies)
-        try {
-            val refreshAuthentication =
-                authenticationService.getAuthenticationRefreshTokenByRefreshTokenValue(refreshToken)
-            authenticationService.markRefreshTokenAsExpired(refreshAuthentication.id)
-        } catch (e: AuthenticationRefreshTokenNotFoundException) {
-            throw AuthenticationException("Refreshable token is invalid")
-        } catch (e: RefreshTokenExpiredException) {
-            throw AuthenticationException("Refreshable token is expired")
-        }
+        val refreshAuthentication =
+            authenticationService.getAuthenticationRefreshTokenByRefreshTokenValue(refreshToken)
+        authenticationService.markRefreshTokenAsExpired(refreshAuthentication.id)
+
         return listOf(
             CookieResponse(
                 name = REFRESHABLE_TOKEN_NAME,
@@ -147,15 +141,9 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
         )
     }
 
-    override suspend fun createAccessToken(cookies: List<CookieRequest>): AccessTokenResponse {
-        try {
-            return internalCreateAccessToken(cookies)
-        } catch (e: AuthenticationRefreshTokenNotFoundException) {
-            throw AuthenticationException("Refreshable token is invalid")
-        } catch (e: RefreshTokenExpiredException) {
-            throw AuthenticationException("Refreshable token is expired")
-        }
-    }
+    override suspend fun createAccessToken(cookies: List<CookieRequest>): AccessTokenResponse =
+        internalCreateAccessToken(cookies)
+
 
     override suspend fun extendAccessTokenLifetime(accessToken: String): AccessTokenResponse {
         val authentication = authenticationService.extendAccessTokenLifetime(accessToken)
@@ -226,11 +214,11 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
             .filter { it.name == REFRESHABLE_TOKEN_NAME }
 
         if (refreshTokenCookies.isEmpty()) {
-            throw AuthenticationException("Refresh token is not found in the cookie")
+            throw RefreshTokenIsInvalidException()
         } else if (refreshTokenCookies.size > 1) {
             throw IllegalStateException(
                 "More than one refresh token with the name " +
-                    "$REFRESHABLE_TOKEN_NAME was found in cookie: $refreshTokenCookies"
+                    "$REFRESHABLE_TOKEN_NAME was found in the cookie: $refreshTokenCookies"
             )
         }
         return refreshTokenCookies[0].value
@@ -244,7 +232,7 @@ class AuthenticationsRoutesImpl(koinApp: KoinApplication) : AuthenticationsRoute
             )
         } catch (e: Exception) {
             if ((e is UserNotFoundException) || (e is UserInvalidPasswordException)) {
-                throw AuthenticationException("Username of password is invalid")
+                throw AuthenticationInvalidCredentialsException()
             }
             throw IllegalStateException(e)
         }

@@ -154,7 +154,7 @@ class AuthenticationRoutesTest {
                 listOf()
             )
         }
-        assertAuthenticationFailed(e, "Refresh token is not found in the cookie")
+        assertAuthenticationFailed(e, "Refresh token is invalid")
     }
 
     @Test
@@ -167,7 +167,7 @@ class AuthenticationRoutesTest {
                 )
             )
         }
-        assertAuthenticationFailed(e, "Refreshable token is invalid")
+        assertAuthenticationFailed(e, "Refresh token is invalid")
     }
 
     @Test
@@ -208,7 +208,7 @@ class AuthenticationRoutesTest {
                 listOf(CookieRequest(signInResult.first[0].name, signInResult.first[0].value))
             )
         }
-        assertAuthenticationFailed(e, "Refreshable token is expired")
+        assertAuthenticationFailed(e, "Refresh token is expired")
     }
 
     @Test
@@ -280,7 +280,7 @@ class AuthenticationRoutesTest {
                 )
             )
         }
-        assertAuthenticationFailed(e, "Username of password is invalid")
+        assertAuthenticationFailed(e, "Credentials are invalid")
     }
 
     private fun assertAuthenticationFailed(e: RestErrorException, expectedReason: String) {
