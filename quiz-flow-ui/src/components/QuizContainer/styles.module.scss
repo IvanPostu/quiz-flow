@@ -8,6 +8,14 @@
   .quizHeader {
     padding: 1rem 1rem 0rem 1rem;
 
+    .summaryResult {
+      background-color: variables.$white200;
+      border: 1px variables.$greyBorder;
+      border-radius: 4px;
+      transition: background-color 0.1s ease, transform 0.1s ease;
+      padding: 10px;
+    }
+
     .questionsNavItems {
       margin: 15px 0;
       display: flex;

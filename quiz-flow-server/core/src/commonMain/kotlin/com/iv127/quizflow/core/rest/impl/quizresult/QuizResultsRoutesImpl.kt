@@ -82,13 +82,15 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
     private fun mapToQuizResultResponse(quiz: Quiz): QuizResultResponse {
         val questionsById: Map<String, QuizQuestion> = quiz.quizQuestions.associateBy { it.questionId }
 
-        var answersCount = 0
+        var answeredCount = 0
         var correctAnswersCount = 0
 
         for (quizAnswer in quiz.quizAnswers) {
-            answersCount++
             val correctAnswerIndexes = questionsById[quizAnswer.questionId]!!.correctAnswerIndexes.toSet()
             val chosenAnswerIndexes = quizAnswer.chosenAnswerIndexes.toSet()
+            if (chosenAnswerIndexes.isNotEmpty()) {
+                answeredCount++
+            }
             if (correctAnswerIndexes == chosenAnswerIndexes) {
                 correctAnswersCount++
             }
@@ -101,7 +103,7 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
             quiz.createdDate,
             quiz.finalizedDate!!,
             questionsById.size,
-            answersCount,
+            answeredCount,
             correctAnswersCount,
             quiz.quizAnswers.map {
                 QuizResultAnswerResponse(

@@ -13,6 +13,7 @@ pkgs.mkShell {
     pkgs.nodejs_22
     pkgs.patchelf # is used to override path to dynamic libraries for executables
     pkgs.gcc13
+    pkgs.sqlitebrowser
   ];
 
   LANG = "en_US.UTF-8";
