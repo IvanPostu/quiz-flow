@@ -3,16 +3,25 @@ import * as styles from "./styles.module.scss";
 
 interface KeyValueContainerProps {
   data: Record<string, string>;
+  keyFlexBasis?: string;
 }
 
 export const KeyValueContainer: React.FC<KeyValueContainerProps> = ({
   data,
+  keyFlexBasis,
 }) => {
+  const keyStyle = {} as React.CSSProperties;
+  if (keyFlexBasis) {
+    keyStyle.flexBasis = keyFlexBasis;
+  }
+
   return (
     <div className={styles.keyValueContainer}>
       {Object.entries(data).map(([key, value]) => (
         <div className={styles.keyValueRow} key={key}>
-          <div className={styles.key}>{key}</div>
+          <div style={keyStyle} className={styles.key}>
+            {key}
+          </div>
           <div className={styles.value}>{value}</div>
         </div>
       ))}

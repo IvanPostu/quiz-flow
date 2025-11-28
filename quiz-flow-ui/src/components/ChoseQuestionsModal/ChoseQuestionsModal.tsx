@@ -1,6 +1,7 @@
 import { FC, useState } from "react";
 import { Modal } from "../Modal/Modal";
 import * as styles from "./styles.module.scss";
+import { KeyValueContainer } from "../KeyValueContainer/KeyValueContainer";
 
 const DEFAULT_RANDOM_NUMBER = 10;
 
@@ -38,11 +39,12 @@ export const ChoseQuestionsModal: FC<ChoseQuestionsModalPropsType> = (
     >
       <div className={styles.rootContainer}>
         <h2 className={styles.title}>Choose questions:</h2>
-        <div>
-          <span>
-            <b>Chosen: </b> {selectedQuestionIds.size}
-          </span>
-        </div>
+        <KeyValueContainer
+          data={{
+            "Total:": "" + questionIds.length,
+            "Chosen:": "" + selectedQuestionIds.size,
+          }}
+        />
 
         <div className={styles.checkboxesContainer}>
           <div className={styles.selectRandomlySection}>

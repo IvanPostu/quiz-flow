@@ -12,8 +12,8 @@ export interface QuizQuestion {
   readonly questionId: string;
   readonly question: string;
   readonly answerOptions: string[];
-  readonly  correctAnswerIndexes: number[];
-   readonly correctAnswerExplanation: string;
+  readonly correctAnswerIndexes: number[];
+  readonly correctAnswerExplanation: string;
 }
 
 export interface QuizAnswer {

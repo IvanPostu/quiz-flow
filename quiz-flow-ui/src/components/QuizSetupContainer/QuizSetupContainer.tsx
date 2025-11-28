@@ -91,7 +91,10 @@ export const QuizSetupContainer = () => {
         {state.questionSet === null ? (
           <LoaderSpinner />
         ) : (
-          <KeyValueContainer data={calculateData(state.questionSet)} />
+          <KeyValueContainer
+            keyFlexBasis="150px"
+            data={calculateData(state.questionSet)}
+          />
         )}
         {state.questionSetVersion === null ? null : (
           <Fragment>

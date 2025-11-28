@@ -37,7 +37,8 @@
         }
 
         &.active {
-          background-color: variables.$blue200;
+          width: 25px;
+          height: 25px;
         }
 
         &:hover {
@@ -53,7 +54,6 @@
 
     ul {
       list-style-type: none;
-      padding: 0 0 2rem 0;
 
       li {
         margin: 1rem 0;
@@ -73,10 +73,21 @@
     }
   }
 
-  .quizQuestion {
-    margin: 0;
-    white-space: pre-line;
-    font-size: 1.15rem;
+  .quizQuestionContainer {
+    background-color: variables.$white200;
+    .quizQuestion {
+      margin: 0;
+      white-space: pre-line;
+      font-size: 1.25rem;
+      font-family: "Courier New", Courier, monospace, "LibraSans", sans-serif;
+    }
+  }
+
+  .correctAnswerExplanationContainer {
+    background-color: variables.$green100;
+    border: 1px variables.$greyBorder;
+    padding: 20px;
+    margin: 20px 0;
   }
 
   button {

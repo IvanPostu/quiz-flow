@@ -232,7 +232,7 @@ export const QuizContainer = () => {
     );
   }
 
-  const quizItem = state.quizItems[state.currentQuizItemIndex];
+  const quizItem: QuizItemType = state.quizItems[state.currentQuizItemIndex];
   return (
     <Container>
       <CardContainer className={styles.quizRoot}>
@@ -278,7 +278,9 @@ export const QuizContainer = () => {
               );
             })}
           </div>
-          <span className={styles.quizQuestion}>{quizItem.question}</span>
+          <div className={styles.quizQuestionContainer}>
+            <span className={styles.quizQuestion}>{quizItem.question}</span>
+          </div>
         </div>
         <div className={styles.quizBody}>
           <ul>
@@ -312,6 +314,11 @@ export const QuizContainer = () => {
               );
             })}
           </ul>
+          {quizItem.correctAnswerExplanation && (
+            <div className={styles.correctAnswerExplanationContainer}>
+              <span>{quizItem.correctAnswerExplanation}</span>
+            </div>
+          )}
         </div>
         <button disabled={state.isFinalized} onClick={finalizeCurrentQuestion}>
           Submit
