@@ -10,9 +10,22 @@ interface ChoseQuestionsModalPropsType {
   closeModal: () => void;
   selectQuestion: (id: string) => void;
   selectRandomQuestions: (count: number) => void;
+  selectByOffsetAndLimit: (offset: number, limit: number) => void;
   questionIds: string[];
   selectedQuestionIds: Set<string>;
 }
+
+interface ChoseQuestionsModalStateType {
+  randomNumber: number;
+  offset: number;
+  limit: number;
+}
+
+const DEFAULT_STATE: ChoseQuestionsModalStateType = {
+  limit: 10,
+  offset: 0,
+  randomNumber: 10,
+};
 
 export const ChoseQuestionsModal: FC<ChoseQuestionsModalPropsType> = (
   props
@@ -24,12 +37,10 @@ export const ChoseQuestionsModal: FC<ChoseQuestionsModalPropsType> = (
     selectQuestion,
     selectedQuestionIds,
     selectRandomQuestions,
+    selectByOffsetAndLimit,
   } = props;
-  const [state, setState] = useState<{
-    randomNumber: number;
-  }>({
-    randomNumber: DEFAULT_RANDOM_NUMBER,
-  });
+  const [state, setState] =
+    useState<ChoseQuestionsModalStateType>(DEFAULT_STATE);
 
   return (
     <Modal
@@ -47,7 +58,7 @@ export const ChoseQuestionsModal: FC<ChoseQuestionsModalPropsType> = (
         />
 
         <div className={styles.checkboxesContainer}>
-          <div className={styles.selectRandomlySection}>
+          <div className={styles.selectSection}>
             <button
               onClick={() => selectRandomQuestions(state.randomNumber)}
               disabled={
@@ -56,8 +67,9 @@ export const ChoseQuestionsModal: FC<ChoseQuestionsModalPropsType> = (
               }
               className={styles.btn}
             >
-              Choose randomly
+              Choose
             </button>
+            <span>Randomly</span>
             <input
               type="number"
               value={state.randomNumber}
@@ -65,6 +77,41 @@ export const ChoseQuestionsModal: FC<ChoseQuestionsModalPropsType> = (
                 setState((prevState) => ({
                   ...prevState,
                   randomNumber: +e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className={styles.selectSection}>
+            <button
+              onClick={() => selectByOffsetAndLimit(state.offset, state.limit)}
+              disabled={
+                state.offset + state.limit > questionIds.length ||
+                state.offset < 0 ||
+                state.limit <= 0
+              }
+              className={styles.btn}
+            >
+              Choose
+            </button>
+            <span>Offset</span>
+            <input
+              type="number"
+              value={state.offset}
+              onChange={(e) =>
+                setState((prevState) => ({
+                  ...prevState,
+                  offset: +e.target.value,
+                }))
+              }
+            />
+            <span>Limit</span>
+            <input
+              type="number"
+              value={state.limit}
+              onChange={(e) =>
+                setState((prevState) => ({
+                  ...prevState,
+                  limit: +e.target.value,
                 }))
               }
             />

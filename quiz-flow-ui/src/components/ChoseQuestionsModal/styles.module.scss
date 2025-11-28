@@ -19,13 +19,16 @@
     @include mixins.uncopyable;
   }
 
-  .selectRandomlySection {
+  .selectSection {
     width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 
     input[type="number"] {
       padding: 0.4rem;
       margin-left: 5px;
-      width: 80px;
+      width: 65px;
     }
   }
 

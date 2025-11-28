@@ -165,6 +165,22 @@ export const QuizSetupContainer = () => {
         )}
       </CardContainer>
       <ChoseQuestionsModal
+        selectByOffsetAndLimit={(offset: number, limit: number) => {
+          if (!state.questionSetVersion) {
+            return;
+          }
+          const upperLimit = offset + limit;
+          const questionIds = state.questionSetVersion.questions
+            .filter((value, index) => index >= offset && index < upperLimit)
+            .map((value) => value.id);
+          setState((prevState) => {
+            const newSet = new Set<string>([...questionIds]);
+            return {
+              ...prevState,
+              selectedQuestionIds: newSet,
+            };
+          });
+        }}
         selectRandomQuestions={(count: number) => {
           const questionIds = randomArrayElements(
             state.questionSetVersion?.questions || [],
