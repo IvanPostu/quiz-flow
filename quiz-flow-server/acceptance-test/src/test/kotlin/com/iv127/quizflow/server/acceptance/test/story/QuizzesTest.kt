@@ -114,7 +114,7 @@ class QuizzesTest {
                 )
             }
 
-        val quizResults = quizResultsRoutes.list(auth.accessToken, null, null, null)
+        val quizResults = quizResultsRoutes.list(auth.accessToken, null, null, null, null)
 
         assertThat(quizResults)
             .hasSize(2)
@@ -178,7 +178,7 @@ class QuizzesTest {
         )
 
         val evaluationResult = quizResultsRoutes.get(auth.accessToken, finalizedQuiz.id)
-        val evaluationResults = quizResultsRoutes.list(auth.accessToken, null, null, null)
+        val evaluationResults = quizResultsRoutes.list(auth.accessToken, null, null, null, null)
 
         assertThat(evaluationResults).hasSize(1)
 

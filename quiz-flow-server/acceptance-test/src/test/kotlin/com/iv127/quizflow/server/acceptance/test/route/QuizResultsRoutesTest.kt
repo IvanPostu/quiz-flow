@@ -11,6 +11,7 @@ import com.iv127.quizflow.core.rest.api.quiz.QuizCreateRequest
 import com.iv127.quizflow.core.rest.api.quiz.QuizResponse
 import com.iv127.quizflow.core.rest.api.quiz.QuizUpdateRequest
 import com.iv127.quizflow.core.rest.api.quiz.QuizzesRoutes
+import com.iv127.quizflow.core.rest.api.quizresult.QuizFinalizedStateType
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutes
 import com.iv127.quizflow.core.rest.api.user.UserCreateRequest
 import com.iv127.quizflow.core.rest.api.user.UserResponse
@@ -22,11 +23,14 @@ import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionsRoutesTestIm
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuizResultsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuizzesRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.UsersRoutesTestImpl
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
+@OptIn(ExperimentalTime::class)
 class QuizResultsRoutesTest {
 
     private val questionSetsRoutes: QuestionSetsRoutes = QuestionSetsRoutesTestImpl()
@@ -69,7 +73,7 @@ class QuizResultsRoutesTest {
     fun testFinalizedQuizNotFoundCase() = runTest {
         val (user, password) = createUser()
         val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
-        val quizNotFinalized = generateFinalizedQuizzes(auth.accessToken, 1, false)[0]
+        val quizNotFinalized = generateNonFinalizedQuizzes(auth.accessToken, 1)[0]
 
         var e = assertThrows<RestErrorException> {
             quizResultsRoutes.get(auth.accessToken, quizNotFinalized.id)
@@ -104,10 +108,10 @@ class QuizResultsRoutesTest {
         val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
         val quizzes = generateFinalizedQuizzes(auth.accessToken, 20)
 
-        assertThat(quizResultsRoutes.list(auth.accessToken, 2, 5, SortOrder.ASC).map { it.quizId })
+        assertThat(quizResultsRoutes.list(auth.accessToken, 2, 5, SortOrder.ASC, null).map { it.quizId })
             .hasSize(5)
             .containsExactlyElementsOf(quizzes.map { it.id }.subList(2, 7))
-        assertThat(quizResultsRoutes.list(auth.accessToken, 2, 5, SortOrder.DESC).map { it.quizId })
+        assertThat(quizResultsRoutes.list(auth.accessToken, 2, 5, SortOrder.DESC, null).map { it.quizId })
             .hasSize(5)
             .containsExactlyElementsOf(quizzes.reversed().map { it.id }.subList(2, 7))
     }
@@ -118,19 +122,92 @@ class QuizResultsRoutesTest {
         val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
         val quizzes = generateFinalizedQuizzes(auth.accessToken, 20)
 
-        assertThat(quizResultsRoutes.list(auth.accessToken, null, null, null).map { it.quizId })
+        assertThat(quizResultsRoutes.list(auth.accessToken, null, null, null, null).map { it.quizId })
             .hasSize(10)
             .containsExactlyElementsOf(quizzes.reversed().map { it.id }.subList(0, 10))
-            .isEqualTo(quizResultsRoutes.list(auth.accessToken, 0, 10, SortOrder.DESC).map { it.quizId })
+            .isEqualTo(quizResultsRoutes.list(auth.accessToken, 0, 10, SortOrder.DESC, null).map { it.quizId })
+    }
+
+    @Test
+    fun testQuizResultsWithDifferentStates() = runTest(timeout = 300.seconds) {
+        val (user, password) = createUser()
+        val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
+        val finalizedQuizzes = generateFinalizedQuizzes(auth.accessToken, 3)
+        val nonFinalizedQuizzes = generateNonFinalizedQuizzes(auth.accessToken, 3)
+
+        assertThat(finalizedQuizzes).allSatisfy({
+            assertThat(it.finalizedDate).isNotNull()
+        })
+        assertThat(nonFinalizedQuizzes).allSatisfy({
+            assertThat(it.finalizedDate).isNull()
+        })
+
+        assertThat(quizResultsRoutes.list(auth.accessToken, null, null, null, null).map { it.quizId })
+            .hasSize(6)
+            .isEqualTo((finalizedQuizzes + nonFinalizedQuizzes).map { it.id }.reversed())
+            .isEqualTo(quizResultsRoutes.list(auth.accessToken, null, null, SortOrder.DESC, null).map { it.quizId })
+            .isEqualTo(
+                quizResultsRoutes.list(auth.accessToken, null, null, null, QuizFinalizedStateType.ALL)
+                    .map { it.quizId }
+            )
+            .isEqualTo(
+                quizResultsRoutes.list(auth.accessToken, null, null, SortOrder.DESC, QuizFinalizedStateType.ALL)
+                    .map { it.quizId })
+
+        assertThat(
+            quizResultsRoutes.list(auth.accessToken, null, null, null, QuizFinalizedStateType.FINALIZED_ONLY)
+                .map { it.quizId })
+            .hasSize(3)
+            .isEqualTo(finalizedQuizzes.map { it.id }.reversed())
+            .isEqualTo(
+                quizResultsRoutes.list(
+                    auth.accessToken,
+                    null,
+                    null,
+                    SortOrder.DESC,
+                    QuizFinalizedStateType.FINALIZED_ONLY
+                )
+                    .map { it.quizId })
+        assertThat(
+            quizResultsRoutes.list(auth.accessToken, null, null, null, QuizFinalizedStateType.NON_FINALIZED_ONLY)
+                .map { it.quizId })
+            .hasSize(3)
+            .isEqualTo(nonFinalizedQuizzes.map { it.id }.reversed())
+            .isEqualTo(
+                quizResultsRoutes.list(
+                    auth.accessToken,
+                    null,
+                    null,
+                    SortOrder.DESC,
+                    QuizFinalizedStateType.NON_FINALIZED_ONLY
+                )
+                    .map { it.quizId })
+    }
+
+    private suspend fun generateNonFinalizedQuizzes(
+        accessToken: String,
+        resultsCount: Int,
+    ): List<QuizResponse> {
+        return generateQuizzes(accessToken, resultsCount, false)
     }
 
     private suspend fun generateFinalizedQuizzes(
         accessToken: String,
         resultsCount: Int,
-        finalized: Boolean = true
+    ): List<QuizResponse> {
+        return generateQuizzes(accessToken, resultsCount, true)
+    }
+
+    private suspend fun generateQuizzes(
+        accessToken: String,
+        resultsCount: Int,
+        finalized: Boolean
     ): List<QuizResponse> {
         val questionSet =
-            questionSetsRoutes.create(accessToken, QuestionSetCreateRequest("Example of questionnaire", "Example of description"))
+            questionSetsRoutes.create(
+                accessToken,
+                QuestionSetCreateRequest("Example of questionnaire", "Example of description")
+            )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),

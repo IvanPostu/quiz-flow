@@ -8,6 +8,7 @@ import com.iv127.quizflow.core.model.quizz.QuizBuilder
 import com.iv127.quizflow.core.model.quizz.QuizNotFoundException
 import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.services.quiz.QuizService
+import com.iv127.quizflow.core.services.quiz.QuizService.FinalizedStateType
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.SqliteTimestampUtils
 import kotlin.time.ExperimentalTime
@@ -21,10 +22,14 @@ class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizServic
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,
-        finalizedOnly: Boolean
+        finalizedStateType: FinalizedStateType,
     ): List<Quiz> {
         val isAscSortOrder = SortOrder.ASC == sortOrder
-        val finalizedOnlyOrTrue = if (finalizedOnly) " finalized_at IS NOT NULL " else " 1=1 "
+        val finalizedPart = when(finalizedStateType) {
+            FinalizedStateType.FINALIZED_ONLY -> " finalized_at IS NOT NULL "
+            FinalizedStateType.NON_FINALIZED_ONLY -> " finalized_at IS NULL "
+            FinalizedStateType.ALL -> " 1=1 "
+        }
 
         return dbSupplier().use { db ->
             val offsetPrimaryKey: Int
@@ -34,7 +39,7 @@ class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizServic
                     SELECT IFNULL(MAX(t1.primary_key), ?) AS offset_value FROM (
                         SELECT t.primary_key 
                         FROM quizzes AS t
-                        WHERE t.user_id=? AND $finalizedOnlyOrTrue
+                        WHERE t.user_id=? AND $finalizedPart
                         ORDER BY t.primary_key ASC LIMIT ?
                     ) t1;
                     """.trimIndent(),
@@ -46,7 +51,7 @@ class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizServic
                     SELECT IFNULL(MIN(t1.primary_key), ?) AS offset_value FROM (
                         SELECT t.primary_key 
                         FROM quizzes AS t
-                        WHERE t.user_id=? AND $finalizedOnlyOrTrue
+                        WHERE t.user_id=? AND $finalizedPart
                         ORDER BY t.primary_key DESC LIMIT ?
                     ) t1;
                     """.trimIndent(),
@@ -59,7 +64,7 @@ class QuizServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuizServic
                     SELECT t.* FROM quizzes AS t 
                     WHERE t.primary_key ${if (isAscSortOrder) ">" else "<"} ? 
                         AND t.user_id=? 
-                        AND $finalizedOnlyOrTrue
+                        AND $finalizedPart
                     ORDER BY t.primary_key ${if (isAscSortOrder) "ASC" else "DESC"}
                     LIMIT ?;
                 """.trimIndent(),

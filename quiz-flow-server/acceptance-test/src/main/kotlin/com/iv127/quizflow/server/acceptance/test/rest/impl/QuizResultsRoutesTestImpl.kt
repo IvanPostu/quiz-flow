@@ -1,6 +1,7 @@
 package com.iv127.quizflow.server.acceptance.test.rest.impl
 
 import com.iv127.quizflow.core.rest.api.SortOrder
+import com.iv127.quizflow.core.rest.api.quizresult.QuizFinalizedStateType
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultResponse
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutes
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutes.Companion.ROUTE_PATH
@@ -33,7 +34,8 @@ class QuizResultsRoutesTestImpl(
         accessToken: String,
         offset: Int?,
         limit: Int?,
-        sortOrder: SortOrder?
+        sortOrder: SortOrder?,
+        quizFinalizedStateType: QuizFinalizedStateType?,
     ): List<QuizResultResponse> {
         val response: HttpResponse = config.performRequest { client ->
             val url: Url = URLBuilder("${config.baseUrl}/api${ROUTE_PATH}")
@@ -46,6 +48,9 @@ class QuizResultsRoutesTestImpl(
                     }
                     if (sortOrder != null) {
                         parameters.append("sortOrder", sortOrder.toString())
+                    }
+                    if (quizFinalizedStateType != null) {
+                        parameters.append("quizFinalizedStateType", quizFinalizedStateType.toString())
                     }
                 }
                 .build()

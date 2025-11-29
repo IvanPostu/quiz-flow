@@ -13,7 +13,8 @@ interface QuizResultsRoutes {
         accessToken: String,
         offset: Int?,
         limit: Int?,
-        sortOrder: SortOrder?
+        sortOrder: SortOrder?,
+        quizFinalizedStateType: QuizFinalizedStateType?,
     ): List<QuizResultResponse>
 
 }

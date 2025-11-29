@@ -36,8 +36,10 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
             val limit: Int? = call.request.queryParameters["limit"]?.toIntOrNull()
             val offset: Int? = call.request.queryParameters["offset"]?.toIntOrNull()
             val sortOrder: SortOrder? = call.request.queryParameters["sortOrder"].toSortOrderEnumOrNull()
+            val quizFinalizedStateType: QuizFinalizedStateType? = call.request.queryParameters["quizFinalizedStateType"]
+                .toQuizFinalizedStateTypeOrNull()
             val accessToken = AccessTokenProvider.provide(call)
-            JsonWebResponse.create(list(accessToken, offset, limit, sortOrder))
+            JsonWebResponse.create(list(accessToken, offset, limit, sortOrder, quizFinalizedStateType))
         })
     }
 
@@ -60,7 +62,8 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
         accessToken: String,
         offset: Int?,
         limit: Int?,
-        sortOrder: SortOrder?
+        sortOrder: SortOrder?,
+        quizFinalizedStateType: QuizFinalizedStateType?,
     ): List<QuizResultResponse> {
         val authorization = authenticationService.getAuthenticationByAccessToken(accessToken)
         authenticationService.checkAuthorizationScopes(authorization, setOf(AuthorizationScope.REGULAR_USER))
@@ -69,12 +72,16 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
         val explicitLimit = limit ?: 10
         val explicitSortOrder = sortOrder ?: SortOrder.DESC
 
+        val finalizedStateType =
+            if (quizFinalizedStateType == null) QuizService.FinalizedStateType.ALL else QuizService.FinalizedStateType.valueOf(
+                quizFinalizedStateType.name
+            )
         val finalizedQuizzes = quizService.getQuizList(
             authorization.authenticationRefreshToken.userId,
             explicitOffset,
             explicitLimit,
             explicitSortOrder,
-            true
+            finalizedStateType
         )
         return finalizedQuizzes.map { mapToQuizResultResponse(it) }
     }
@@ -101,7 +108,7 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
             quiz.questionSetId,
             quiz.questionSetVersion,
             quiz.createdDate,
-            quiz.finalizedDate!!,
+            quiz.finalizedDate,
             questionsById.size,
             answeredCount,
             correctAnswersCount,

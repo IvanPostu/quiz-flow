@@ -13,7 +13,7 @@ interface QuizService {
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,
-        finalizedOnly: Boolean = false
+        finalizedStateType: FinalizedStateType,
     ): List<Quiz>
 
     fun getQuiz(
@@ -24,14 +24,20 @@ interface QuizService {
     fun createQuiz(
         userId: String,
         questionSetVersion: QuestionSetVersion,
-        questions: List<Question>
+        questions: List<Question>,
     ): Quiz
 
     fun updateQuiz(
         userId: String,
         quizId: String,
         questionSetVersion: QuestionSetVersion,
-        updateFunc: (quizBuilder: QuizBuilder) -> Unit
+        updateFunc: (quizBuilder: QuizBuilder) -> Unit,
     ): Quiz
+
+    enum class FinalizedStateType {
+        ALL,
+        FINALIZED_ONLY,
+        NON_FINALIZED_ONLY,
+    }
 
 }
