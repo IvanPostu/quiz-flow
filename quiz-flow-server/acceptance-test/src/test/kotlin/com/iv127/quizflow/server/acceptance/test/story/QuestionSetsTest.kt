@@ -41,11 +41,11 @@ class QuestionSetsTest {
         val created = questionSetsRoutes.create(auth.accessToken, createRequest)
         val invalidId = created.id + "aaa"
 
-        questionsRoutes.getQuestionSetVersion(created.id)
+        questionsRoutes.getQuestionSetVersion(auth.accessToken, created.id)
         val callbacks = listOf<suspend () -> Unit>(
-            { questionsRoutes.getQuestionSetVersion(invalidId) },
-            { questionsRoutes.getQuestionSetVersion(invalidId, 1) },
-            { questionsRoutes.getQuestionSetVersion(invalidId, -1) },
+            { questionsRoutes.getQuestionSetVersion(auth.accessToken, invalidId) },
+            { questionsRoutes.getQuestionSetVersion(auth.accessToken, invalidId, 1) },
+            { questionsRoutes.getQuestionSetVersion(auth.accessToken, invalidId, -1) },
         )
 
         for (callback in callbacks) {
@@ -71,9 +71,9 @@ class QuestionSetsTest {
         val createRequest = QuestionSetCreateRequest("Example of questionnaire", "Example of description")
         val created = questionSetsRoutes.create(auth.accessToken, createRequest)
 
-        questionsRoutes.getQuestionSetVersion(created.id)
+        questionsRoutes.getQuestionSetVersion(auth.accessToken, created.id)
         val e = assertThrows<RestErrorException> {
-            questionsRoutes.getQuestionSetVersion(created.id, -1)
+            questionsRoutes.getQuestionSetVersion(auth.accessToken, created.id, -1)
         }
         assertThat(e.httpStatusCode).isEqualTo(400)
         assertThat(e.restErrorResponse).satisfies({
@@ -96,8 +96,8 @@ class QuestionSetsTest {
 
         assertThat(
             listOf(
-                questionsRoutes.getQuestionSetVersion(created.id),
-                questionsRoutes.getQuestionSetVersion(created.id, 1)
+                questionsRoutes.getQuestionSetVersion(auth.accessToken, created.id),
+                questionsRoutes.getQuestionSetVersion(auth.accessToken, created.id, 1)
             )
         )
             .allSatisfy({
@@ -127,14 +127,15 @@ class QuestionSetsTest {
             ```
         """.trimIndent().encodeToByteArray()
         var questionSetVersion = questionsRoutes.upload(
+            auth.accessToken,
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             created.id
         )
         assertThat(
             listOf(
                 questionSetVersion,
-                questionsRoutes.getQuestionSetVersion(created.id),
-                questionsRoutes.getQuestionSetVersion(created.id, 2),
+                questionsRoutes.getQuestionSetVersion(auth.accessToken, created.id),
+                questionsRoutes.getQuestionSetVersion(auth.accessToken, created.id, 2),
             )
         ).allSatisfy({
             assertThat(it.id).isEqualTo(created.id)
@@ -196,14 +197,15 @@ class QuestionSetsTest {
             ```
         """.trimIndent().encodeToByteArray()
         questionSetVersion = questionsRoutes.upload(
+            auth.accessToken,
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             created.id
         )
         assertThat(
             listOf(
                 questionSetVersion,
-                questionsRoutes.getQuestionSetVersion(created.id),
-                questionsRoutes.getQuestionSetVersion(created.id, 3),
+                questionsRoutes.getQuestionSetVersion(auth.accessToken, created.id),
+                questionsRoutes.getQuestionSetVersion(auth.accessToken, created.id, 3),
             )
         ).allSatisfy({
             assertThat(it.id).isEqualTo(created.id)
@@ -253,12 +255,13 @@ class QuestionSetsTest {
         val created = questionSetsRoutes.create(auth.accessToken, createRequest)
 
         val uploadedQuestions = questionsRoutes.upload(
+            auth.accessToken,
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             created.id
         ).questions
         assertValidQuestions1(uploadedQuestions)
 
-        assertThat(questionsRoutes.getQuestionSetVersion(created.id).questions)
+        assertThat(questionsRoutes.getQuestionSetVersion(auth.accessToken, created.id).questions)
             .hasSize(2)
             .anySatisfy({
                 assertThat(it).isEqualTo(uploadedQuestions[0])

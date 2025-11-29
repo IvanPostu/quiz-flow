@@ -209,7 +209,7 @@ class QuizResultsRoutesTest {
                 QuestionSetCreateRequest("Example of questionnaire", "Example of description")
             )
 
-        val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+        val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload( accessToken,
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             questionSet.id
         )

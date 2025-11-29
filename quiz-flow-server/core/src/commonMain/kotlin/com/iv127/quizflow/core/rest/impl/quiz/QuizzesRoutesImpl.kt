@@ -65,7 +65,11 @@ class QuizzesRoutesImpl(koinApp: KoinApplication) : QuizzesRoutes, ApiRoute {
 
         try {
             val quiz = quizService.getQuiz(authorization.authenticationRefreshToken.userId, quizId)
-            val questionSetVersion = getQuestionSetVersion(quiz.questionSetId, quiz.questionSetVersion)
+            val questionSetVersion = getQuestionSetVersion(
+                authorization.authenticationRefreshToken.userId,
+                quiz.questionSetId,
+                quiz.questionSetVersion
+            )
             val questionsById: Map<String, Question> = questionSetVersion.questions.associateBy { item -> item.id }
             return mapToQuizResponse(quiz, questionsById)
         } catch (e: QuizNotFoundException) {
@@ -81,7 +85,11 @@ class QuizzesRoutesImpl(koinApp: KoinApplication) : QuizzesRoutes, ApiRoute {
         val authorization = authenticationService.getAuthenticationByAccessToken(accessToken)
         authenticationService.checkAuthorizationScopes(authorization, setOf(AuthorizationScope.REGULAR_USER))
 
-        val questionSetVersion = getQuestionSetVersion(request.questionSetId, request.questionSetVersion)
+        val questionSetVersion = getQuestionSetVersion(
+            authorization.authenticationRefreshToken.userId,
+            request.questionSetId,
+            request.questionSetVersion
+        )
         val questionsById: Map<String, Question> = questionSetVersion.questions.associateBy { item -> item.id }
         val questions: MutableList<Question> = mutableListOf()
         for (requestQuestionId in request.questionIds) {
@@ -103,7 +111,11 @@ class QuizzesRoutesImpl(koinApp: KoinApplication) : QuizzesRoutes, ApiRoute {
 
         try {
             val quiz = quizService.getQuiz(authorization.authenticationRefreshToken.userId, quizId)
-            val questionSetVersion = getQuestionSetVersion(quiz.questionSetId, quiz.questionSetVersion)
+            val questionSetVersion = getQuestionSetVersion(
+                authorization.authenticationRefreshToken.userId,
+                quiz.questionSetId,
+                quiz.questionSetVersion
+            )
             val questionsById: Map<String, Question> = questionSetVersion.questions.associateBy { item -> item.id }
 
             val updatedQuiz = quizService
@@ -133,9 +145,10 @@ class QuizzesRoutesImpl(koinApp: KoinApplication) : QuizzesRoutes, ApiRoute {
 
     }
 
-    private fun getQuestionSetVersion(questionSetId: String, version: Int?): QuestionSetVersion {
+    private fun getQuestionSetVersion(userId: String, questionSetId: String, version: Int?): QuestionSetVersion {
         try {
             val (_, questionSetVersion) = questionSetService.getQuestionSetWithVersionOrElseLatest(
+                userId,
                 questionSetId,
                 version
             )

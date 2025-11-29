@@ -1,6 +1,5 @@
 package com.iv127.quizflow.core.services.questionset.impl
 
-import com.iv127.quizflow.core.model.authentication.Authentication
 import com.iv127.quizflow.core.model.question.InvalidQuestionSetVersionException
 import com.iv127.quizflow.core.model.question.QuestionSet
 import com.iv127.quizflow.core.model.question.QuestionSetBuilder
@@ -17,10 +16,10 @@ import kotlinx.serialization.json.Json
 @OptIn(ExperimentalTime::class)
 class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : QuestionSetService {
     override fun createQuestionSet(
-        authentication: Authentication,
+        userId: String,
         createFunc: (questionSetBuilder: QuestionSetBuilder) -> Unit
     ): Pair<QuestionSet, QuestionSetVersion> {
-        val (questionSet, questionSetVersion) = QuestionSetBuilder(authentication.authenticationRefreshToken.userId)
+        val (questionSet, questionSetVersion) = QuestionSetBuilder(userId)
             .apply(createFunc)
             .buildAndIncrement()
         dbSupplier().use { db ->
@@ -70,12 +69,13 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
     }
 
     override fun updateQuestionSet(
+        userId: String,
         id: String,
         updateFunc: (questionSetBuilder: QuestionSetBuilder) -> Unit
     ): Pair<QuestionSet, QuestionSetVersion> {
         dbSupplier().use { db ->
             val createdAt = SqliteTimestampUtils.toValue(Clock.System.now())
-            val (questionSet, questionSetVersion) = selectByIdAndVersionOrElseLatest(db, id, null)
+            val (questionSet, questionSetVersion) = selectByIdAndVersionOrElseLatest(db, id, userId, null)
             val (updatedQuestionSet, updatedQuestionSetVersion) = QuestionSetBuilder(questionSet, questionSetVersion)
                 .apply(updateFunc)
                 .buildAndIncrement()
@@ -113,11 +113,11 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
         }
     }
 
-    override fun archive(id: String): QuestionSet {
+    override fun archive(userId: String, id: String): QuestionSet {
         return dbSupplier().use { db ->
             val archivedAt = SqliteTimestampUtils.toValue(Clock.System.now())
             db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
-            val questionSet = selectByIdAndVersionOrElseLatest(db, id, null).first
+            val questionSet = selectByIdAndVersionOrElseLatest(db, id, userId, null).first
             db.executeAndGetChangedRowsCount(
                 """
                     UPDATE question_sets SET archived_at=?
@@ -131,15 +131,21 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
     }
 
     override fun getQuestionSetWithVersionOrElseLatest(
+        userId: String,
         id: String,
         version: Int?
     ): Pair<QuestionSet, QuestionSetVersion> {
         return dbSupplier().use { db ->
-            selectByIdAndVersionOrElseLatest(db, id, version)
+            selectByIdAndVersionOrElseLatest(db, id, userId, version)
         }
     }
 
-    override fun getQuestionSetList(limit: Int, offset: Int, sortOrder: SortOrder): List<QuestionSet> {
+    override fun getQuestionSetList(
+        userId: String,
+        limit: Int,
+        offset: Int,
+        sortOrder: SortOrder
+    ): List<QuestionSet> {
         val isAscSortOrder = SortOrder.ASC == sortOrder
         return dbSupplier().use { db ->
             val offsetPrimaryKey: Int
@@ -149,10 +155,11 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
                     SELECT IFNULL(MAX(t1.primary_key), ?) AS offset_value FROM (
                         SELECT t.primary_key 
                         FROM question_sets AS t 
+                        WHERE t.user_id=?
                         ORDER BY t.primary_key ASC LIMIT ?
                     ) t1;
                     """.trimIndent(),
-                    listOf(0, offset)
+                    listOf(0, userId, offset)
                 ).first()["offset_value"]!!.toInt()
             } else {
                 offsetPrimaryKey = db.executeAndGetResultSet(
@@ -160,10 +167,11 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
                     SELECT IFNULL(MIN(t1.primary_key), ?) AS offset_value FROM (
                         SELECT t.primary_key 
                         FROM question_sets AS t 
+                        WHERE t.user_id=?
                         ORDER BY t.primary_key DESC LIMIT ?
                     ) t1;
                     """.trimIndent(),
-                    listOf(Int.MAX_VALUE, offset)
+                    listOf(Int.MAX_VALUE, userId, offset)
                 ).first()["offset_value"]!!.toInt()
             }
 
@@ -187,19 +195,10 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
     private fun selectByIdAndVersionOrElseLatest(
         db: SqliteDatabase,
         id: String,
+        userId: String,
         version: Int?
     ): Pair<QuestionSet, QuestionSetVersion> {
-        val questionSet: QuestionSet? = db.executeAndGetResultSet(
-            "SELECT t.* FROM question_sets AS t WHERE t.id=?;",
-            listOf(id)
-        )
-            .map { record ->
-                val deserialized: QuestionSet = Json.decodeFromString(record["json"].toString())
-                deserialized
-            }.firstNotNullOfOrNull { it }
-        if (questionSet == null) {
-            throw QuestionSetNotFoundException(id)
-        }
+        val questionSet: QuestionSet = selectQuestionSet(db, id, userId)
         val expectedVersion = version ?: questionSet.latestVersion
         val questionSetVersion: QuestionSetVersion? = db.executeAndGetResultSet(
             "SELECT t.* FROM question_set_versions AS t WHERE t.id=? AND t.version=?;",
@@ -213,5 +212,25 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
             throw InvalidQuestionSetVersionException(id, expectedVersion)
         }
         return Pair(questionSet, questionSetVersion)
+    }
+
+    @Throws(QuestionSetNotFoundException::class)
+    private fun selectQuestionSet(
+        db: SqliteDatabase,
+        id: String,
+        userId: String,
+    ): QuestionSet {
+        val questionSet: QuestionSet? = db.executeAndGetResultSet(
+            "SELECT t.* FROM question_sets AS t WHERE t.id=? AND t.user_id=?;",
+            listOf(id, userId)
+        )
+            .map { record ->
+                val deserialized: QuestionSet = Json.decodeFromString(record["json"].toString())
+                deserialized
+            }.firstNotNullOfOrNull { it }
+        if (questionSet == null) {
+            throw QuestionSetNotFoundException(id)
+        }
+        return questionSet
     }
 }

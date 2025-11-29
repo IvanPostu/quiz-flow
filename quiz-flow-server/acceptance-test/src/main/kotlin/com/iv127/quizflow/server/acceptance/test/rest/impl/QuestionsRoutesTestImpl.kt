@@ -5,6 +5,7 @@ import com.iv127.quizflow.core.rest.api.question.QuestionSetVersionResponse
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes
 import com.iv127.quizflow.server.acceptance.test.GlobalConfig
 import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
@@ -19,29 +20,36 @@ import io.ktor.http.contentType
 class QuestionsRoutesTestImpl(
     private val config: GlobalConfig = GlobalConfig.INSTANCE
 ) : QuestionsRoutes {
-    override suspend fun getQuestionSetVersion(questionSetId: String, version: Int): QuestionSetVersionResponse {
+    override suspend fun getQuestionSetVersion(
+        accessToken: String,
+        questionSetId: String,
+        version: Int
+    ): QuestionSetVersionResponse {
         val response: HttpResponse = config.performRequest { client ->
             val urlBasePart = "${QuestionsRoutes.ROUTE_PATH}/versions/$version"
                 .replace(QuestionsRoutes.QUESTION_SET_ID_PLACEHOLDER, questionSetId)
             client.get("${config.baseUrl}/api$urlBasePart") {
                 contentType(ContentType.Application.Json)
+                bearerAuth(accessToken)
             }
         }
         return response.body<QuestionSetVersionResponse>()
     }
 
-    override suspend fun getQuestionSetVersion(questionSetId: String): QuestionSetVersionResponse {
+    override suspend fun getQuestionSetVersion(accessToken: String, questionSetId: String): QuestionSetVersionResponse {
         val response: HttpResponse = config.performRequest { client ->
             val urlBasePart = QuestionsRoutes.ROUTE_PATH
                 .replace(QuestionsRoutes.QUESTION_SET_ID_PLACEHOLDER, questionSetId)
             client.get("${config.baseUrl}/api$urlBasePart") {
                 contentType(ContentType.Application.Json)
+                bearerAuth(accessToken)
             }
         }
         return response.body<QuestionSetVersionResponse>()
     }
 
     override suspend fun upload(
+        accessToken: String,
         multipartDataList: List<MultipartData>,
         questionSetId: String
     ): QuestionSetVersionResponse {
@@ -50,6 +58,7 @@ class QuestionsRoutesTestImpl(
                 .replace(QuestionsRoutes.QUESTION_SET_ID_PLACEHOLDER, questionSetId)
             client.post("${config.baseUrl}/api$urlBasePart") {
                 contentType(ContentType.MultiPart.FormData)
+                bearerAuth(accessToken)
                 setBody(
                     MultiPartFormDataContent(
                         formData {

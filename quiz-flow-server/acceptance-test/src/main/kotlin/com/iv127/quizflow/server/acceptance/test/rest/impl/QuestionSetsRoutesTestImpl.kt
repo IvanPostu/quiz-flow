@@ -51,6 +51,26 @@ class QuestionSetsRoutesTestImpl(
         return response.body<List<QuestionSetResponse>>()
     }
 
+    override suspend fun listGlobal(
+        accessToken: String,
+        offset: Int,
+        limit: Int,
+        sortOrder: SortOrder
+    ): List<QuestionSetResponse> {
+        val response: HttpResponse = config.performRequest { client ->
+            client.get(
+                """
+                    ${config.baseUrl}/api${QuestionSetsRoutes.ROUTE_PATH}/global?limit=$limit&offset=$offset&sortOrder=${sortOrder.name}
+                """.trimIndent()
+            ) {
+                contentType(ContentType.Application.Json)
+                bearerAuth(accessToken)
+            }
+
+        }
+        return response.body<List<QuestionSetResponse>>()
+    }
+
     override suspend fun create(accessToken: String, request: QuestionSetCreateRequest): QuestionSetResponse {
         val response: HttpResponse = config.performRequest { client ->
             client.post("${config.baseUrl}/api${QuestionSetsRoutes.ROUTE_PATH}") {

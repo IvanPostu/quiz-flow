@@ -8,6 +8,10 @@ import com.iv127.quizflow.core.model.authentication.AuthorizationScope
 
 interface AuthenticationService {
 
+    companion object {
+        const val SUPER_USER_ID = "902fb9f1-0199-1000-edfb-0000ad471c87"
+    }
+
     fun createAuthenticationRefreshToken(user: User): AuthenticationWithRefreshToken
 
     fun createAuthenticationAccessToken(refreshToken: String): AuthenticationWithRefreshToken

@@ -60,6 +60,7 @@ class OCPQuizTest {
         val questionsContent: String = file.readText()
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+            auth.accessToken,
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent.encodeToByteArray(), null)),
             questionSet.id
         )

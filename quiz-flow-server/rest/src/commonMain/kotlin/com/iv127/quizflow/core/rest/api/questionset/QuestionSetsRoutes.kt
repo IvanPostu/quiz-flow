@@ -12,6 +12,13 @@ interface QuestionSetsRoutes {
 
     suspend fun list(accessToken: String, offset: Int, limit: Int, sortOrder: SortOrder): List<QuestionSetResponse>
 
+    suspend fun listGlobal(
+        accessToken: String,
+        offset: Int,
+        limit: Int,
+        sortOrder: SortOrder
+    ): List<QuestionSetResponse>
+
     suspend fun create(accessToken: String, request: QuestionSetCreateRequest): QuestionSetResponse
 
     suspend fun update(accessToken: String, id: String, request: QuestionSetUpdateRequest): QuestionSetResponse

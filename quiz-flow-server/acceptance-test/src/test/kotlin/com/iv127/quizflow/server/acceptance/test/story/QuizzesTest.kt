@@ -12,6 +12,7 @@ import com.iv127.quizflow.core.rest.api.quiz.QuizCreateRequest
 import com.iv127.quizflow.core.rest.api.quiz.QuizQuestionResponse
 import com.iv127.quizflow.core.rest.api.quiz.QuizUpdateRequest
 import com.iv127.quizflow.core.rest.api.quiz.QuizzesRoutes
+import com.iv127.quizflow.core.rest.api.quizresult.QuizFinalizedStateType
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutes
 import com.iv127.quizflow.server.acceptance.test.acceptance.AuthenticationAcceptance
 import com.iv127.quizflow.server.acceptance.test.acceptance.UserAcceptance
@@ -84,6 +85,7 @@ class QuizzesTest {
             )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+            auth.accessToken,
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             questionSet.id
         )
@@ -114,7 +116,8 @@ class QuizzesTest {
                 )
             }
 
-        val quizResults = quizResultsRoutes.list(auth.accessToken, null, null, null, null)
+        val quizResults =
+            quizResultsRoutes.list(auth.accessToken, null, null, null, QuizFinalizedStateType.FINALIZED_ONLY)
 
         assertThat(quizResults)
             .hasSize(2)
@@ -150,6 +153,7 @@ class QuizzesTest {
             )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+            auth.accessToken,
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             questionSet.id
         )
@@ -190,7 +194,7 @@ class QuizzesTest {
                 assertThat(result.quizCreatedDate).isEqualTo(finalizedQuiz.createdDate)
                 assertThat(result.quizFinalizedDate).isEqualTo(finalizedQuiz.finalizedDate)
                 assertThat(result.questionsCount).isEqualTo(3)
-                assertThat(result.answersCount).isEqualTo(3)
+                assertThat(result.answersCount).isEqualTo(2)
                 assertThat(result.correctAnswersCount).isEqualTo(1)
             })
     }
@@ -204,6 +208,7 @@ class QuizzesTest {
             )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+            auth.accessToken,
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             questionSet.id
         )
@@ -292,6 +297,7 @@ class QuizzesTest {
             )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+            auth.accessToken,
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             questionSet.id
         )
@@ -344,6 +350,7 @@ class QuizzesTest {
             )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+            auth.accessToken,
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             questionSet.id
         )
@@ -424,6 +431,7 @@ class QuizzesTest {
             )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+            auth.accessToken,
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             questionSet.id
         )
@@ -541,6 +549,7 @@ class QuizzesTest {
             )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+            auth.accessToken,
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             questionSet.id
         )

@@ -23,6 +23,7 @@ import io.ktor.server.routing.put
 import kotlin.time.ExperimentalTime
 import org.koin.core.KoinApplication
 
+@OptIn(ExperimentalTime::class)
 class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, ApiRoute {
 
     private val questionSetService: QuestionSetService by koinApp.koin.inject()
@@ -40,6 +41,13 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
             val offset: Int = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
             val sortOrder: SortOrder = SortOrder.valueOf(call.request.queryParameters["sortOrder"] ?: "ASC")
             JsonWebResponse.create(list(accessToken, offset, limit, sortOrder))
+        })
+        parent.get("$ROUTE_PATH/global", routingContextWebResponse {
+            val accessToken = AccessTokenProvider.provide(call)
+            val limit: Int = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
+            val offset: Int = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
+            val sortOrder: SortOrder = SortOrder.valueOf(call.request.queryParameters["sortOrder"] ?: "ASC")
+            JsonWebResponse.create(listGlobal(accessToken, offset, limit, sortOrder))
         })
         parent.post(ROUTE_PATH, routingContextWebResponse {
             val accessToken = AccessTokenProvider.provide(call)
@@ -60,7 +68,15 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
     }
 
     override suspend fun get(accessToken: String, id: String): QuestionSetResponse {
-        return mapQuestionSetResponse(questionSetService.getQuestionSetWithVersionOrElseLatest(id, null).first)
+        val authorization = authenticationService.getAuthenticationByAccessToken(accessToken)
+        authenticationService.checkAuthorizationScopes(authorization, setOf(AuthorizationScope.REGULAR_USER))
+        return mapQuestionSetResponse(
+            questionSetService.getQuestionSetWithVersionOrElseLatest(
+                authorization.authenticationRefreshToken.userId,
+                id,
+                null
+            ).first
+        )
     }
 
     override suspend fun list(
@@ -69,7 +85,31 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
         limit: Int,
         sortOrder: SortOrder
     ): List<QuestionSetResponse> {
-        return questionSetService.getQuestionSetList(limit, offset, sortOrder)
+        val authorization = authenticationService.getAuthenticationByAccessToken(accessToken)
+        authenticationService.checkAuthorizationScopes(authorization, setOf(AuthorizationScope.REGULAR_USER))
+        return questionSetService.getQuestionSetList(
+            authorization.authenticationRefreshToken.userId,
+            limit,
+            offset,
+            sortOrder
+        )
+            .map { mapQuestionSetResponse(it) }
+    }
+
+    override suspend fun listGlobal(
+        accessToken: String,
+        offset: Int,
+        limit: Int,
+        sortOrder: SortOrder
+    ): List<QuestionSetResponse> {
+        val authorization = authenticationService.getAuthenticationByAccessToken(accessToken)
+        authenticationService.checkAuthorizationScopes(authorization, setOf(AuthorizationScope.REGULAR_USER))
+        return questionSetService.getQuestionSetList(
+            AuthenticationService.SUPER_USER_ID,
+            limit,
+            offset,
+            sortOrder
+        )
             .map { mapQuestionSetResponse(it) }
     }
 
@@ -80,10 +120,11 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
         if (request.name.isBlank()) {
             throw IllegalArgumentException("name field shouldn't be blank")
         }
-        val questionSet = questionSetService.createQuestionSet(authentication) { builder ->
-            builder.name = request.name
-            builder.description = request.description
-        }.first
+        val questionSet =
+            questionSetService.createQuestionSet(authentication.authenticationRefreshToken.userId) { builder ->
+                builder.name = request.name
+                builder.description = request.description
+            }.first
         return mapQuestionSetResponse(questionSet)
     }
 
@@ -92,19 +133,24 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
         id: String,
         request: QuestionSetUpdateRequest
     ): QuestionSetResponse {
-        val questionSet = questionSetService.updateQuestionSet(id) { builder ->
-            builder.name = request.name
-            builder.description = request.description
-        }.first
+        val authentication = authenticationService.getAuthenticationByAccessToken(accessToken)
+        authenticationService.checkAuthorizationScopes(authentication, setOf(AuthorizationScope.REGULAR_USER))
+
+        val questionSet =
+            questionSetService.updateQuestionSet(authentication.authenticationRefreshToken.userId, id) { builder ->
+                builder.name = request.name
+                builder.description = request.description
+            }.first
         return mapQuestionSetResponse(questionSet)
     }
 
     override suspend fun archive(accessToken: String, id: String): QuestionSetResponse {
-        val questionSet = questionSetService.archive(id)
+        val authentication = authenticationService.getAuthenticationByAccessToken(accessToken)
+        authenticationService.checkAuthorizationScopes(authentication, setOf(AuthorizationScope.REGULAR_USER))
+        val questionSet = questionSetService.archive(authentication.authenticationRefreshToken.userId, id)
         return mapQuestionSetResponse(questionSet)
     }
 
-    @OptIn(ExperimentalTime::class)
     private fun mapQuestionSetResponse(questionSet: QuestionSet) = QuestionSetResponse(
         questionSet.id,
         questionSet.name,
