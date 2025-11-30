@@ -1,10 +1,13 @@
 package com.iv127.quizflow.server.acceptance.test.story
 
 import com.iv127.quizflow.core.rest.api.MultipartData
+import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.rest.api.authentication.AccessTokenResponse
 import com.iv127.quizflow.core.rest.api.question.QuestionResponse
 import com.iv127.quizflow.core.rest.api.question.QuestionsRoutes
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
+import com.iv127.quizflow.core.rest.api.questionset.QuestionSetResponse
+import com.iv127.quizflow.core.rest.api.questionset.QuestionSetUpdateRequest
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetsRoutes
 import com.iv127.quizflow.server.acceptance.test.GlobalConfig
 import com.iv127.quizflow.server.acceptance.test.acceptance.AuthenticationAcceptance
@@ -26,6 +29,7 @@ class QuestionSetsTest {
     private val questionsRoutes: QuestionsRoutes = QuestionsRoutesTestImpl()
 
     private lateinit var auth: AccessTokenResponse
+    private lateinit var superUserAuth: AccessTokenResponse
 
     @BeforeEach
     fun setup() = runTest {
@@ -33,6 +37,55 @@ class QuestionSetsTest {
         val password = "test1Password${System.currentTimeMillis()}"
         val user = UserAcceptance.createUser(username, password)
         auth = AuthenticationAcceptance.authenticateUser(user.username, password)
+        superUserAuth = AuthenticationAcceptance.authenticateSuperUser()
+    }
+
+    @Test
+    fun testRegularUserCanNotUpdateOrDeleteGlobalQuizSet() = runTest {
+        val batchSize = 50
+        val randomInt = Random.nextInt()
+        val createRequest =
+            QuestionSetCreateRequest("Example of questionnaire $randomInt", "Example of description $randomInt")
+        val created = questionSetsRoutes.create(superUserAuth.accessToken, createRequest)
+        var globalQuizSet: QuestionSetResponse? = null
+        var offset = 0
+        do {
+            val globalList = questionSetsRoutes.listGlobal(auth.accessToken, offset, batchSize, SortOrder.DESC)
+            globalQuizSet = globalList.find {
+                it.name == created.name
+            }
+            if (globalList.isEmpty() || globalQuizSet != null) {
+                break
+            }
+            offset += batchSize
+        } while (true)
+        if (globalQuizSet == null) {
+            throw AssertionError("globalQuizSet is null")
+        }
+
+        val callbacks = listOf<suspend () -> Unit>(
+            { questionSetsRoutes.update(auth.accessToken, globalQuizSet.id, QuestionSetUpdateRequest("test", "test")) },
+            { questionSetsRoutes.archive(auth.accessToken, globalQuizSet.id) },
+        )
+
+        for (callback in callbacks) {
+            val e = assertThrows<RestErrorException> {
+                callback()
+            }
+            assertThat(e.httpStatusCode).isEqualTo(400)
+            assertThat(e.restErrorResponse).satisfies({
+                assertThat(it.uniqueId).isNotBlank()
+                assertThat(it.errorCode).isEqualTo("question_set_not_found")
+                assertThat(it.message).isEqualTo("Question set not found")
+                assertThat(it.data).isEqualTo(
+                    mapOf(
+                        "questionSetId" to globalQuizSet.id,
+                    )
+                )
+            })
+        }
+
+
     }
 
     @Test

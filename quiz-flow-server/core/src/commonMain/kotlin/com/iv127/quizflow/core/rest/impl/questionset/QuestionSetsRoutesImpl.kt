@@ -2,6 +2,7 @@ package com.iv127.quizflow.core.rest.impl.questionset
 
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
 import com.iv127.quizflow.core.model.question.QuestionSet
+import com.iv127.quizflow.core.model.question.QuestionSetNotFoundException
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetCreateRequest
@@ -9,6 +10,7 @@ import com.iv127.quizflow.core.rest.api.questionset.QuestionSetResponse
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetUpdateRequest
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetsRoutes
 import com.iv127.quizflow.core.rest.api.questionset.QuestionSetsRoutes.Companion.ROUTE_PATH
+import com.iv127.quizflow.core.rest.impl.exception.ApiClientErrorExceptionTranslator
 import com.iv127.quizflow.core.security.AccessTokenProvider
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.routingContextWebResponse
@@ -70,13 +72,20 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
     override suspend fun get(accessToken: String, id: String): QuestionSetResponse {
         val authorization = authenticationService.getAuthenticationByAccessToken(accessToken)
         authenticationService.checkAuthorizationScopes(authorization, setOf(AuthorizationScope.REGULAR_USER))
-        return mapQuestionSetResponse(
-            questionSetService.getQuestionSetWithVersionOrElseLatest(
-                authorization.authenticationRefreshToken.userId,
-                id,
-                null
-            ).first
-        )
+        try {
+            return mapQuestionSetResponse(
+                questionSetService.getQuestionSetWithVersionOrElseLatest(
+                    authorization.authenticationRefreshToken.userId,
+                    id,
+                    null
+                ).first
+            )
+        } catch (e: QuestionSetNotFoundException) {
+            throw ApiClientErrorExceptionTranslator.translateAndThrowOrElseFail(
+                e,
+                QuestionSetNotFoundException::class,
+            )
+        }
     }
 
     override suspend fun list(
@@ -135,20 +144,33 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
     ): QuestionSetResponse {
         val authentication = authenticationService.getAuthenticationByAccessToken(accessToken)
         authenticationService.checkAuthorizationScopes(authentication, setOf(AuthorizationScope.REGULAR_USER))
-
-        val questionSet =
-            questionSetService.updateQuestionSet(authentication.authenticationRefreshToken.userId, id) { builder ->
-                builder.name = request.name
-                builder.description = request.description
-            }.first
-        return mapQuestionSetResponse(questionSet)
+        try {
+            val questionSet =
+                questionSetService.updateQuestionSet(authentication.authenticationRefreshToken.userId, id) { builder ->
+                    builder.name = request.name
+                    builder.description = request.description
+                }.first
+            return mapQuestionSetResponse(questionSet)
+        } catch (e: QuestionSetNotFoundException) {
+            throw ApiClientErrorExceptionTranslator.translateAndThrowOrElseFail(
+                e,
+                QuestionSetNotFoundException::class,
+            )
+        }
     }
 
     override suspend fun archive(accessToken: String, id: String): QuestionSetResponse {
-        val authentication = authenticationService.getAuthenticationByAccessToken(accessToken)
-        authenticationService.checkAuthorizationScopes(authentication, setOf(AuthorizationScope.REGULAR_USER))
-        val questionSet = questionSetService.archive(authentication.authenticationRefreshToken.userId, id)
-        return mapQuestionSetResponse(questionSet)
+        try {
+            val authentication = authenticationService.getAuthenticationByAccessToken(accessToken)
+            authenticationService.checkAuthorizationScopes(authentication, setOf(AuthorizationScope.REGULAR_USER))
+            val questionSet = questionSetService.archive(authentication.authenticationRefreshToken.userId, id)
+            return mapQuestionSetResponse(questionSet)
+        } catch (e: QuestionSetNotFoundException) {
+            throw ApiClientErrorExceptionTranslator.translateAndThrowOrElseFail(
+                e,
+                QuestionSetNotFoundException::class,
+            )
+        }
     }
 
     private fun mapQuestionSetResponse(questionSet: QuestionSet) = QuestionSetResponse(
