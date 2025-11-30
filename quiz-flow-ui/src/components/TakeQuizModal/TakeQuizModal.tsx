@@ -126,8 +126,8 @@ export const TakeQuizModal = ({
                     <Fragment>
                       <p>
                         <b>
-                          Please choose a question set from the local list for
-                          the quiz:
+                          Choose a question set from the local list for the
+                          quiz:
                         </b>
                       </p>
                       <QuestionSetsList
@@ -162,8 +162,8 @@ export const TakeQuizModal = ({
                     <Fragment>
                       <p>
                         <b>
-                          Please choose a question set from the global list for
-                          the quiz:
+                          Choose a question set from the global list for the
+                          quiz:
                         </b>
                       </p>
                       <QuestionSetsList

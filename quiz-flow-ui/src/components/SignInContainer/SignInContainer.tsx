@@ -9,18 +9,18 @@ import {
   mapSignInResultToSignInState,
   selectErrorMessage,
   selectIsAuthenticated,
-  selectIsSignInRequestOngoing,
   setSignInResult,
   signInAsync,
+  fetchNewAccessToken,
+  selectIsSignInRequestOngoing,
+  selectAccessTokenSource,
 } from "src/redux/authentication/authenticationSlice";
 import { useToast } from "../ToastNotification/ToastContext";
 import { useLocation, useNavigate } from "react-router-dom";
-import { createAccessToken } from "src/model/authentications/authentications";
 import { SignInResult } from "src/model/authentications/SignInResult";
 import { BlurOverlay } from "../BlurOverlay/BlurOverlay";
 
 interface SignInContainerState {
-  isAccessTokenCreationOngoing: boolean;
   redirectTo: string;
   signInResult: SignInResult | null;
 }
@@ -28,6 +28,9 @@ interface SignInContainerState {
 export const SignInContainer = () => {
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const isSignInRequestOngoing = useAppSelector(selectIsSignInRequestOngoing);
+  const accessTokenSource = useAppSelector(selectAccessTokenSource);
+
   const { addToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -57,30 +60,15 @@ export const SignInContainer = () => {
   });
 
   useEffect(() => {
-    const accessTokenWasCreatedBasedOnRefreshToken =
-      state.signInResult !== null;
     if (isAuthenticated) {
-      if (!accessTokenWasCreatedBasedOnRefreshToken) {
+      if (accessTokenSource === "CREDENTIALS") {
         addToast("Authentication was successful", "success");
       }
       navigate(state.redirectTo);
     }
-  }, [isAuthenticated, state.signInResult]);
+  }, [isAuthenticated, accessTokenSource]);
   useEffect(() => {
-    fetchAccessToken((signInResult) => {
-      if (signInResult === "error") {
-        setState((prevState) => ({
-          ...prevState,
-          isAccessTokenCreationOngoing: false,
-        }));
-      } else {
-        setState((prevState) => ({
-          ...prevState,
-          isAccessTokenCreationOngoing: false,
-          signInResult: signInResult,
-        }));
-      }
-    });
+    dispatch(fetchNewAccessToken());
   }, []);
   useEffect(() => {
     if (state.signInResult) {
@@ -93,7 +81,7 @@ export const SignInContainer = () => {
   return (
     <Container>
       <CardContainer className={styles.rootContainer}>
-        {state.isAccessTokenCreationOngoing ? (
+        {isSignInRequestOngoing ? (
           <LoaderSpinner />
         ) : (
           <SignInCardContent submitHandler={submitHandler} />
@@ -102,17 +90,6 @@ export const SignInContainer = () => {
     </Container>
   );
 };
-
-async function fetchAccessToken(
-  onComplete: (signInResult: SignInResult | "error") => void
-) {
-  try {
-    const result = await createAccessToken();
-    onComplete(result);
-  } catch (e) {
-    onComplete("error");
-  }
-}
 
 function SignInCardContent(props: {
   submitHandler: (username: string, password: string) => void;

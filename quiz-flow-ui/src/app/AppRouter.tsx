@@ -22,11 +22,13 @@ import { JSX } from "react";
 import { SignOutPage } from "src/pages/SignOutPage";
 import { AuthenticationDetailsPage } from "src/pages/AuthenticationDetailsPage";
 import { QuizSetupPage } from "src/pages/QuizSetupPage";
+import { useTokenRefresher } from "src/hooks/useTokenRefresher";
 
 const SIGN_IN_PATH = "/sign-in";
 const SIGN_OUT_PATH = "/sign-out";
 
 export const AppRouter = () => {
+  useTokenRefresher();
   return (
     <BrowserRouter>
       <Routes>

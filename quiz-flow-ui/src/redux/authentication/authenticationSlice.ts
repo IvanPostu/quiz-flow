@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "..";
-import { signIn } from "src/model/authentications/authentications";
+import * as authentications from "src/model/authentications/authentications";
 import { ApiClientError } from "src/model/utils/ApiClientError";
 import { SignInResult } from "src/model/authentications/SignInResult";
 
@@ -13,17 +13,21 @@ export interface SignInStateType {
   refreshTokenExpirationIsoDate: string;
 }
 
+type AccessTokenSource = "REFRESH_TOKEN" | "CREDENTIALS";
+
 interface AuthenticationState {
   signInResult: SignInStateType | null;
   signInRequestStatus: "idle" | "pending" | "fulfilled" | "rejected";
   errorMessage: string;
+  accessTokenSource: AccessTokenSource | null;
 }
 
-const initialState = {
+const initialState: AuthenticationState = {
   signInResult: null,
   signInRequestStatus: "idle",
   errorMessage: "",
-} as AuthenticationState;
+  accessTokenSource: null,
+};
 
 const NAME = "authentications";
 
@@ -34,7 +38,29 @@ export const signInAsync = createAsyncThunk<
 >(`${NAME}/signInAsync`, async (data, thunkAPI) => {
   const { password, username } = data;
   try {
-    const signInResult = await signIn(username, password);
+    const signInResult = await authentications.signIn(username, password);
+    return mapSignInResultToSignInState(signInResult);
+  } catch (e) {
+    if (e instanceof ApiClientError) {
+      let message = e.message;
+      if (e.data["reason"]) {
+        message = `${message}. ${e.data["reason"]}`;
+      }
+      thunkAPI.dispatch(clearErrorMessage({ message: message }));
+      return thunkAPI.rejectWithValue(message);
+    }
+    console.error("Cannot sign in due to unexpected error: " + e, e);
+    return thunkAPI.rejectWithValue("Cannot sign in due to unexpected error");
+  }
+});
+
+export const fetchNewAccessToken = createAsyncThunk<
+  SignInStateType,
+  undefined,
+  { rejectValue: string }
+>(`${NAME}/fetchNewAccessToken`, async (data, thunkAPI) => {
+  try {
+    const signInResult = await authentications.createAccessToken();
     return mapSignInResultToSignInState(signInResult);
   } catch (e) {
     if (e instanceof ApiClientError) {
@@ -95,9 +121,29 @@ export const authenticationSlice = createSlice({
         (state, action: PayloadAction<SignInStateType>) => {
           state.signInRequestStatus = "fulfilled";
           state.signInResult = action.payload;
+          state.accessTokenSource = "CREDENTIALS";
         }
       )
       .addCase(signInAsync.rejected, (state, action) => {
+        state.signInRequestStatus = "rejected";
+        if (action.payload) {
+          state.errorMessage = action.payload;
+        }
+      });
+
+    builder
+      .addCase(fetchNewAccessToken.pending, (state) => {
+        state.signInRequestStatus = "pending";
+      })
+      .addCase(
+        fetchNewAccessToken.fulfilled,
+        (state, action: PayloadAction<SignInStateType>) => {
+          state.signInRequestStatus = "fulfilled";
+          state.signInResult = action.payload;
+          state.accessTokenSource = "REFRESH_TOKEN";
+        }
+      )
+      .addCase(fetchNewAccessToken.rejected, (state, action) => {
         state.signInRequestStatus = "rejected";
         if (action.payload) {
           state.errorMessage = action.payload;
@@ -117,6 +163,8 @@ export const selectIsSignInRequestOngoing = (state: RootState) =>
   state.authentication.signInRequestStatus === "pending";
 export const selectErrorMessage = (state: RootState) =>
   state.authentication.errorMessage;
+export const selectAccessTokenSource = (state: RootState) =>
+  state.authentication.accessTokenSource;
 
 export default authenticationSlice.reducer;
 
