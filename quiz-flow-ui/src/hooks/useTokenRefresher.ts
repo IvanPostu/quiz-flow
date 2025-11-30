@@ -28,13 +28,14 @@ export function useTokenRefresher() {
       if (isSignInRequestOngoing) {
         return;
       }
-      dispatch(fetchNewAccessToken());
+      refresh();
       return;
     }
 
     const id: ReturnType<typeof setTimeout> = setTimeout(refresh, refreshDelay);
 
     function refresh() {
+      console.log("Refreshing access token");
       dispatch(fetchNewAccessToken());
     }
 
