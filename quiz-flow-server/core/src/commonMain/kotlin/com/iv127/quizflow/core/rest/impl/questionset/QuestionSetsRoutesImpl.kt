@@ -177,6 +177,7 @@ class QuestionSetsRoutesImpl(koinApp: KoinApplication) : QuestionSetsRoutes, Api
         questionSet.id,
         questionSet.name,
         questionSet.description,
+        questionSet.userId == AuthenticationService.SUPER_USER_ID,
         questionSet.latestVersion,
         questionSet.createdDate
     )

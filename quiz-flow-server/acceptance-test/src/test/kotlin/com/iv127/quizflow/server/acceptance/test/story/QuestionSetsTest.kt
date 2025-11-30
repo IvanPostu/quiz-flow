@@ -41,13 +41,30 @@ class QuestionSetsTest {
     }
 
     @Test
+    fun testGetGlobalQuestionSetForRegularUserByQuestionSetId() = runTest {
+        val randomInt = Random.nextInt()
+        val createRequest =
+            QuestionSetCreateRequest("Example of questionnaire $randomInt", "Example of description $randomInt")
+        val created = questionSetsRoutes.create(superUserAuth.accessToken, createRequest)
+        val questionSet = questionSetsRoutes.get(auth.accessToken, created.id)
+
+        assertThat(created.isGlobal)
+            .isEqualTo(questionSet.isGlobal)
+            .isTrue()
+
+        assertThat(created)
+            .usingRecursiveAssertion()
+            .isEqualTo(questionSet)
+    }
+
+    @Test
     fun testRegularUserCanNotUpdateOrDeleteGlobalQuizSet() = runTest {
         val batchSize = 50
         val randomInt = Random.nextInt()
         val createRequest =
             QuestionSetCreateRequest("Example of questionnaire $randomInt", "Example of description $randomInt")
         val created = questionSetsRoutes.create(superUserAuth.accessToken, createRequest)
-        var globalQuizSet: QuestionSetResponse? = null
+        var globalQuizSet: QuestionSetResponse?
         var offset = 0
         do {
             val globalList = questionSetsRoutes.listGlobal(auth.accessToken, offset, batchSize, SortOrder.DESC)

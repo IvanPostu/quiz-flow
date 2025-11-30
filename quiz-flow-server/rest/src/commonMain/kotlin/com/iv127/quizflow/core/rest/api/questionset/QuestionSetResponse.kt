@@ -12,6 +12,7 @@ data class QuestionSetResponse(
     @SerialName("id") val id: String,
     @SerialName("name") val name: String,
     @SerialName("description") val description: String,
+    @SerialName("is_global") val isGlobal: Boolean,
     @SerialName("latest_version") val latestVersion: Int,
     @SerialName("created_date") @Serializable(with = InstantSerializer::class) val createdDate: Instant,
 )

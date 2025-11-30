@@ -6,6 +6,7 @@ import com.iv127.quizflow.core.model.question.QuestionSetBuilder
 import com.iv127.quizflow.core.model.question.QuestionSetNotFoundException
 import com.iv127.quizflow.core.model.question.QuestionSetVersion
 import com.iv127.quizflow.core.rest.api.SortOrder
+import com.iv127.quizflow.core.services.authentication.AuthenticationService
 import com.iv127.quizflow.core.services.questionset.QuestionSetService
 import com.iv127.quizflow.core.sqlite.SqliteDatabase
 import com.iv127.quizflow.core.sqlite.SqliteTimestampUtils
@@ -75,7 +76,10 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
     ): Pair<QuestionSet, QuestionSetVersion> {
         dbSupplier().use { db ->
             val createdAt = SqliteTimestampUtils.toValue(Clock.System.now())
-            val (questionSet, questionSetVersion) = selectByIdAndVersionOrElseLatest(db, id, userId, null)
+            val (questionSet, questionSetVersion) = selectByIdAndVersionOrElseLatest(db, id, null)
+            if (questionSet.userId != userId) {
+                throw QuestionSetNotFoundException(id)
+            }
             val (updatedQuestionSet, updatedQuestionSetVersion) = QuestionSetBuilder(questionSet, questionSetVersion)
                 .apply(updateFunc)
                 .buildAndIncrement()
@@ -117,7 +121,10 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
         return dbSupplier().use { db ->
             val archivedAt = SqliteTimestampUtils.toValue(Clock.System.now())
             db.executeAndGetChangedRowsCount("BEGIN TRANSACTION;")
-            val questionSet = selectByIdAndVersionOrElseLatest(db, id, userId, null).first
+            val questionSet = selectByIdAndVersionOrElseLatest(db, id, null).first
+            if (questionSet.userId != userId) {
+                throw QuestionSetNotFoundException(id)
+            }
             db.executeAndGetChangedRowsCount(
                 """
                     UPDATE question_sets SET archived_at=?
@@ -136,7 +143,11 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
         version: Int?
     ): Pair<QuestionSet, QuestionSetVersion> {
         return dbSupplier().use { db ->
-            selectByIdAndVersionOrElseLatest(db, id, userId, version)
+            val pair = selectByIdAndVersionOrElseLatest(db, id, version)
+            if (pair.first.userId != userId && pair.first.userId != AuthenticationService.SUPER_USER_ID) {
+                throw QuestionSetNotFoundException(id)
+            }
+            pair
         }
     }
 
@@ -196,10 +207,9 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
     private fun selectByIdAndVersionOrElseLatest(
         db: SqliteDatabase,
         id: String,
-        userId: String,
         version: Int?
     ): Pair<QuestionSet, QuestionSetVersion> {
-        val questionSet: QuestionSet = selectQuestionSet(db, id, userId)
+        val questionSet: QuestionSet = selectQuestionSet(db, id)
         val expectedVersion = version ?: questionSet.latestVersion
         val questionSetVersion: QuestionSetVersion? = db.executeAndGetResultSet(
             "SELECT t.* FROM question_set_versions AS t WHERE t.id=? AND t.version=?;",
@@ -219,11 +229,10 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
     private fun selectQuestionSet(
         db: SqliteDatabase,
         id: String,
-        userId: String,
     ): QuestionSet {
         val questionSet: QuestionSet? = db.executeAndGetResultSet(
-            "SELECT t.* FROM question_sets AS t WHERE t.id=? AND t.user_id=?;",
-            listOf(id, userId)
+            "SELECT t.* FROM question_sets AS t WHERE t.id=?;",
+            listOf(id)
         )
             .map { record ->
                 val deserialized: QuestionSet = Json.decodeFromString(record["json"].toString())
