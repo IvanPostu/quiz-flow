@@ -179,11 +179,12 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
             db.executeAndGetResultSet(
                 """
                     SELECT t.* FROM question_sets AS t 
-                    WHERE t.primary_key ${if (isAscSortOrder) ">" else "<"} ?
+                    WHERE t.user_id=? 
+                        AND t.primary_key ${if (isAscSortOrder) ">" else "<"} ?
                     ORDER BY t.primary_key ${if (isAscSortOrder) "ASC" else "DESC"}
                     LIMIT ?;
                 """.trimIndent(),
-                listOf(offsetPrimaryKey, limit)
+                listOf(userId, offsetPrimaryKey, limit)
             ).map { record ->
                 val deserialized: QuestionSet = Json.decodeFromString(record["json"].toString())
                 deserialized

@@ -22,6 +22,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assumptions.assumeThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 
 @OptIn(ExperimentalTime::class)
@@ -36,8 +37,8 @@ class OCPQuizTest {
 
     @BeforeEach
     fun setup() = runTest {
-        val username = "qa"
-        val password = "qa"
+        val username = "super_admin"
+        val password = "super_admin"
         auth = AuthenticationAcceptance.authenticateUser(username, password)
         homeDirectory = System.getProperty("user.home")
 
@@ -46,7 +47,7 @@ class OCPQuizTest {
     }
 
     @Disabled
-    @Test
+    @RepeatedTest(26)
     fun `test take a quiz and get result`() = runTest {
         val randomInt = Random.nextUInt()
         val questionSet =

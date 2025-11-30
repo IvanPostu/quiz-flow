@@ -3,6 +3,33 @@ import { handleAndThrowIfNeeded } from "../utils/requestErrorHandler";
 import { QuestionSet } from "./QuestionSet";
 import { parsePreciseISO } from "../utils/parsePreciseISO";
 
+export async function listGlobal(
+  accessToken: string,
+  limit: number,
+  offset: number,
+  sortOrder: "ASC" | "DESC"
+): Promise<QuestionSet[]> {
+  const queryParameters = new URLSearchParams({
+    offset: "" + offset,
+    limit: "" + limit,
+    sortOrder: sortOrder,
+  });
+
+  const url = `${API_BASE_URL}/api/question-sets/global?${queryParameters.toString()}`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + accessToken,
+    },
+  });
+
+  await handleAndThrowIfNeeded(res);
+  const data: QuestionSetResponse[] =
+    (await res.json()) as QuestionSetResponse[];
+  return data.map((value) => mapQuestionSetResponseToQuestionSet(value));
+}
+
 export async function list(
   accessToken: string,
   limit: number,
@@ -15,16 +42,14 @@ export async function list(
     sortOrder: sortOrder,
   });
 
-  const res = await fetch(
-    `${API_BASE_URL}/api/question-sets?${queryParameters.toString()}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + accessToken,
-      },
-    }
-  );
+  const url = `${API_BASE_URL}/api/question-sets?${queryParameters.toString()}`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + accessToken,
+    },
+  });
 
   await handleAndThrowIfNeeded(res);
   const data: QuestionSetResponse[] =

@@ -3,14 +3,17 @@ import { LoaderSpinner } from "../LoaderSpinner/LoaderSpinner";
 import { Modal } from "../Modal/Modal";
 import * as questionsets from "src/model/questionsets/questionsets";
 import { QuestionSet } from "src/model/questionsets/QuestionSet";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useAppSelector } from "src/redux";
 import { selectAccessToken } from "src/redux/authentication/authenticationSlice";
 import * as styles from "./styles.module.scss";
 import { ListOfItems } from "../ListOfItems/ListOfItems";
 import { useNavigate } from "react-router-dom";
+import { Tabs } from "../Tabs/Tabs";
 
 const DEFAULT_LIMIT_OF_QUESTION_SETS = 10;
+
+type QuestionSetType = "local" | "global";
 
 interface TakeQuizModalPropsType {
   takeQuizModalIsActive: boolean;
@@ -19,8 +22,10 @@ interface TakeQuizModalPropsType {
 
 interface TakeQuizModalStateType {
   questionSets: QuestionSet[] | null;
+  globalQuestionSets: QuestionSet[] | null;
   atLeastOneTimeWasOpened: boolean;
   offset: number;
+  type: QuestionSetType;
 }
 
 export const TakeQuizModal = ({
@@ -29,37 +34,50 @@ export const TakeQuizModal = ({
 }: TakeQuizModalPropsType) => {
   const [state, setState] = useState<TakeQuizModalStateType>({
     questionSets: null,
+    globalQuestionSets: null,
     atLeastOneTimeWasOpened: takeQuizModalIsActive,
     offset: 0,
+    type: "local",
   });
   const accessToken = useAppSelector(selectAccessToken) || "";
   const isMounted = useIsMounted();
   const navigate = useNavigate();
-  const internalFetchQuestionSets = (offset: number) => {
+  const internalFetchQuestionSets = (
+    offset: number,
+    questionSetType: QuestionSetType
+  ) => {
     fetchQuestionSets(
       accessToken,
       DEFAULT_LIMIT_OF_QUESTION_SETS,
       offset,
+      questionSetType,
       (result) => {
         if (!isMounted()) {
           return;
         }
         if (result === "error") {
-          alert("Something went wrong while retrieving the question sets list");
-        } else {
-          if (result.length === 0) {
-            return;
-          }
+          return;
+        }
+        if (questionSetType === "local") {
           setState((prevState) => ({
             ...prevState,
             questionSets: result,
+            offset: offset,
+          }));
+        } else {
+          setState((prevState) => ({
+            ...prevState,
+            globalQuestionSets: result,
             offset: offset,
           }));
         }
       }
     );
   };
-  const fetchQuestionSetsList = (type: "next" | "prev") => {
+  const fetchQuestionSetsList = (
+    type: "next" | "prev",
+    questionSetType: QuestionSetType
+  ) => {
     let newOffset =
       state.offset +
       (type === "next"
@@ -68,7 +86,7 @@ export const TakeQuizModal = ({
     if (newOffset < 0) {
       newOffset = 0;
     }
-    internalFetchQuestionSets(newOffset);
+    internalFetchQuestionSets(newOffset, questionSetType);
   };
 
   useEffect(() => {
@@ -77,7 +95,8 @@ export const TakeQuizModal = ({
         ...prevState,
         atLeastOneTimeWasOpened: true,
       }));
-      internalFetchQuestionSets(state.offset);
+      internalFetchQuestionSets(state.offset, "local");
+      internalFetchQuestionSets(state.offset, "global");
     }
   }, [takeQuizModalIsActive]);
 
@@ -89,21 +108,96 @@ export const TakeQuizModal = ({
     >
       <div className={styles.rootContainer}>
         <h2 className={styles.title}>Take a Quiz</h2>
-        <p>
-          <b>Please choose a question set for the quiz:</b>
-        </p>
-        {state.questionSets === null ? (
-          <LoaderSpinner />
-        ) : (
-          <QuestionSetsList
-            questionSets={state.questionSets}
-            onItemClick={(id) => {
-              navigate(`/setup-quiz?questionSetId=${id}`);
-            }}
-            onNextClick={() => fetchQuestionSetsList("next")}
-            onPrevClick={() => fetchQuestionSetsList("prev")}
-          />
-        )}
+
+        <Tabs
+          tabs={[
+            {
+              id: "local",
+              label: "Local",
+              content: (
+                <Fragment>
+                  {state.questionSets === null ? (
+                    <LoaderSpinner />
+                  ) : state.questionSets === null ? (
+                    <p>
+                      <b>Question sets not found!</b>
+                    </p>
+                  ) : (
+                    <Fragment>
+                      <p>
+                        <b>
+                          Please choose a question set from the local list for
+                          the quiz:
+                        </b>
+                      </p>
+                      <QuestionSetsList
+                        questionSets={state.questionSets}
+                        onItemClick={(id) => {
+                          navigate(`/setup-quiz?questionSetId=${id}`);
+                        }}
+                        onNextClick={() =>
+                          fetchQuestionSetsList("next", state.type)
+                        }
+                        onPrevClick={() =>
+                          fetchQuestionSetsList("prev", state.type)
+                        }
+                      />
+                    </Fragment>
+                  )}
+                </Fragment>
+              ),
+            },
+            {
+              id: "global",
+              label: "Global",
+              content: (
+                <Fragment>
+                  {state.globalQuestionSets === null ? (
+                    <LoaderSpinner />
+                  ) : state.globalQuestionSets === null ? (
+                    <p>
+                      <b>Question sets not found!</b>
+                    </p>
+                  ) : (
+                    <Fragment>
+                      <p>
+                        <b>
+                          Please choose a question set from the global list for
+                          the quiz:
+                        </b>
+                      </p>
+                      <QuestionSetsList
+                        questionSets={state.globalQuestionSets}
+                        onItemClick={(id) => {
+                          navigate(`/setup-quiz?questionSetId=${id}`);
+                        }}
+                        onNextClick={() =>
+                          fetchQuestionSetsList("next", state.type)
+                        }
+                        onPrevClick={() =>
+                          fetchQuestionSetsList("prev", state.type)
+                        }
+                      />
+                    </Fragment>
+                  )}
+                </Fragment>
+              ),
+            },
+          ]}
+          onTabChanged={(id) => {
+            if (id === "t1") {
+              setState((prevState) => ({
+                ...prevState,
+                type: "local",
+              }));
+            } else {
+              setState((prevState) => ({
+                ...prevState,
+                type: "global",
+              }));
+            }
+          }}
+        />
       </div>
     </Modal>
   );
@@ -148,10 +242,21 @@ async function fetchQuestionSets(
   accessToken: string,
   limit: number,
   offset: number,
+  questionSetType: QuestionSetType,
   onComplete: (questionSets: QuestionSet[] | "error") => void
 ) {
   try {
-    const result = await questionsets.list(accessToken, limit, offset, "DESC");
+    let result: QuestionSet[];
+    if (questionSetType === "local") {
+      result = await questionsets.list(accessToken, limit, offset, "DESC");
+    } else {
+      result = await questionsets.listGlobal(
+        accessToken,
+        limit,
+        offset,
+        "DESC"
+      );
+    }
     onComplete(result);
   } catch (e) {
     console.error(e);
