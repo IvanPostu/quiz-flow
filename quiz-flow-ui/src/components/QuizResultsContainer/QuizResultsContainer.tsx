@@ -1,5 +1,5 @@
 import { Fragment } from "react/jsx-runtime";
-import * as styles from "./styles.module.scss";
+import * as styles from "./QuizResultsContainer.module.scss";
 import { IoEllipsisHorizontalOutline } from "react-icons/io5";
 import { ListOfItems } from "../ListOfItems/ListOfItems";
 import { LoaderDots } from "../LoaderDots/LoaderDots";
@@ -37,7 +37,7 @@ const items = [
   },
 ];
 
-export const LatestQuestionSets = () => {
+export const QuizResultsContainer = () => {
   const [state, setState] = useState({
     isLoading: false,
     // items: [],
@@ -48,7 +48,7 @@ export const LatestQuestionSets = () => {
   return (
     <Fragment>
       <div className={styles.rootContainer}>
-        <h2 className={styles.title}>Latest Question Sets</h2>
+        <h2 className={styles.title}>Quiz results</h2>
 
         <div className={styles.main}>
           {isLoading ? (

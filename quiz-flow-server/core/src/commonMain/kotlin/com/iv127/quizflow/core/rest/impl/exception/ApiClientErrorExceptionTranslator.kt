@@ -5,7 +5,6 @@ import com.iv127.quizflow.core.model.question.QuestionSetNotFoundException
 import com.iv127.quizflow.core.model.quizz.FinalizedQuizUpdateException
 import com.iv127.quizflow.core.model.quizz.InvalidQuizAnswerException
 import com.iv127.quizflow.core.model.quizz.QuizNotFoundException
-import com.iv127.quizflow.core.rest.impl.quizresult.FinalizedQuizNotFoundException
 import com.iv127.quizflow.core.services.user.UsernameAlreadyTakenException
 import kotlin.reflect.KClass
 
@@ -79,17 +78,6 @@ object ApiClientErrorExceptionTranslator {
                 "Quiz not found",
                 mapOf(
                     "quizId" to e.quizId,
-                ),
-                e
-            )
-        }
-        mapper.register(FinalizedQuizNotFoundException::class) { e ->
-            ApiClientErrorException(
-                "finalized_quiz_not_found",
-                "Finalized quiz was not found",
-                mapOf(
-                    "quizId" to e.quizId,
-                    "reason" to e.reason,
                 ),
                 e
             )

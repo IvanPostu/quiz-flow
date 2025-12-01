@@ -73,31 +73,16 @@ class QuizResultsRoutesTest {
     fun testFinalizedQuizNotFoundCase() = runTest {
         val (user, password) = createUser()
         val auth = AuthenticationAcceptance.authenticateUser(user.username, password)
-        val quizNotFinalized = generateNonFinalizedQuizzes(auth.accessToken, 1)[0]
 
-        var e = assertThrows<RestErrorException> {
-            quizResultsRoutes.get(auth.accessToken, quizNotFinalized.id)
-        }
-        assertThat(e.httpStatusCode).isEqualTo(400)
-        assertThat(e.restErrorResponse.errorCode).isEqualTo("finalized_quiz_not_found")
-        assertThat(e.restErrorResponse.message).isEqualTo("Finalized quiz was not found")
-        assertThat(e.restErrorResponse.data).isEqualTo(
-            mapOf(
-                "quizId" to quizNotFinalized.id,
-                "reason" to "quiz is not finalized",
-            )
-        )
-
-        e = assertThrows<RestErrorException> {
+        val e = assertThrows<RestErrorException> {
             quizResultsRoutes.get(auth.accessToken, "blahblah1")
         }
         assertThat(e.httpStatusCode).isEqualTo(400)
-        assertThat(e.restErrorResponse.errorCode).isEqualTo("finalized_quiz_not_found")
-        assertThat(e.restErrorResponse.message).isEqualTo("Finalized quiz was not found")
+        assertThat(e.restErrorResponse.errorCode).isEqualTo("quiz_not_found")
+        assertThat(e.restErrorResponse.message).isEqualTo("Quiz not found")
         assertThat(e.restErrorResponse.data).isEqualTo(
             mapOf(
-                "quizId" to "blahblah1",
-                "reason" to "invalid quizId",
+                "quizId" to "blahblah1"
             )
         )
     }
@@ -209,7 +194,8 @@ class QuizResultsRoutesTest {
                 QuestionSetCreateRequest("Example of questionnaire", "Example of description")
             )
 
-        val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload( accessToken,
+        val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+            accessToken,
             listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
             questionSet.id
         )

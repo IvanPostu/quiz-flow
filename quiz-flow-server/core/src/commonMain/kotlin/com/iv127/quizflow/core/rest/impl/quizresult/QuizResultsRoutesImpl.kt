@@ -2,13 +2,13 @@ package com.iv127.quizflow.core.rest.api.quizresult
 
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
 import com.iv127.quizflow.core.model.quizz.Quiz
+import com.iv127.quizflow.core.model.quizz.QuizNotFoundException
 import com.iv127.quizflow.core.model.quizz.QuizQuestion
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.SortOrder
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutes.Companion.ROUTE_PATH
 import com.iv127.quizflow.core.rest.api.toSortOrderEnumOrNull
 import com.iv127.quizflow.core.rest.impl.exception.ApiClientErrorExceptionTranslator
-import com.iv127.quizflow.core.rest.impl.quizresult.FinalizedQuizNotFoundException
 import com.iv127.quizflow.core.security.AccessTokenProvider
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.routingContextWebResponse
@@ -49,10 +49,10 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
         try {
             val quiz = quizService.getQuiz(authorization.authenticationRefreshToken.userId, quizId)
             return mapToQuizResultResponse(quiz)
-        } catch (e: FinalizedQuizNotFoundException) {
+        } catch (e: QuizNotFoundException) {
             throw ApiClientErrorExceptionTranslator.translateAndThrowOrElseFail(
                 e,
-                FinalizedQuizNotFoundException::class,
+                QuizNotFoundException::class,
             )
         }
     }
@@ -121,6 +121,5 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
             }
         )
     }
-
 }
 

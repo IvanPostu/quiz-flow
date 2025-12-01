@@ -7,6 +7,8 @@ import * as styles from "./styles.module.scss";
 import { Fragment } from "react/jsx-runtime";
 import { useState } from "react";
 import { TakeQuizModal } from "../TakeQuizModal/TakeQuizModal";
+import { QuizResultsContainer } from "../QuizResultsContainer/QuizResultsContainer";
+import { CardContainer } from "../CardContainer/CardContainer";
 
 export const MainPageContainer = () => {
   const [state, setState] = useState<{ takeQuizModalIsActive: boolean }>({
@@ -18,7 +20,7 @@ export const MainPageContainer = () => {
   return (
     <Fragment>
       <div className={styles.rootContainer}>
-        <CardContainer
+        <ActionsCardContainer
           onTakeQuizCardClick={() =>
             setState((prevState) => ({
               ...prevState,
@@ -26,6 +28,9 @@ export const MainPageContainer = () => {
             }))
           }
         />
+        <CardContainer>
+          <QuizResultsContainer />
+        </CardContainer>
       </div>
       <TakeQuizModal
         closeModal={closeModal}
@@ -35,7 +40,7 @@ export const MainPageContainer = () => {
   );
 };
 
-const CardContainer: React.FC<{
+const ActionsCardContainer: React.FC<{
   onTakeQuizCardClick: () => void;
 }> = ({ onTakeQuizCardClick }) => {
   const cards = [
