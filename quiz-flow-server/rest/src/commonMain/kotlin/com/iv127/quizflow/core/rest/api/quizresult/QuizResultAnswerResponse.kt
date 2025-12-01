@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 data class QuizResultAnswerResponse(
     @SerialName("question_id") val questionId: String,
     @SerialName("chosen_answer_indexes") val chosenAnswerIndexes: List<Int>,
-    @SerialName("right_answer_indexes") val rightAnswerIndexes: List<Int>,
+    @SerialName("right_answer_indexes") val rightAnswerIndexes: List<Int>?,
 )

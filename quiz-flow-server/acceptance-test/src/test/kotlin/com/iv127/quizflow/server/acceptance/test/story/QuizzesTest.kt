@@ -12,7 +12,6 @@ import com.iv127.quizflow.core.rest.api.quiz.QuizCreateRequest
 import com.iv127.quizflow.core.rest.api.quiz.QuizQuestionResponse
 import com.iv127.quizflow.core.rest.api.quiz.QuizUpdateRequest
 import com.iv127.quizflow.core.rest.api.quiz.QuizzesRoutes
-import com.iv127.quizflow.core.rest.api.quizresult.QuizFinalizedStateType
 import com.iv127.quizflow.core.rest.api.quizresult.QuizResultsRoutes
 import com.iv127.quizflow.server.acceptance.test.acceptance.AuthenticationAcceptance
 import com.iv127.quizflow.server.acceptance.test.acceptance.UserAcceptance
@@ -21,6 +20,7 @@ import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionSetsRoutesTes
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuestionsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuizResultsRoutesTestImpl
 import com.iv127.quizflow.server.acceptance.test.rest.impl.QuizzesRoutesTestImpl
+import kotlin.random.Random
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -77,75 +77,7 @@ class QuizzesTest {
     }
 
     @Test
-    fun testQuizResultCanBeProvidedOnlyForFinalizedQuizzes() = runTest {
-        val questionSet =
-            questionSetsRoutes.create(
-                auth.accessToken,
-                QuestionSetCreateRequest("Example of questionnaire", "Example of description")
-            )
-
-        val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
-            auth.accessToken,
-            listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
-            questionSet.id
-        )
-        assertThat(questionsSetVersion.questions).hasSize(3)
-
-        val quizzes = arrayOf(true, false, true)
-            .map { finalized ->
-                val createdQuiz = quizzesRoutes.create(
-                    auth.accessToken,
-                    QuizCreateRequest(
-                        questionSet.id, questionsSetVersion.version,
-                        listOf(
-                            questionsSetVersion.questions[0].id,
-                            questionsSetVersion.questions[1].id,
-                            questionsSetVersion.questions[2].id,
-                        )
-                    )
-                )
-
-                quizzesRoutes.update(
-                    auth.accessToken, createdQuiz.id, QuizUpdateRequest(
-                        finalized,
-                        listOf(
-                            QuizAnswerRequest(questionsSetVersion.questions[0].id, listOf(1)),
-                            QuizAnswerRequest(questionsSetVersion.questions[1].id, listOf(1)),
-                        )
-                    )
-                )
-            }
-
-        val quizResults =
-            quizResultsRoutes.list(auth.accessToken, null, null, null, QuizFinalizedStateType.FINALIZED_ONLY)
-
-        assertThat(quizResults)
-            .hasSize(2)
-            .anySatisfy({ assertThat(it.quizId).isEqualTo(quizzes[0].id) })
-            .anySatisfy({ assertThat(it.quizId).isEqualTo(quizzes[2].id) })
-
-        val e = assertThrows<RestErrorException> {
-            quizResultsRoutes.get(auth.accessToken, quizzes[1].id)
-        }
-        assertThat(e.httpStatusCode).isEqualTo(400)
-        assertThat(e.restErrorResponse.errorCode).isEqualTo("finalized_quiz_not_found")
-        assertThat(e.restErrorResponse.message).isEqualTo("Finalized quiz was not found")
-        assertThat(e.restErrorResponse.data).isEqualTo(
-            mapOf(
-                "quizId" to quizzes[1].id,
-                "reason" to "quiz is not finalized",
-            )
-        )
-        assertThat(quizResultsRoutes.get(auth.accessToken, quizResults[0].quizId))
-            .usingRecursiveComparison()
-            .isEqualTo(quizResults[0])
-        assertThat(quizResultsRoutes.get(auth.accessToken, quizResults[1].quizId))
-            .usingRecursiveComparison()
-            .isEqualTo(quizResults[1])
-    }
-
-    @Test
-    fun `test take a quiz and get result`() = runTest {
+    fun testTakeQuizAndGetResult() = runTest {
         val questionSet =
             questionSetsRoutes.create(
                 auth.accessToken,
@@ -197,6 +129,120 @@ class QuizzesTest {
                 assertThat(result.answersCount).isEqualTo(2)
                 assertThat(result.correctAnswersCount).isEqualTo(1)
             })
+    }
+
+
+    @Test
+    fun testGetQuizResultForOngoingQuiz() = runTest {
+        val randomInt = Random.nextInt()
+        val questionSet =
+            questionSetsRoutes.create(
+                auth.accessToken,
+                QuestionSetCreateRequest("Example of questionnaire $randomInt", "Example of description $randomInt")
+            )
+
+        val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
+            auth.accessToken,
+            listOf(MultipartData.FilePart("file", "questions.MD", questionsContent, null)),
+            questionSet.id
+        )
+        assertThat(questionsSetVersion.questions).hasSize(3)
+
+        val createdQuiz = quizzesRoutes.create(
+            auth.accessToken,
+            QuizCreateRequest(
+                questionSet.id, questionsSetVersion.version,
+                listOf(
+                    questionsSetVersion.questions[0].id,
+                    questionsSetVersion.questions[1].id,
+                    questionsSetVersion.questions[2].id,
+                )
+            )
+        )
+
+        var updatedQuiz = quizzesRoutes.update(
+            auth.accessToken, createdQuiz.id, QuizUpdateRequest(
+                false,
+                listOf(
+                    QuizAnswerRequest(questionsSetVersion.questions[0].id, listOf(1)),
+                    QuizAnswerRequest(questionsSetVersion.questions[1].id, listOf(1)),
+                )
+            )
+        )
+        var evaluationResults = quizResultsRoutes.list(auth.accessToken, null, null, null, null)
+        var evaluationResult = quizResultsRoutes.get(auth.accessToken, updatedQuiz.id)
+
+        assertThat(evaluationResults).hasSize(1)
+        assertThat(listOf(evaluationResult, evaluationResults[0]))
+            .allSatisfy({ result ->
+                assertThat(result.quizId).isEqualTo(updatedQuiz.id)
+                assertThat(result.questionSetId).isEqualTo(updatedQuiz.questionSetId)
+                assertThat(result.questionSetVersion).isEqualTo(updatedQuiz.questionSetVersion)
+                assertThat(result.quizCreatedDate).isEqualTo(updatedQuiz.createdDate)
+                assertThat(result.quizFinalizedDate).isEqualTo(updatedQuiz.finalizedDate)
+                assertThat(result.questionsCount).isEqualTo(3)
+                assertThat(result.answersCount).isEqualTo(2)
+                assertThat(result.correctAnswersCount).isNull()
+                assertThat(result.answers)
+                    .hasSize(3)
+                    .anySatisfy({
+                        assertThat(it.rightAnswerIndexes).isNull()
+                        assertThat(it.chosenAnswerIndexes).isEqualTo(listOf(1))
+                        assertThat(it.questionId).isNotNull()
+                    })
+                    .anySatisfy({
+                        assertThat(it.rightAnswerIndexes).isNull()
+                        assertThat(it.chosenAnswerIndexes).isEqualTo(listOf(1))
+                        assertThat(it.questionId).isNotNull()
+                    })
+                    .anySatisfy({
+                        assertThat(it.rightAnswerIndexes).isNull()
+                        assertThat(it.chosenAnswerIndexes).isEmpty()
+                        assertThat(it.questionId).isNotNull()
+                    })
+            })
+
+        updatedQuiz = quizzesRoutes.update(
+            auth.accessToken, createdQuiz.id, QuizUpdateRequest(
+                true,
+                listOf(
+                    QuizAnswerRequest(questionsSetVersion.questions[0].id, listOf(1)),
+                    QuizAnswerRequest(questionsSetVersion.questions[1].id, listOf(1)),
+                )
+            )
+        )
+        evaluationResults = quizResultsRoutes.list(auth.accessToken, null, null, null, null)
+        evaluationResult = quizResultsRoutes.get(auth.accessToken, updatedQuiz.id)
+        assertThat(evaluationResults).hasSize(1)
+        assertThat(listOf(evaluationResult, evaluationResults[0]))
+            .allSatisfy({ result ->
+                assertThat(result.quizId).isEqualTo(updatedQuiz.id)
+                assertThat(result.questionSetId).isEqualTo(updatedQuiz.questionSetId)
+                assertThat(result.questionSetVersion).isEqualTo(updatedQuiz.questionSetVersion)
+                assertThat(result.quizCreatedDate).isEqualTo(updatedQuiz.createdDate)
+                assertThat(result.quizFinalizedDate).isEqualTo(updatedQuiz.finalizedDate)
+                assertThat(result.questionsCount).isEqualTo(3)
+                assertThat(result.answersCount).isEqualTo(2)
+                assertThat(result.correctAnswersCount).isEqualTo(1)
+                assertThat(result.answers)
+                    .hasSize(3)
+                    .anySatisfy({
+                        assertThat(it.rightAnswerIndexes).isEqualTo(listOf(0))
+                        assertThat(it.chosenAnswerIndexes).isEqualTo(listOf(1))
+                        assertThat(it.questionId).isNotNull()
+                    })
+                    .anySatisfy({
+                        assertThat(it.rightAnswerIndexes).isEqualTo(listOf(1))
+                        assertThat(it.chosenAnswerIndexes).isEqualTo(listOf(1))
+                        assertThat(it.questionId).isNotNull()
+                    })
+                    .anySatisfy({
+                        assertThat(it.rightAnswerIndexes).isEqualTo(listOf(1))
+                        assertThat(it.chosenAnswerIndexes).isEmpty()
+                        assertThat(it.questionId).isNotNull()
+                    })
+            })
+
     }
 
     @Test

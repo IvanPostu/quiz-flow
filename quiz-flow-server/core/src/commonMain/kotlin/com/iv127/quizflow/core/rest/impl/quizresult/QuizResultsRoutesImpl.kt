@@ -2,7 +2,6 @@ package com.iv127.quizflow.core.rest.api.quizresult
 
 import com.iv127.quizflow.core.model.authentication.AuthorizationScope
 import com.iv127.quizflow.core.model.quizz.Quiz
-import com.iv127.quizflow.core.model.quizz.QuizNotFoundException
 import com.iv127.quizflow.core.model.quizz.QuizQuestion
 import com.iv127.quizflow.core.rest.ApiRoute
 import com.iv127.quizflow.core.rest.api.SortOrder
@@ -48,7 +47,7 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
         authenticationService.checkAuthorizationScopes(authorization, setOf(AuthorizationScope.REGULAR_USER))
 
         try {
-            val quiz = getFinalizedQuiz(authorization.authenticationRefreshToken.userId, quizId)
+            val quiz = quizService.getQuiz(authorization.authenticationRefreshToken.userId, quizId)
             return mapToQuizResultResponse(quiz)
         } catch (e: FinalizedQuizNotFoundException) {
             throw ApiClientErrorExceptionTranslator.translateAndThrowOrElseFail(
@@ -88,6 +87,7 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
 
     private fun mapToQuizResultResponse(quiz: Quiz): QuizResultResponse {
         val questionsById: Map<String, QuizQuestion> = quiz.quizQuestions.associateBy { it.questionId }
+        val isFinalized = quiz.finalizedDate != null
 
         var answersCount = 0
         var correctAnswersCount = 0
@@ -111,27 +111,15 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
             quiz.finalizedDate,
             questionsById.size,
             answersCount,
-            correctAnswersCount,
+            if (isFinalized) correctAnswersCount else null,
             quiz.quizAnswers.map {
                 QuizResultAnswerResponse(
                     it.questionId,
                     it.chosenAnswerIndexes,
-                    questionsById[it.questionId]!!.correctAnswerIndexes
+                    if (isFinalized) questionsById[it.questionId]!!.correctAnswerIndexes else null
                 )
             }
         )
-    }
-
-    private fun getFinalizedQuiz(userId: String, quizId: String): Quiz {
-        try {
-            val quiz = quizService.getQuiz(userId, quizId)
-            if (!quiz.isFinalized()) {
-                throw FinalizedQuizNotFoundException(quizId, "quiz is not finalized")
-            }
-            return quiz
-        } catch (e: QuizNotFoundException) {
-            throw FinalizedQuizNotFoundException(quizId, "invalid quizId")
-        }
     }
 
 }

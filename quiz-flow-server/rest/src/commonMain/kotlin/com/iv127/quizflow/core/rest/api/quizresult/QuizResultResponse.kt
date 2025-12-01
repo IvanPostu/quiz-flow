@@ -16,7 +16,7 @@ data class QuizResultResponse(
     @SerialName("quiz_finalized_date") @Serializable(with = InstantSerializer::class) val quizFinalizedDate: Instant?,
     @SerialName("question_count") val questionsCount: Int,
     @SerialName("answers_count") val answersCount: Int,
-    @SerialName("correct_answers_count") val correctAnswersCount: Int,
+    @SerialName("correct_answers_count") val correctAnswersCount: Int?,
     @SerialName("answers") val answers: List<QuizResultAnswerResponse>,
 )
 
