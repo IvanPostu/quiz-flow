@@ -1,21 +1,17 @@
 import { Fragment, useState } from "react";
-import { IoEllipsisHorizontalOutline } from "react-icons/io5";
-import { CardContainer } from "src/components/CardContainer/CardContainer";
 import { Container } from "src/components/Container/Container";
-import { LatestQuestionSets } from "src/components/LatestQuestionSets/LatestQuestionSets";
-import { ListOfItems } from "src/components/ListOfItems/ListOfItems";
 import { LoaderDots } from "src/components/LoaderDots/LoaderDots";
 import { LoaderSpinner } from "src/components/LoaderSpinner/LoaderSpinner";
 import { Modal } from "src/components/Modal/Modal";
 import { QuestionSetContainer } from "src/components/QuestionSetContainer/QuestionSetContainer";
 import { useToast } from "src/components/ToastNotification/ToastContext";
 
-import { useAppSelector, useAppDispatch } from "src/redux";
+import { useAppDispatch, useAppSelector } from "src/redux";
 import {
-  increment,
   decrement,
-  incrementByAmount,
+  increment,
   incrementAsync,
+  incrementByAmount,
 } from "src/redux/counter/counterSlice";
 
 export const SandboxPage = () => {
@@ -33,10 +29,6 @@ export const SandboxPage = () => {
   return (
     <Fragment>
       <Container>
-        <CardContainer>
-          <LatestQuestionSets />
-        </CardContainer>
-
         <button
           onClick={() => {
             setState((prevState) => ({

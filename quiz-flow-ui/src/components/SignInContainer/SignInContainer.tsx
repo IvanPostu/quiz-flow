@@ -96,6 +96,7 @@ function SignInCardContent(props: {
 }) {
   const isSignInOngoing = useAppSelector(selectIsSignInRequestOngoing);
   const errorMessage = useAppSelector(selectErrorMessage);
+  const accessTokenSource = useAppSelector(selectAccessTokenSource);
 
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -122,7 +123,7 @@ function SignInCardContent(props: {
           <input ref={passwordRef} type="password" required />
         </label>
       </div>
-      {errorMessage && (
+      {errorMessage && accessTokenSource === "CREDENTIALS" && (
         <div className={styles.element}>
           <span style={{ color: globalStyleVariables.red300 }}>
             {errorMessage}
