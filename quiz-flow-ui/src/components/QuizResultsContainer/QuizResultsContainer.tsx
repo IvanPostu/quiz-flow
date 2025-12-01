@@ -3,7 +3,7 @@ import * as styles from "./QuizResultsContainer.module.scss";
 import { IoCheckmarkCircleOutline, IoHourglassOutline } from "react-icons/io5";
 import { ListOfItems } from "../ListOfItems/ListOfItems";
 import { LoaderDots } from "../LoaderDots/LoaderDots";
-import { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import * as quizresults from "src/model/quizresults/quizresults";
 import { QuizResult } from "src/model/quizresults/QuizResult";
@@ -69,14 +69,7 @@ export const QuizResultsContainer = () => {
                 const status: "progress" | "done" = isFinalized
                   ? "done"
                   : "progress";
-                const leftIcon = isFinalized ? (
-                  <IoCheckmarkCircleOutline
-                    color={globals.green400}
-                    size={"30px"}
-                  />
-                ) : (
-                  <IoHourglassOutline color={globals.yellow400} size={"30px"} />
-                );
+
                 const descriptionItems: string[] = [
                   `Status: ${status}`,
                   `Version: ${value.questionSetVersion}`,
@@ -88,9 +81,9 @@ export const QuizResultsContainer = () => {
                     }`
                   );
                   descriptionItems.push(
-                    `Score: ${
+                    `Score: ${Math.floor(
                       (value.correctAnswersCount!! / value.questionCount) * 100
-                    }%`
+                    )}%`
                   );
                 }
 
@@ -98,20 +91,27 @@ export const QuizResultsContainer = () => {
                   id: value.quizId,
                   title: value.questionSetName,
                   descriptionItems: descriptionItems,
-                  left: <span>{leftIcon}</span>,
+                  left: (
+                    <span>
+                      <ListItemLeftSideIcon isFinalized={isFinalized} />
+                    </span>
+                  ),
                 };
               })}
               onItemClick={(id) => navigate(`/quiz/${id}`)}
             />
           )}
         </div>
-
-        <div className={styles.bottomLink}>
-          <Link to="#">Manage question sets</Link>
-        </div>
       </div>
     </Fragment>
   );
+};
+
+const ListItemLeftSideIcon: FC<{ isFinalized: boolean }> = (props) => {
+  if (props.isFinalized) {
+    return <IoCheckmarkCircleOutline color={globals.green400} size={"30px"} />;
+  }
+  return <IoHourglassOutline color={globals.yellow400} size={"30px"} />;
 };
 
 async function fetchQuestionResults(
