@@ -33,4 +33,9 @@ interface QuestionSetService {
         sortOrder: SortOrder
     ): List<QuestionSet>
 
+    fun getQuestionSetsByIds(
+        userId: String,
+        questionSetIds: List<String>
+    ): Map<String, QuestionSet>
+
 }

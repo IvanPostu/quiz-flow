@@ -78,10 +78,12 @@ class QuizzesTest {
 
     @Test
     fun testTakeQuizAndGetResult() = runTest {
+        val randomInt = Random.nextInt()
+        val questionSetName = "Example of questionnaire $randomInt"
         val questionSet =
             questionSetsRoutes.create(
                 auth.accessToken,
-                QuestionSetCreateRequest("Example of questionnaire", "Example of description")
+                QuestionSetCreateRequest(questionSetName, "Example of description $randomInt")
             )
 
         val questionsSetVersion: QuestionSetVersionResponse = questionsRoutes.upload(
@@ -122,6 +124,7 @@ class QuizzesTest {
             .allSatisfy({ result ->
                 assertThat(result.quizId).isEqualTo(finalizedQuiz.id)
                 assertThat(result.questionSetId).isEqualTo(finalizedQuiz.questionSetId)
+                assertThat(result.questionSetName).isEqualTo(questionSetName)
                 assertThat(result.questionSetVersion).isEqualTo(finalizedQuiz.questionSetVersion)
                 assertThat(result.quizCreatedDate).isEqualTo(finalizedQuiz.createdDate)
                 assertThat(result.quizFinalizedDate).isEqualTo(finalizedQuiz.finalizedDate)

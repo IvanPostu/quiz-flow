@@ -13,6 +13,7 @@ import com.iv127.quizflow.core.security.AccessTokenProvider
 import com.iv127.quizflow.core.server.JsonWebResponse
 import com.iv127.quizflow.core.server.routingContextWebResponse
 import com.iv127.quizflow.core.services.authentication.AuthenticationService
+import com.iv127.quizflow.core.services.questionset.QuestionSetService
 import com.iv127.quizflow.core.services.quiz.QuizService
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -24,6 +25,7 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
 
     private val quizService: QuizService by koinApp.koin.inject()
     private val authenticationService: AuthenticationService by koinApp.koin.inject()
+    private val questionSetService: QuestionSetService by koinApp.koin.inject()
 
     override fun setup(parent: Route) {
         parent.get("$ROUTE_PATH/{quizId}", routingContextWebResponse {
@@ -48,7 +50,12 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
 
         try {
             val quiz = quizService.getQuiz(authorization.authenticationRefreshToken.userId, quizId)
-            return mapToQuizResultResponse(quiz)
+            val questionSet = questionSetService.getQuestionSetWithVersionOrElseLatest(
+                authorization.authenticationRefreshToken.userId,
+                quiz.questionSetId, null
+            )
+
+            return mapToQuizResultResponse(quiz, questionSet.first.name)
         } catch (e: QuizNotFoundException) {
             throw ApiClientErrorExceptionTranslator.translateAndThrowOrElseFail(
                 e,
@@ -75,17 +82,24 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
             if (quizFinalizedStateType == null) QuizService.FinalizedStateType.ALL else QuizService.FinalizedStateType.valueOf(
                 quizFinalizedStateType.name
             )
-        val finalizedQuizzes = quizService.getQuizList(
+        val quizResults = quizService.getQuizList(
             authorization.authenticationRefreshToken.userId,
             explicitOffset,
             explicitLimit,
             explicitSortOrder,
             finalizedStateType
         )
-        return finalizedQuizzes.map { mapToQuizResultResponse(it) }
+        val questionSetsById = questionSetService.getQuestionSetsByIds(
+            authorization.authenticationRefreshToken.userId,
+            quizResults.map { it.questionSetId })
+
+        return quizResults.map {
+            val questionSetName = questionSetsById[it.questionSetId]?.name ?: ""
+            mapToQuizResultResponse(it, questionSetName)
+        }
     }
 
-    private fun mapToQuizResultResponse(quiz: Quiz): QuizResultResponse {
+    private fun mapToQuizResultResponse(quiz: Quiz, questionSetName: String): QuizResultResponse {
         val questionsById: Map<String, QuizQuestion> = quiz.quizQuestions.associateBy { it.questionId }
         val isFinalized = quiz.finalizedDate != null
 
@@ -106,6 +120,7 @@ class QuizResultsRoutesImpl(koinApp: KoinApplication) : QuizResultsRoutes, ApiRo
         return QuizResultResponse(
             quiz.id,
             quiz.questionSetId,
+            questionSetName,
             quiz.questionSetVersion,
             quiz.createdDate,
             quiz.finalizedDate,

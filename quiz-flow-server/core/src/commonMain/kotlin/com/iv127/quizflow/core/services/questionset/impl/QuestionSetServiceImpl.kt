@@ -203,6 +203,25 @@ class QuestionSetServiceImpl(private val dbSupplier: () -> SqliteDatabase) : Que
         }
     }
 
+    override fun getQuestionSetsByIds(userId: String, questionSetIds: List<String>): Map<String, QuestionSet> {
+        val result = mutableMapOf<String, QuestionSet>()
+        dbSupplier().use { db ->
+            db.executeAndGetResultSet(
+                """
+                    SELECT t.* FROM question_sets AS t 
+                    WHERE t.id IN (${questionSetIds.map { "?" }.joinToString(separator = ",")});
+                """.trimIndent(),
+                questionSetIds
+            ).map { record ->
+                val deserialized: QuestionSet = Json.decodeFromString(record["json"].toString())
+                deserialized
+            }.forEach {
+                result[it.id] = it
+            }
+        }
+        return result
+    }
+
     @Throws(QuestionSetNotFoundException::class, InvalidQuestionSetVersionException::class)
     private fun selectByIdAndVersionOrElseLatest(
         db: SqliteDatabase,

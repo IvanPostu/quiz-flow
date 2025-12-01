@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 data class QuizResultResponse(
     @SerialName("quiz_id") val quizId: String,
     @SerialName("question_set_id") val questionSetId: String,
+    @SerialName("question_set_name") val questionSetName: String,
     @SerialName("question_set_version") val questionSetVersion: Int,
     @SerialName("quiz_created_date") @Serializable(with = InstantSerializer::class) val quizCreatedDate: Instant,
     @SerialName("quiz_finalized_date") @Serializable(with = InstantSerializer::class) val quizFinalizedDate: Instant?,
