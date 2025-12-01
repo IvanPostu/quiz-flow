@@ -13,22 +13,22 @@
     justify-content: flex-end;
     gap: 15px;
     padding: 10px;
-  }
 
-  .simplePaginationButton {
-    padding: 0.45rem;
-    background-color: variables.$blue300;
-    color: variables.$white100;
-    cursor: pointer;
-    border: none;
-    border-radius: 5px;
+    .simplePaginationButton {
+      padding: 0.45rem;
+      background-color: variables.$blue300;
+      color: variables.$white100;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
 
-    &:hover {
-      background-color: variables.$blue400;
-    }
+      &:hover {
+        background-color: variables.$blue400;
+      }
 
-    &:active {
-      background-color: variables.$blue500;
+      &:active {
+        background-color: variables.$blue500;
+      }
     }
   }
 }

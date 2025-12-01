@@ -48,6 +48,17 @@ export const QuizResultsContainer = () => {
       }
     );
   };
+  const fetchQuestionSetsList = (type: "next" | "prev") => {
+    let newOffset =
+      state.offset +
+      (type === "next"
+        ? DEFAULT_LIMIT_OF_QUESTION_RESULTS
+        : -DEFAULT_LIMIT_OF_QUESTION_RESULTS);
+    if (newOffset < 0) {
+      newOffset = 0;
+    }
+    internalFetchQuizResults(newOffset);
+  };
 
   useEffect(() => {
     internalFetchQuizResults(state.offset);
@@ -101,6 +112,22 @@ export const QuizResultsContainer = () => {
               onItemClick={(id) => navigate(`/quiz/${id}`)}
             />
           )}
+          <div className={styles.paginationSection}>
+            <button
+              onClick={() => fetchQuestionSetsList("prev")}
+              disabled={state.offset === 0}
+              className={styles.simplePaginationButton}
+            >
+              Prev. {DEFAULT_LIMIT_OF_QUESTION_RESULTS}
+            </button>
+            <button
+              onClick={() => fetchQuestionSetsList("next")}
+              disabled={state.quizResults?.length === 0}
+              className={styles.simplePaginationButton}
+            >
+              Next {DEFAULT_LIMIT_OF_QUESTION_RESULTS}
+            </button>
+          </div>
         </div>
       </div>
     </Fragment>
