@@ -61,7 +61,9 @@ function mapQuizResultResponseToQuizResult(
     questionSetName: response.question_set_name,
     questionSetVersion: response.question_set_version,
     quizCreatedDate: parsePreciseISO(response.quiz_created_date),
-    quizFinalizedDate: parsePreciseISO(response.quiz_finalized_date),
+    quizFinalizedDate: response.quiz_finalized_date
+      ? parsePreciseISO(response.quiz_finalized_date)
+      : undefined,
     questionCount: response.question_count,
     answersCount: response.answers_count,
     correctAnswersCount: response.correct_answers_count,
@@ -75,7 +77,7 @@ interface QuizResultResponse {
   readonly question_set_name: string;
   readonly question_set_version: number;
   readonly quiz_created_date: string;
-  readonly quiz_finalized_date: string;
+  readonly quiz_finalized_date?: string;
   readonly question_count: number;
   readonly answers_count: number;
   readonly correct_answers_count?: number;

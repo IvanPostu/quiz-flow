@@ -90,7 +90,7 @@ export const QuizContainer = () => {
     },
     [state]
   );
-  const finalizeCurrentQuestion = () => {
+  const goToTheNextQuestionOfSubmitIfNeeded = () => {
     if (!state.quizItems) {
       return;
     }
@@ -107,7 +107,7 @@ export const QuizContainer = () => {
 
   const onEnterPress = useCallback((e: KeyboardEvent) => {
     if (e.key === "Enter") {
-      finalizeCurrentQuestion();
+      goToTheNextQuestionOfSubmitIfNeeded();
     }
   }, []);
 
@@ -233,6 +233,8 @@ export const QuizContainer = () => {
   }
 
   const quizItem: QuizItemType = state.quizItems[state.currentQuizItemIndex];
+  const isLastQuizItem =
+    state.currentQuizItemIndex === state.quizItems.length - 1;
   return (
     <Container>
       <CardContainer className={styles.quizRoot}>
@@ -320,8 +322,11 @@ export const QuizContainer = () => {
             </div>
           )}
         </div>
-        <button disabled={state.isFinalized} onClick={finalizeCurrentQuestion}>
-          Submit
+        <button
+          disabled={state.isFinalized && isLastQuizItem}
+          onClick={goToTheNextQuestionOfSubmitIfNeeded}
+        >
+          Next
         </button>
       </CardContainer>
     </Container>
