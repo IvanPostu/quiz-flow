@@ -1,4 +1,5 @@
 import { Fragment, useState } from "react";
+import { Checkbox } from "src/components/Checkbox/Checkbox";
 import { Container } from "src/components/Container/Container";
 import { LoaderDots } from "src/components/LoaderDots/LoaderDots";
 import { LoaderSpinner } from "src/components/LoaderSpinner/LoaderSpinner";
@@ -39,6 +40,18 @@ export const SandboxPage = () => {
         >
           Open Modal
         </button>
+        <div>
+          <Checkbox
+            checked
+            label="Test1"
+            onChange={(isChecked) => console.log(isChecked)}
+          />
+          <Checkbox
+            checked={false}
+            label="Test2"
+            onChange={(isChecked) => console.log(isChecked)}
+          />
+        </div>
         <Modal
           isOpen={state.modalIsActive}
           closeModal={closeModal}

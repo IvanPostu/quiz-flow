@@ -1,0 +1,29 @@
+@use "src/styles/globalVariables.module.scss" as variables;
+@use "src/styles/mixins";
+
+.checkboxWrapper {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  @include mixins.uncopyable;
+  font-size: 18px;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.customBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.hiddenInput:checked + .customBox {
+  background: auto;
+}
+
+.label {
+  color: variables.$dark100;
+}
