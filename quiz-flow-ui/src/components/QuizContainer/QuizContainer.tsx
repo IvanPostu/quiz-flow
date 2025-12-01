@@ -240,7 +240,7 @@ export const QuizContainer = () => {
         <div className={styles.quizHeader}>
           {state.quizResult && (
             <SummaryResult
-              correctAnswersCount={state.quizResult.correctAnswersCount}
+              correctAnswersCount={state.quizResult.correctAnswersCount || 0}
               questionsCount={state.quizResult.questionCount}
             />
           )}

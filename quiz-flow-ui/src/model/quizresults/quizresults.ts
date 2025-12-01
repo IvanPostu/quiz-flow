@@ -58,6 +58,7 @@ function mapQuizResultResponseToQuizResult(
   return {
     quizId: response.quiz_id,
     questionSetId: response.question_set_id,
+    questionSetName: response.question_set_name,
     questionSetVersion: response.question_set_version,
     quizCreatedDate: parsePreciseISO(response.quiz_created_date),
     quizFinalizedDate: parsePreciseISO(response.quiz_finalized_date),
@@ -71,17 +72,18 @@ function mapQuizResultResponseToQuizResult(
 interface QuizResultResponse {
   readonly quiz_id: string;
   readonly question_set_id: string;
+  readonly question_set_name: string;
   readonly question_set_version: number;
   readonly quiz_created_date: string;
   readonly quiz_finalized_date: string;
   readonly question_count: number;
   readonly answers_count: number;
-  readonly correct_answers_count: number;
+  readonly correct_answers_count?: number;
   readonly answers: QuizResultAnswerResponse[];
 }
 
 interface QuizResultAnswerResponse {
   readonly question_id: string;
   readonly chosen_answer_indexes: number[];
-  readonly right_answer_indexes: number[];
+  readonly right_answer_indexes?: number[];
 }
