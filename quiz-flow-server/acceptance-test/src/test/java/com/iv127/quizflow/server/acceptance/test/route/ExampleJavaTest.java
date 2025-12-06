@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -54,6 +55,13 @@ public class ExampleJavaTest {
     }
 
     @Test
+    public void testAmbiguousIncrementExpression() {
+        int x = 5;
+        x += x + (x + 3) + ++x;
+        assertThat(x).isEqualTo(24);
+    }
+
+    @Test
     public void testSortStringsUsingNaturalOrderComparator() {
         var list = new ArrayList<String>();
         list.add("-100");
@@ -74,6 +82,49 @@ public class ExampleJavaTest {
                         "Aaaa",
                         "aaaa"
                 ));
+    }
+
+    @Test
+    public void testLabelBlock() {
+        int one = -1;
+        loopX:
+        {
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    if (i == 2 && j == 2) {
+                        one = 1;
+                        break loopX;
+                    }
+                }
+            }
+        }
+        assertThat(one)
+                .isOne();
+    }
+
+    @Test
+    public void testSubList() {
+        List<String> vowels = new ArrayList<String>();
+        vowels.add("a");
+        vowels.add("e");
+        vowels.add("i");
+        vowels.add("o");
+        vowels.add("u");
+
+        Function<List<String>, List<String>> f = list -> list.subList(2, 4);
+        f.apply(vowels);
+
+        assertThat(vowels)
+                .isEqualTo(List.of(
+                        "a",
+                        "e",
+                        "i",
+                        "o",
+                        "u"));
+        assertThat(f.apply(vowels))
+                .isEqualTo(List.of(
+                        "i",
+                        "o"));
     }
 
     class InnerClassStaticField {
