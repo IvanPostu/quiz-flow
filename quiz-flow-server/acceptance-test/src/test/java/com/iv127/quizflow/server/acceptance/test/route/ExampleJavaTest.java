@@ -127,6 +127,18 @@ public class ExampleJavaTest {
                         "o"));
     }
 
+    @Test
+    public void testOrOperatorForCharacters() {
+        // char is promoted to int before OR operation
+        int result = 'a' | 'b';
+        /*97 = 0110 0001
+        98 = 0110 0010
+                ---------------- OR
+        0110 0011 = 99*/
+        assertThat(result)
+                .isEqualTo(99);
+    }
+
     class InnerClassStaticField {
         private static final int QQQ = 99;
         private static int QQQ1 = 991;
