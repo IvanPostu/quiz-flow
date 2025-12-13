@@ -3,6 +3,7 @@ package com.iv127.quizflow.server.acceptance.test.route;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
@@ -137,6 +138,47 @@ public class ExampleJavaTest {
         0110 0011 = 99*/
         assertThat(result)
                 .isEqualTo(99);
+    }
+
+    @Test
+    public void testTrickyLoop1() {
+        var counter = 0;
+        outer:
+        for (var i = 0; i < 3; i++) {
+            middle:
+            for (var j = 0; j < 3; j++) {
+                inner:
+                for (var k = 0; k < 3; k++) {
+                    if (k - j > 0) {
+                        break middle;
+                    }
+                    counter++;
+                }
+            }
+        }
+        assertThat(counter).isEqualTo(3);
+    }
+
+    private static final int EXAMPLE1 = 90;
+
+    @Test
+    public void testLocalANdStaticVariableDoesNotCOnflict() {
+        int EXAMPLE1 = (EXAMPLE1 = 3) * 4;
+        assertThat(EXAMPLE1).isEqualTo(12);
+        assertThat(this.EXAMPLE1).isEqualTo(90);
+    }
+
+    @Test
+    public void testArraysEquals() {
+        int[] arr1 = {1, 2, 999};
+        int[] arr2 = {1, 2, 99, 99};
+        assertThat(Arrays.compare(arr1, arr2))
+                .isEqualTo(1);
+
+        int[] arr11 = {1, 2, 999};
+        int[] arr12 = {1, 2, 999, 1, 1, 1};
+        assertThat(Arrays.compare(arr11, arr12))
+                .isEqualTo(-3);
     }
 
     class InnerClassStaticField {
