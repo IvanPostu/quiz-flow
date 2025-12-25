@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -181,9 +182,50 @@ public class ExampleJavaTest {
                 .isEqualTo(-3);
     }
 
+    @Test
+    public void testWhitespaceFromOpeningTextblockDelimiterIsIgnored() {
+        List<? super Float> a = new ArrayList<Object>();
+        List<? super Float> a1 = new ArrayList<Float>();
+        List<? super Float> a2 = new ArrayList();
+        List<? extends Number> q1 = new ArrayList<Number>();
+        List<? extends Number> q2 = new ArrayList<Float>();
+        List<? extends Number> q3 = new ArrayList();
+
+        Stream.of(a, a1, a2, q1, q1, q2, q3).forEach(value -> assertThat(value).isEmpty());
+
+        var s = """     
+                abc q               """;
+        assertThat(s).isEqualTo("abc q");
+
+        var s1 = """
+                    hello java \
+                guru
+                    """;
+        assertThat(s1).isEqualTo("    hello java guru\n");
+    }
+
     class InnerClassStaticField {
         private static final int QQQ = 99;
         private static int QQQ1 = 991;
     }
+
+    interface House {
+        public default String getAddress() {
+            return "101 Main Str";
+        }
+    }
+
+    interface Office {
+        public static String getAddress() {
+            return "101 Smart Str";
+        }
+    }
+
+    class HomeOffice implements House, Office {
+        public String getAddress() {
+            return "R No 1, Home";
+        }
+    }
+
 
 }
