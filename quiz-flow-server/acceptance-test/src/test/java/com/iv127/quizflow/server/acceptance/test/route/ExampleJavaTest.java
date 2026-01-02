@@ -14,6 +14,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ExampleJavaTest {
 
     @Test
+    public void testJavaLabelBlockWithBreak() {
+        int i = 10;
+        aaa:
+        {
+            i++;
+            if (i == 11) {
+                break aaa; // continue can not be used
+            }
+            i++;
+        }
+        assertThat(i)
+                .isEqualTo(11);
+    }
+
+    @Test
     public void testEmptyTextBlock() {
         String abc = /*whitespaces ignored*/"""            
                 """;
@@ -200,7 +215,7 @@ public class ExampleJavaTest {
         var s1 = """
                     hello java \
                 guru
-                    """;
+                """;
         assertThat(s1).isEqualTo("    hello java guru\n");
     }
 
