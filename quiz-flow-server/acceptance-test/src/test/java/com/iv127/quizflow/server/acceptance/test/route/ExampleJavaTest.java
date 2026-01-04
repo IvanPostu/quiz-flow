@@ -2,6 +2,8 @@ package com.iv127.quizflow.server.acceptance.test.route;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.DateTimeException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -10,6 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 public class ExampleJavaTest {
 
@@ -195,6 +198,43 @@ public class ExampleJavaTest {
         int[] arr12 = {1, 2, 999, 1, 1, 1};
         assertThat(Arrays.compare(arr11, arr12))
                 .isEqualTo(-3);
+
+        String[] s3 = {"Camel"};
+        String[] s4 = {"Camel", null, null, null};
+        assertThat(Arrays.compare(s3, s4))
+                .isEqualTo(-3);
+    }
+
+    @Test
+    public void testLeapYear() {
+        LocalDate leapYear = LocalDate.of(2028, 2, 29);
+        assertThat(leapYear).isNotNull();
+        assertThrowsExactly(DateTimeException.class, () -> LocalDate.of(2028 + 1, 2, 29));
+    }
+
+    @Test
+    public void testMathFunctions() {
+        assertThat(Math.floor(6.6))
+                .isEqualTo(6);
+        assertThat(Math.round(5.5))
+                .isEqualTo(6);
+        assertThat(Math.round(5.499))
+                .isEqualTo(5);
+    }
+
+    @Test
+    public void testFinalVar() {
+        final var q = 1;
+        final var w = q + 1;
+        assertThat(q).isOne();
+        assertThat(w).isEqualTo(2);
+    }
+
+    @Test
+    public void testIncrementAndAssign() {
+        var q = 1;
+        q = q++;
+        assertThat(q).isOne();
     }
 
     @Test
