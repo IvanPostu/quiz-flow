@@ -1,5 +1,6 @@
 package com.iv127.quizflow.server.acceptance.test.route;
 
+import com.iv127.quizflow.server.acceptance.test.route.test.InterfaceWithPackagePrivateStaticMethod;
 import org.junit.jupiter.api.Test;
 
 import java.time.DateTimeException;
@@ -15,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 public class ExampleJavaTest {
+
 
     @Test
     public void testJavaLabelBlockWithBreak() {
@@ -238,6 +240,12 @@ public class ExampleJavaTest {
     }
 
     @Test
+    public void testGetOne() {
+        assertThat(InterfaceWithPackagePrivateStaticMethod.getOne())
+                .isEqualTo(1);
+    }
+
+    @Test
     public void testWhitespaceFromOpeningTextblockDelimiterIsIgnored() {
         List<? super Float> a = new ArrayList<Object>();
         List<? super Float> a1 = new ArrayList<Float>();
@@ -257,6 +265,12 @@ public class ExampleJavaTest {
                 guru
                 """;
         assertThat(s1).isEqualTo("    hello java guru\n");
+    }
+
+    @Test
+    public void testNullCastToType() {
+        var huey = (String) null;
+        assertThat(huey).isNull();
     }
 
     class InnerClassStaticField {
@@ -280,6 +294,14 @@ public class ExampleJavaTest {
         public String getAddress() {
             return "R No 1, Home";
         }
+    }
+
+    // by default final and static
+    record TestRecord(int value) {
+    }
+
+    private static int getTestRecordValue() {
+        return new TestRecord(0).value();
     }
 
 
